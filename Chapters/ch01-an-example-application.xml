@@ -1,0 +1,178 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+
+<!-- Chapter 1
+   -
+   - An Example Application
+  -->
+
+<chapter id="chap-example-app">
+<resources>
+<images>Chapter01</images>
+<downloads>Chapter01</downloads>
+</resources>
+<filename>an-example-application.php</filename>
+<uri>an-example-application</uri>
+<title>An Example Application</title>
+
+<summary>We&rsquo;ll need a simple application to add our panes to, so we start by putting one together.</summary>
+
+<section>
+<p>Over the course of this tutorial, we&rsquo;ll look at the different ways that panes can be used in Wimp applications, and the code required to make them work. Since examples almost always make things easier to follow, we&rsquo;ll use a minimalist application and ... etc.</p>
+
+<p>The language that we will be working in is BBC&nbsp;BASIC, although the concepts introduced should be easy enough to translate into other languages as required. The code will be self-contained, to avoid the distraction of using additional libraries, but I&rsquo;ll be borrowing a number of the routines from my <link href="../../wimplib">WimpLib BASIC Library</link>.</p>
+
+<p>If you find it hard to follow any of the concepts in this chapter, it might be useful to look at a more general introduction to the Wimp first. There are a number of good books available for BASIC programmers, including <cite>First Steps in Wimp Programming</cite> and <cite>Wimp Programming For All</cite>, while those favouring C may wish to read my own <link href="../../">Wimp Programming In C</link> tutorial elsewhere on this site.</p>
+</section>
+
+<section>
+<title>An application shell</title>
+
+<p>To allow us to demonstrate panes, our application must be able to initialise itself, stay running while we examine what it does, and then exit on demand. A minimal structure for this can be seen in <ref id="list-example-app-core" />.</p>
+
+<code id="list-example-app-core" lang="bbcbasic" title="The application core">TaskName$ = &quot;PaneDemo&quot;
+TaskSprite$ = &quot;application&quot;
+
+ON ERROR result% = FNwimperror_program : END
+
+PROCinitialise
+
+ON ERROR Quit% = FNwimperror_program
+
+WHILE NOT Quit%
+	PROCpoll
+ENDWHILE
+
+SYS &quot;Wimp_CloseDown&quot;
+END</code>
+
+<p>The code initialises a pair of global variables &ndash; <variable>TaskName$</variable> and <variable>TaskSprite$</variable> &ndash; which contain the application name and sprite necessary for the error handling. It then sets up an initial error handler, before calling <function>PROCinitialise</function> to get its interaction with the Wimp up and running.</p>
+
+<p>If this goes OK, the error hander is updated to be a little less drastic than the original one, before the code drops into the standard Wimp poll loop. Finally, when <variable>Quit%</variable> becomes <name>TRUE</name> indicating that the program should exit, it falls out of the <code>WHILE</code> loop and calls <swi>Wimp_CloseDown</swi> to tidy things up.</p>
+
+<p>The initialisation is carried out by <function>PROCinitialise</function>, which for now can be seen in <reference id="list-example-app-init" />.</p>
+
+<code id="list-example-app-init" lang="bbcbasic" title="The Wimp initialisation code">DEF PROCinitialise
+LOCAL buffer_size%
+
+REM Set up the quit flag and global data blocks.
+
+Quit% = FALSE
+
+buffer_size% = 4000
+
+DIM b% buffer_size% - 1, q% 255
+
+REM Initialise with the Wimp.
+
+q%!0 = 0
+
+SYS &quot;Wimp_Initialise&quot;, 310, &amp;4B534154, TaskName$, q%</code>
+
+<p>For now, we do very little in the way of initialisation. The global <variable>Quit%</variable> is initialised to <name>FALSE</name>, indicating that the appliction should not exit immediately, and a couple of buffers &ndash; <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 4000 and 256 bytes respectively. Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be passed to <swi>Wimp_Poll/</swi> while <variable>q%</variable> will mostly be used as a second parameter block by other Wimp SWI calls.</p>
+
+<p>The program requires 310 as its minimum Wimp version: whilst pane code will work on RISC&nbsp;OS&nbsp;2, 3.10 is the oldest version of the OS that it&rsquo;s practical to support in modern software. This means that <swi>Wimp_Initialise</swi> requires a list of messages to be passed in <name>R3</name>, so we build this up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
+
+<p>Error handling is looked after by <function>FNwimperror_program</function>, which can be seen in <reference id="list-example-app-error" />.</p>
+
+<code id="list-example-app-error" lang="bbcbasic" title="The Wimp error handling code">DEF FNwimperror_program
+LOCAL result%
+
+SYS &quot;Hourglass_Smash&quot;
+
+!q% = ERR
+$(q% + 4) = TaskName$ + &quot; has suffered an internal error (&quot; + REPORT$ + &quot;; error code &quot; + STR$(ERL) + &quot;)&quot; + CHR$(0)
+SYS &quot;Wimp_ReportError&quot;, q%, &amp;0703, TaskName$, TaskSprite$, 1, 0 TO ,result%
+
+=(result% = 2)</code>
+
+<p>In the event of an error, <swi>Hourglass_Smash</swi> is called to ensure that the hourglass is cleared, then <swi>Wimp_ReportError</swi> is used to report the problem to the user. Since this is called from <code>ON&nbsp;ERROR</code>, the expectation is that <code>REPORT$</code> and <code>ERL</code> will have useful values.</p>
+
+<p>Finally, <function>PROCpoll</function> is called repeatedly to handle the calls to <swi>Wimp_Poll</swi>; the code can be seen in <reference id="list-example-app-poll" />.</p>
+
+<code id="list-example-app-poll" lang="bbcbasic" title="The main Wimp Poll loop">DEF PROCpoll
+LOCAL reason%
+
+SYS &quot;Wimp_Poll&quot;, &amp;3C01, b% TO reason%
+
+CASE reason% OF
+	WHEN 17, 18	: IF block%!16 = 0 THEN Quit% = TRUE
+ENDCASE
+ENDPROC</code>
+
+<p>For now, there&rsquo;s not much here: we&rsquo;re only interested in <name>Message_Quit</name>, which has the value of zero; if this arrives, we set the <variable>Quit%</variable> to <name>TRUE</name> so that the program will terminate. This ensures that it can be shut down from the Task Manager.</p>
+
+<p>If the application is run in this state, it will run quietly in the background with no evidence of its existence aside from an entry in the Task Manager. To do something more interesting, we&rsquo;ll need to add some windows!</p>
+</section>
+
+<section>
+<title>Adding some windows</title>
+
+<p>Before we can add a pane to our application, we&rsquo;ll need a window to which it can be attached. To this end, we will create a couple of windows in a templates file: a main window and, to prove that our pane handling code doesn&rsquo;t affect other windows in the application, a standard program information window.</p>
+
+<!-- Stuff about WinEd. -->
+
+<p>To load the templates into our application, we can add some lines to <function>PROCinitialise</function> directly after the call to <swi>Wimp_Initialise</swi>. These can be seen in <reference id="list-example-app-init-temp" />.</p>
+
+<code id="list-example-app-init-temp" lang="bbcbasic" title="Initialising the window templates">REM Load the window templates
+
+DIM TemplateName% 12
+
+SYS &quot;Wimp_OpenTemplate&quot;,,&quot;&lt;PaneDemo$Dir&gt;.Templates&quot;
+
+PROCtemplate_load(&quot;Main&quot;, b%, buffer_size%, -1)
+SYS &quot;Wimp_CreateWindow&quot;,,b% TO MainWindow%
+
+PROCtemplate_load(&quot;ProgInfo&quot;, b%, buffer_size%, -1)
+SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%
+
+SYS &quot;Wimp_CloseTemplate&quot;</code>
+
+<p>The code opens the templates file with <swi>Wimp_OpenTemplate</swi>, then loads window tenplates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively.</p>
+
+<p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
+
+<code id="list-example-app-load-temp" lang="bbcbasic" title="Load a window template into memory">DEF PROCtemplate_load(name$, buffer%, size%, fonts%)
+LOCAL templ_size%, indir_size%, workspace%
+
+REM Find the size required for the template and indirected data.
+
+$TemplateName%=LEFT$(name$ + STRING$(12, CHR$(13)), 12)
+SYS &quot;Wimp_LoadTemplate&quot;,,,,, -1, TemplateName%, 0 TO ,templ_size%, indir_size%
+
+REM Return if the template won't fit in the buffer.
+
+IF templ_size% &gt; size% THEN ENDPROC
+
+REM Claim the required indirection block.
+
+DIM workspace% indir_size% - 1
+
+REM Load the template into the buffer.
+
+SYS &quot;Wimp_LoadTemplate&quot;,,buffer%, workspace%, workspace% + indir_size%, fonts%, TemplateName%, 0
+ENDPROC</code>
+
+<p>Taking a pointer to the larger of the two buffers that we defined in <function>PROCinitialise</function>, the code uses <swi>Wimp_LoadTemplate</swi> to check how much space the template definition will take, and how much space it will require to store any indirected icon definitions.</p>
+
+<p>Assuming the definition will fit into the supplied buffer, <code>DIM</code> is used to allocate the indirected icon space, then <swi>Wimp_LoadTemplate</swi> is used again &ndash; this time to actually load the definition into memory.</p>
+
+<!-- Iconbar icon -->
+
+<!-- Select click on IB icon to open window. -->
+
+<!-- *** new section *** -->
+
+<!-- Menus: create and open. -->
+
+<!-- menu selections -->
+
+<!-- Is PROCmenu_create() used, or is it just PROCmenu_create_iconbar()? -->
+
+</section>
+</chapter>
+</manual>
+

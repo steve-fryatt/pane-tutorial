@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "panes.dtd">
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+<title>Handling Panes</title>
+<breadcrumb><dir>Home</dir><dir>RISC&nbsp;OS</dir></breadcrumb>
+<icons>
+<zip width="34" height="34">../../images/types/zip.png</zip>
+<armv7 alt="ARMV7 OK" width="34" height="39">../../images/compatibility/armv7.png</armv7>
+<iyonix alt="Iyonix OK" width="34" height="39">../../images/compatibility/iyonix.gif</iyonix>
+</icons>
+<resources>
+<images>Images</images>
+<downloads>Downloads</downloads>
+<common>Common</common>
+<chapters>Chapters</chapters>
+</resources>
+
+<!-- Index -->
+
+<index>
+<filename>index.php</filename>
+<uri>./</uri>
+<uri></uri>
+<section>
+<p>One area of the RISC&nbsp;OS Wimp which appears to be shrouded in mystery is the handling of pane windows. Whilst many modern applications will have toolbars or status displays, how they&rsquo;'re implemented is something that doesn&rsquo;t seem to get a mention in any of the books on programming.</p>
+
+<p>This guide was written after seeing the question asked many times in the forums and newsgroups. It isn&rsquo;t a beginner&rsquo;s guide to Wimp programming, but a more detauled look at the specific issues surrounding the handling of pane windows within applications. If you&rsquo;re looking for an entry-level guide to the much larger subject of writing desktop applications, I would suggest looking ... here ... </p>
+
+<p>The examples in this tutorial are written in BASIC, but the techniques are equally applicable to other languages such as C &ndash; I hope that I have managed to explain them in a way that allows them to be applied in your environment of choice.</p>
+
+<p>Many thanks to all those on the <link href="https://www.riscosopen.org/forum/">ROOL Forums</link> who have offered suggestions while I&rsquo;ve worked on this guide.</p>
+</section>
+
+<chapterlist/>
+
+</index>
+
+<chapter file="ch01-an-example-application.xml"/>
+
+</manual>
