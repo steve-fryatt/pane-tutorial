@@ -18,20 +18,20 @@
 <uri>an-example-application</uri>
 <title>An Example Application</title>
 
-<summary>We&rsquo;ll need a simple application to add our panes to, so we start by putting one together.</summary>
+<summary>We&rsquo;ll need a simple application to add our panes to, so let&rsquo;s start by putting one together.</summary>
 
 <section>
-<p>Over the course of this tutorial, we&rsquo;ll look at the different ways that panes can be used in Wimp applications, and the code required to make them work. Since examples almost always make things easier to follow, we&rsquo;ll use a minimalist application and ... etc.</p>
+<p>Over the course of this tutorial, we&rsquo;ll look at the different ways that panes can be used in Wimp applications, and the code required to make them work. Since examples almost always make things easier to follow, we&rsquo;ll start by creating a minimalist application which contains the essentials required to get the windows and their panes on to the desktop.</p>
 
-<p>The language that we will be working in is BBC&nbsp;BASIC, although the concepts introduced should be easy enough to translate into other languages as required. The code will be self-contained, to avoid the distraction of using additional libraries, but I&rsquo;ll be borrowing a number of the routines from my <link href="../../wimplib">WimpLib BASIC Library</link>.</p>
+<p>The language that we will be working in is BBC&nbsp;BASIC, although the concepts introduced should be easy enough to translate into other languages as required. The code will be self-contained, to avoid the distraction of using additional libraries, but I&rsquo;ll be borrowing a number of the routines from my <link href="../libraries">WimpLib BASIC Library</link> to save re-inventing too many wheels along the way.</p>
 
-<p>If you find it hard to follow any of the concepts in this chapter, it might be useful to look at a more general introduction to the Wimp first. There are a number of good books available for BASIC programmers, including <cite>First Steps in Wimp Programming</cite> and <cite>Wimp Programming For All</cite>, while those favouring C may wish to read my own <link href="../../">Wimp Programming In C</link> tutorial elsewhere on this site.</p>
+<p>If you find it hard to follow any of the concepts in this chapter, it might be useful to look at a more general introduction to the Wimp first. There are a number of good books available for BASIC programmers, including <cite><link href="http://www.riscos.com/support/developers/wimpprog/index.htm">A Beginner&rsquo;s Guide To Wimp Programming</link></cite> or <cite>Wimp Programming For All</cite>, while those favouring C may wish to read my own <link href="../wimp-prog">Wimp Programming In C</link> tutorial elsewhere on this site.</p>
 </section>
 
 <section>
 <title>An application shell</title>
 
-<p>To allow us to demonstrate panes, our application must be able to initialise itself, stay running while we examine what it does, and then exit on demand. A minimal structure for this can be seen in <ref id="list-example-app-core" />.</p>
+<p>To allow us to demonstrate panes, our application must be able to initialise itself, stay running while we examine what it does, and then exit on demand. A minimal structure for this can be seen in <reference id="list-example-app-core" />.</p>
 
 <code id="list-example-app-core" lang="bbcbasic" title="The application core">TaskName$ = &quot;PaneDemo&quot;
 TaskSprite$ = &quot;application&quot;
@@ -49,9 +49,9 @@ ENDWHILE
 SYS &quot;Wimp_CloseDown&quot;
 END</code>
 
-<p>The code initialises a pair of global variables &ndash; <variable>TaskName$</variable> and <variable>TaskSprite$</variable> &ndash; which contain the application name and sprite necessary for the error handling. It then sets up an initial error handler, before calling <function>PROCinitialise</function> to get its interaction with the Wimp up and running.</p>
+<p>The code initialises a pair of global variables &ndash; <variable>TaskName$</variable> and <variable>TaskSprite$</variable> &ndash; which contain the application name and sprite necessary for the error handling. It then sets up a simple error handler, before calling <function>PROCinitialise</function> to get its interaction with the Wimp up and running.</p>
 
-<p>If this goes OK, the error hander is updated to be a little less drastic than the original one, before the code drops into the standard Wimp poll loop. Finally, when <variable>Quit%</variable> becomes <name>TRUE</name> indicating that the program should exit, it falls out of the <code>WHILE</code> loop and calls <swi>Wimp_CloseDown</swi> to tidy things up.</p>
+<p>If this goes OK, then the error hander is updated to be a little less drastic than the original one, before the code drops into the standard Wimp poll loop. Finally, when <variable>Quit%</variable> becomes <name>TRUE</name> indicating that the program should exit, it falls out of the <code>WHILE</code> loop and calls <swi>Wimp_CloseDown</swi> to tidy things up.</p>
 
 <p>The initialisation is carried out by <function>PROCinitialise</function>, which for now can be seen in <reference id="list-example-app-init" />.</p>
 

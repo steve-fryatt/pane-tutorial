@@ -24,11 +24,11 @@
 <uri>./</uri>
 <uri></uri>
 <section>
-<p>One area of the RISC&nbsp;OS Wimp which appears to be shrouded in mystery is the handling of pane windows. Whilst many modern applications will have toolbars or status displays, how they&rsquo;'re implemented is something that doesn&rsquo;t seem to get a mention in any of the books on programming.</p>
+<p>One area of the RISC&nbsp;OS Wimp which appears to be shrouded in mystery is the handling of pane windows. Whilst many modern applications will have toolbars or status displays, how they&rsquo;re implemented is something that doesn&rsquo;t seem to get a mention in any of the books on programming. Even the usually helpful <cite>Programmer&rsquo;s Reference Manual</cite> is coy on the subject.</p>
 
-<p>This guide was written after seeing the question asked many times in the forums and newsgroups. It isn&rsquo;t a beginner&rsquo;s guide to Wimp programming, but a more detauled look at the specific issues surrounding the handling of pane windows within applications. If you&rsquo;re looking for an entry-level guide to the much larger subject of writing desktop applications, I would suggest looking ... here ... </p>
+<p>This guide was written after seeing the question asked many times in the forums and newsgroups. It isn&rsquo;t intended to be a beginner&rsquo;s guide to Wimp programming, but rather a more detailed look at the specific issues surrounding the handling of pane windows within applications. If you&rsquo;re looking for an entry-level guide to the much larger subject of writing desktop applications, then for BASIC programmers I would suggest looking at <cite><link href="http://www.riscos.com/support/developers/wimpprog/index.htm">A Beginner&rsquo;s Guide To Wimp Programming</link></cite> or <cite>Wimp Programming For All</cite> (which is available to buy from R-Comp through their PlingStore application). If your preferred language is C, then you may find my own <link href="wimp-prog">Wimp Programming In C</link> tutorial helpful.</p>
 
-<p>The examples in this tutorial are written in BASIC, but the techniques are equally applicable to other languages such as C &ndash; I hope that I have managed to explain them in a way that allows them to be applied in your environment of choice.</p>
+<p>The examples in this tutorial are written in BASIC, but the techniques are equally applicable to other languages such as C &ndash; I hope that I have managed to explain them in a way that allows them to be applied in your environment of choice. The code is all licenced under the MIT Licence, with the aim of making it as widely useful as possible.</p>
 
 <p>Many thanks to all those on the <link href="https://www.riscosopen.org/forum/">ROOL Forums</link> who have offered suggestions while I&rsquo;ve worked on this guide.</p>
 </section>
