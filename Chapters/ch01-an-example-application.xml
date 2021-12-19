@@ -2,6 +2,29 @@
 
 <!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
 
+<!-- Copyright 2021, Stephen Fryatt (info@stevefryatt.org.uk)
+   -
+   - This file is part of Pane Tutorial:
+   -
+   -   http://www.stevefryatt.org.uk/software/
+   -
+   - Licensed under the EUPL, Version 1.2 only (the "Licence");
+   - You may not use this work except in compliance with the
+   - Licence.
+   -
+   - You may obtain a copy of the Licence at:
+   -
+   -   http://joinup.ec.europa.eu/software/page/eupl
+   -
+   - Unless required by applicable law or agreed to in
+   - writing, software distributed under the Licence is
+   - distributed on an "AS IS" basis, WITHOUT WARRANTIES
+   - OR CONDITIONS OF ANY KIND, either express or implied.
+   -
+   - See the Licence for the specific language governing
+   - permissions and limitations under the Licence.
+  -->
+
 <manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
 
 <!-- Chapter 1
@@ -51,9 +74,9 @@ END</code>
 
 <p>The code initialises a pair of global variables &ndash; <variable>TaskName$</variable> and <variable>TaskSprite$</variable> &ndash; which contain the application name and sprite necessary for the error handling. It then sets up a simple error handler, before calling <function>PROCinitialise</function> to get its interaction with the Wimp up and running.</p>
 
-<p>If this goes OK, then the error hander is updated to be a little less drastic than the original one, before the code drops into the standard Wimp poll loop. Finally, when <variable>Quit%</variable> becomes <name>TRUE</name> indicating that the program should exit, it falls out of the <code>WHILE</code> loop and calls <swi>Wimp_CloseDown</swi> to tidy things up.</p>
+<p>If this goes OK, then the error hander is updated to be a little less drastic than the original one, before the code drops into the standard Wimp poll loop. Finally, when <variable>Quit%</variable> becomes <name>TRUE</name>, indicating that the program should exit, it falls out of the <code>WHILE</code> loop and calls <swi>Wimp_CloseDown</swi> to tidy things up.</p>
 
-<p>The initialisation is carried out by <function>PROCinitialise</function>, which for now can be seen in <reference id="list-example-app-init" />.</p>
+<p>The initialisation is carried out by <function>PROCinitialise</function>, which can be seen in <reference id="list-example-app-init" />.</p>
 
 <code id="list-example-app-init" lang="bbcbasic" title="The Wimp initialisation code">DEF PROCinitialise
 LOCAL buffer_size%
@@ -62,19 +85,20 @@ REM Set up the quit flag and global data blocks.
 
 Quit% = FALSE
 
-buffer_size% = 4000
+buffer_size% = 1024
 
 DIM b% buffer_size% - 1, q% 255
 
 REM Initialise with the Wimp.
 
-q%!0 = 0
+q%!0 = 0       : REM Message_Quit
 
-SYS &quot;Wimp_Initialise&quot;, 310, &amp;4B534154, TaskName$, q%</code>
+SYS &quot;Wimp_Initialise&quot;, 310, &amp;4B534154, TaskName$, q%
+ENDPROC</code>
 
-<p>For now, we do very little in the way of initialisation. The global <variable>Quit%</variable> is initialised to <name>FALSE</name>, indicating that the appliction should not exit immediately, and a couple of buffers &ndash; <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 4000 and 256 bytes respectively. Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be passed to <swi>Wimp_Poll/</swi> while <variable>q%</variable> will mostly be used as a second parameter block by other Wimp SWI calls.</p>
+<p>For now, we do very little in the way of initialisation. The global variable <variable>Quit%</variable> is initialised to <name>FALSE</name>, indicating that the appliction should not exit immediately, and a couple of buffers &ndash; <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 1024 and 256 bytes respectively. Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be used as a store for loading template definitions and be passed to <swi>Wimp_Poll</swi>; <variable>q%</variable> will mostly be used as a second parameter block by other Wimp SWI calls.</p>
 
-<p>The program requires 310 as its minimum Wimp version: whilst pane code will work on RISC&nbsp;OS&nbsp;2, 3.10 is the oldest version of the OS that it&rsquo;s practical to support in modern software. This means that <swi>Wimp_Initialise</swi> requires a list of messages to be passed in <name>R3</name>, so we build this up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
+<p>The program indicates that it knows about Wimp version 310: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications should use this as a minimum, since a lot of now-standard functionality such as interactive help in menus as introduced at this point. This means that <swi>Wimp_Initialise</swi> requires a list of messages to be passed in <name>R3</name>, so we build one up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
 
 <p>Error handling is looked after by <function>FNwimperror_program</function>, which can be seen in <reference id="list-example-app-error" />.</p>
 
@@ -99,21 +123,63 @@ LOCAL reason%
 SYS &quot;Wimp_Poll&quot;, &amp;3C01, b% TO reason%
 
 CASE reason% OF
-	WHEN 17, 18	: IF block%!16 = 0 THEN Quit% = TRUE
+	WHEN 17, 18	: IF b%!16 = 0 THEN Quit% = TRUE
 ENDCASE
 ENDPROC</code>
 
-<p>For now, there&rsquo;s not much here: we&rsquo;re only interested in <name>Message_Quit</name>, which has the value of zero; if this arrives, we set the <variable>Quit%</variable> to <name>TRUE</name> so that the program will terminate. This ensures that it can be shut down from the Task Manager.</p>
+<p>For now, there&rsquo;s not much here: we&rsquo;re only interested in <name>Message_Quit</name>, which has the value of zero; if one of these arrives, we set the <variable>Quit%</variable> to <name>TRUE</name> so that the program will terminate. This ensures that, in the absence of any other user interface, it can still be shut down from the <cite>Task Manager</cite>.</p>
 
-<p>If the application is run in this state, it will run quietly in the background with no evidence of its existence aside from an entry in the Task Manager. To do something more interesting, we&rsquo;ll need to add some windows!</p>
+<p>The BASIC program can be saved as <file>!RunImage</file> inside a <file>!PaneDemo</file> application folder, as seen in <reference id="fig-example-app-folder" />.</p>
+
+<image id="fig-example-app-folder" file="example-app-folder.png" title="Our example application&rsquo;s minimalist application folder"/>
+
+<p>The <file>!Boot</file> file, shown in <reference id="list-example-app-boot" />, simply sets the application&rsquo;s system variable.</p>
+
+<code id="list-example-app-boot" lang="obey" title="The !Boot file">If &quot;&lt;PaneDemo$Dir&gt;&quot;=&quot;&quot; Then Set PaneDemo$Dir &lt;Obey$Dir&gt;</code>
+
+<p>The <file>!Run</file> file, seen in <reference id="list-example-app-run" />, is similarly minimalist: setting the system variable, adjusting the wimpslot and launching the BASIC code.</p>
+
+<code id="list-example-app-run" lang="obey" title="The !Run file">Set PaneDemo$Dir &lt;Obey$Dir&gt;
+
+WimpSlot -min 96K -max 96K
+Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
+
+<p>If the application is run in this state, it will sit quietly in the background with no evidence of its existence aside from an entry in the <cite>Task Manager</cite>. To do something more interesting, we&rsquo;ll need to add some windows!</p>
+</section>
+
+<section>
+<title>An iconbar icon</title>
+
+<p>It would be nice to give our application a presence on the iconbar, so that we can quickly open (and re-open) our window. To do this, we will add the code in <reference id="list-example-app-init-ibar" /> to the end of <function>PROCinitialise</function>.</p>
+
+<code id="list-example-app-init-ibar" lang="bbcbasic" title="Initialising the iconbar icon">REM Create an iconbar icon.
+
+PROCcreate_iconbar_icon(TaskSprite$)</code>
+
+<p>It uses a <function>PROCcreate_iconbar_icon()</function> procedure to do the hard work, which is defined in <reference id="list-example-app-ibar-icon"/>.</p>
+
+<code id="list-example-app-ibar-icon" lang="bbcbasic" title="Creating an iconbar icon">DEF PROCcreate_iconbar_icon(sprite$)
+q%!0 = -1
+q%!4 = 0
+q%!8 = 0
+q%!12 = 68
+q%!16 = 68
+q%!20 = &amp;3002
+$(q% + 24) = sprite$
+SYS &quot;Wimp_CreateIcon&quot;,,q%
+ENDPROC</code>
+
+<p>This procedure takes the name of the sprite to use in the icon as a parameter, then creates a standard iconbar icon, 68 by 68 pixels in size, with that sprite and no text. For now, we won&rsquo;t act on clicks made on the icon; this can be added when we have a window to open.</p>
 </section>
 
 <section>
 <title>Adding some windows</title>
 
-<p>Before we can add a pane to our application, we&rsquo;ll need a window to which it can be attached. To this end, we will create a couple of windows in a templates file: a main window and, to prove that our pane handling code doesn&rsquo;t affect other windows in the application, a standard program information window.</p>
+<p>Before we can add a pane to our application, we&rsquo;ll need a window to which it can be attached. To this end, we will create a couple of windows in a templates file: a main window and, to prove that our pane handling code doesn&rsquo;t affect other windows in the application, a standard program information window. These can be seen in <reference id="fig-example-app-templates"/>, being edited in <cite>WinEd</cite>.</p>
 
-<!-- Stuff about WinEd. -->
+<image id="fig-example-app-templates" file="example-app-templates.png" title="The two windows contained in our Templates file"/>
+
+<p>The main window is a window with scroll bars, and some colourful icons in it so that any scroll offsets can be clearly seen. The program information window follows the standard RISC OS conventions. Both window&rsquo;s templates will fit comfortably into the 1024 bytes that we allocated to the load buffer in <function>PROCinitialise</function>.</p>
 
 <p>To load the templates into our application, we can add some lines to <function>PROCinitialise</function> directly after the call to <swi>Wimp_Initialise</swi>. These can be seen in <reference id="list-example-app-init-temp" />.</p>
 
@@ -131,7 +197,7 @@ SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%
 
 SYS &quot;Wimp_CloseTemplate&quot;</code>
 
-<p>The code opens the templates file with <swi>Wimp_OpenTemplate</swi>, then loads window tenplates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively.</p>
+<p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively.</p>
 
 <p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
 
@@ -156,15 +222,62 @@ REM Load the template into the buffer.
 SYS &quot;Wimp_LoadTemplate&quot;,,buffer%, workspace%, workspace% + indir_size%, fonts%, TemplateName%, 0
 ENDPROC</code>
 
-<p>Taking a pointer to the larger of the two buffers that we defined in <function>PROCinitialise</function>, the code uses <swi>Wimp_LoadTemplate</swi> to check how much space the template definition will take, and how much space it will require to store any indirected icon definitions.</p>
+<p>The procedure takes a pointer to the larger of the two buffers that we defined in <function>PROCinitialise</function>, then uses <swi>Wimp_LoadTemplate</swi> to find out how much space the template definition will take, and how much space it will require to store any indirected icon data. Assuming the definition will fit into the supplied buffer, <code>DIM</code> is used to allocate the indirected icon storage, then <swi>Wimp_LoadTemplate</swi> is used again &ndash; this time to actually load the definition into memory.</p>
 
-<p>Assuming the definition will fit into the supplied buffer, <code>DIM</code> is used to allocate the indirected icon space, then <swi>Wimp_LoadTemplate</swi> is used again &ndash; this time to actually load the definition into memory.</p>
+<p>With the windows loaded, we will need to add some code to open the main window when the user clicks on our iconbar icon. Opening the window is fairly simple, and can be done with the procedure shown in <reference id="list-example-app-open-window" />.</p>
 
-<!-- Iconbar icon -->
+<code id="list-example-app-open-window" lang="bbcbasic" title="Opening the main window">DEF PROCopen_main_window
+!q% = MainWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,q%
 
-<!-- Select click on IB icon to open window. -->
+q%!28=-1 : REM Open at the top of the window stack
+SYS &quot;Wimp_OpenWindow&quot;,,q%
+ENDPROC</code>
 
-<!-- *** new section *** -->
+<p>This follows the standard approach to opening a window: obtain the parameter block required by <swi>Wimp_OpenWindow</swi> with a call to <swi>Wimp_GetWindowState</swi>. The handle of the window to open behind (at offset 28 into the block) is set to &minus;1, indicating &ldquo;at the top of the stack&rdquo;, and then the block is passed to <swi>Wimp_OpenWindow</swi> to perform the operation.</p>
+
+<p>To make use of this routine, we can add a procedure to process <name>Mouse Click</name> events as seen in <reference id="list-example-app-mouse-click"/>.</p>
+
+<code id="list-example-app-mouse-click" lang="bbcbasic" title="Process mouse click events">DEF PROCmouse_click(b%)
+CASE b%!12 OF
+WHEN -2
+  CASE b%!8 OF
+  WHEN 4
+    PROCopen_main_window
+  ENDCASE
+ENDCASE
+ENDPROC</code>
+
+<p>This takes a pointer to the <swi>Wimp_Poll</swi> event block and, when the window handle is the iconbar (&minus;2) and the button is <mouse>Adjust</mouse> (4), calls <function>PROCopen_main_window</function>. Finally, we can add a new entry into the <code>CASE</code> statement in <function>PROCpoll</function> to call the code when a <name>Mouse Click</name> event is received.</p>
+
+<p>In order for our windows to work as expected, there are a couple of other events that we must handle: <name>Open Window Request</name> and <name>Close Window Request</name>. As their names suggest, these are sent to our task when one of its windows is to be opened (which includes every time that it changes position or size) or closed. They can often seem fairly pointless in a simple application, but turn out to be essential for handling panes &ndash; as we&rsquo;ll see over the coming chapters.</p>
+
+<p>The complete event handling <code>CASE</code> statement should now look as follows:</p>
+
+<code lang="bbcbasic">CASE reason% OF
+  WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%
+  WHEN 3      : SYS &quot;Wimp_CloseWindow&quot;,,b%
+  WHEN 6      : PROCmouse_click(b%)
+  WHEN 17, 18 : IF b%!16 = 0 THEN Quit% = TRUE
+ENDCASE</code>
+</section>
+
+<section>
+<title>Adding a menu</title>
+
+<p>The final piece of the jigsaw which it would be useful to add to our small application is an iconbar menu with a <menu>Quit</menu> entry, so that we can easily shut it down without having to delve into the <cite>Task Manager</cite>. We can also use it to access our program information window, so that we can be sure that any code which we add to handle our panes doesn&rsquo;t adversely affect the operation of a &lsquo;normal&rsquo; window.</p>
+
+<p>To construct the menu, we will add the lines in <reference id="list-example-app-init-menus" /> to <function>PROCinitialise</function>.</p>
+
+<code id="list-example-app-init-menus" lang="bbcbasic" title="Initialising the iconbar menu">REM Initialise and build the menus.
+
+MenuOpen% = 0
+
+IconbarMenu% = FNmenu_construct(&quot;PaneDemo&quot;, 2)
+PROCmenu_add_entry(IconbarMenu%, 0, &quot;Info&quot;, InfoWindow%)
+PROCmenu_add_entry(IconbarMenu%, 1, &quot;Quit&quot;, 0)</code>
+
+<p>This initialises a gobal variable named <variable>MenuOpen%</variable>, which is used to track the handle of the currently open menu. It then uses <function>FNmenu_construct()</function> and <function>PROCmenu_add_entry()</function> to build up the menu structure in memory. A pointer to the structure is stored in the <variable>IconbarMenu%</variable> variable, so the the menu can be accessed again later.</p>
 
 <!-- Menus: create and open. -->
 
