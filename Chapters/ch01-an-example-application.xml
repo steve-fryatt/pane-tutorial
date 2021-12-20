@@ -175,7 +175,7 @@ ENDPROC</code>
 <section>
 <title>Adding some windows</title>
 
-<p>Before we can add a pane to our application, we&rsquo;ll need a window to which it can be attached. To this end, we will create a couple of windows in a templates file: a main window and, to prove that our pane handling code doesn&rsquo;t adversely affect any other windows in the application, a standard program information window. These can be seen in <reference id="fig-example-app-templates"/>, being edited in <cite>WinEd</cite>.</p>
+<p>Before we can add a pane to our application, we&rsquo;ll need a window to which it can be attached. To this end, we will create a couple of windows in a templates file: a main window and, to prove that our pane handling code doesn&rsquo;t adversely affect any other windows in the application, a standard program information window. These can be seen in <reference id="fig-example-app-templates"/>, being edited in <cite>WinEd</cite> (other template editors are available).</p>
 
 <image id="fig-example-app-templates" file="example-app-templates.png" title="The two windows contained in our Templates file"/>
 
