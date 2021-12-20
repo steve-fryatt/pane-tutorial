@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
+
+<!-- Copyright 2021, Stephen Fryatt (info@stevefryatt.org.uk)
+   -
+   - This file is part of Pane Tutorial:
+   -
+   -   http://www.stevefryatt.org.uk/software/
+   -
+   - Licensed under the EUPL, Version 1.2 only (the "Licence");
+   - You may not use this work except in compliance with the
+   - Licence.
+   -
+   - You may obtain a copy of the Licence at:
+   -
+   -   http://joinup.ec.europa.eu/software/page/eupl
+   -
+   - Unless required by applicable law or agreed to in
+   - writing, software distributed under the Licence is
+   - distributed on an "AS IS" basis, WITHOUT WARRANTIES
+   - OR CONDITIONS OF ANY KIND, either express or implied.
+   -
+   - See the Licence for the specific language governing
+   - permissions and limitations under the Licence.
+  -->
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+
+<!-- Chapter 2
+   -
+   - A Side Toolbar
+  -->
+
+<chapter id="chap-side-bar">
+<resources>
+<images>Chapter02</images>
+<downloads>Chapter02</downloads>
+</resources>
+<filename>a-side-toolbar.php</filename>
+<uri>a-side-toolbar</uri>
+<title>A Side Toolbar</title>
+
+<summary>Everyone knows what the toolbox in <cite>Draw</cite> looks like, so let&rsquo;s make one of our own.</summary>
+
+<section>
+<p>If one were to survey members of the RISC&nbsp;OS community to find out what a &ldquo;toolbox&rdquo; looked like, the answer which came back would probably be along the lines of &ldquo;like the one in <cite>Draw</cite>&rdquo;. <cite>Draw</cite>&rsquo;s toolbox has been present as standard on all systems since the days of RISC&nbsp;OS&nbsp;2, and is still functional to this day. It&rsquo;s also one of the easiest panes to implement, so let&rsquo;s start by making one of our own.</p>
+
+<image id="fig-side-bar-draw" file="side-bar-draw.png" title="Draw&rsquo;s toolbar has become someting of a design classic" />
+</section>
+
+<section>
+<title>Making our first pane</title>
+
+<p>The first thing that we need to do is design the pane itself. As far as the Wimp is concerned, panes are just normal windows, so we&rsquo;ll go back to our template editor of choice (here I&rsquo;m using <cite>WinEd</cite>) and add a new window called &ldquo;Toolbox&rdquo;. We can see that window in the browser in <reference id="fig-side-bar-browser"/>, although the screenshot shows it after editing is complete &ndash; <cite>WinEd</cite> (and probably most other template editors) will give it a full set of scroll bars by default.</p>
+
+<image id="fig-side-bar-browser" file="side-bar-browser.png" title="The updated templates file, with the new toolbox pane" />
+
+<p>Opening the window template up for editing, the first thing that we need to do is to adjust the window flags and parameters. In the <window>Edit window</window> dialogue shown in <reference id="fig-side-bar-flags"/> (or your template editor&rsquo;s equivalent) turn off <em>all</em> of the window furniture &ndash; including the title bar. The pane won&rsquo;t be able to move independently of the window that it&rsquo;s attached to, so there&rsquo;s no need to give the user the option of trying! Under the heading of <icon>Window behaviour</icon>, the <icon>Moveable</icon> flag is also unset &ndash; this corresponds to the &lsquo;window is moveable&rsquo; flag in bit 1 of the window flags, and indicates that the <em>user</em> can&rsquo;t initiate window movement.</p>
+
+<image id="fig-side-bar-flags" file="side-bar-flags.png" title="Editing the pane&rsquo;s window flags in WinEd"/>
+
+<p>The other flag which has been set is <icon>Pane</icon>, which corresponds to the &lsquo;window is a pane&rsquo; flag at bit 5 of the window flags. The <cite>Programmer&rsquo;s Reference Manual</cite> is a little vague about what this flag does, but most developers will probably have discovered that what it <em>doesn&rsquo;t</em> do is the window follow its parent around the screen automatically! It fact it does two quite important things: <!-- To Be Completed -->...</p>
+
+
+<p>Out of view at the bottom of the dialogue, all scroll events off since we don&rsquo;t need the pane to scroll. All of the window colours have been left at their default, <cite>Style Guide</cite> compliant values.</p>
+
+</section>
+</chapter>
+</manual>
+
