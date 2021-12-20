@@ -39,6 +39,7 @@
 <common>Common</common>
 <chapters>Chapters</chapters>
 </resources>
+<licence>the MIT No Attribution License</licence>
 
 <!-- Index -->
 
@@ -58,8 +59,16 @@
 
 <chapterlist/>
 
+<section>
+<title>About this tutorial</title>
+
+<p>This tutorial is licenced under Version 1.2 of the European Union Public Licence, and the source &ndash; in the form of a collection of XML files and the associated graphics and example downloads &ndash; can be found <link href="https://github.com/steve-fryatt/pane-tutorial">on GitHub</link>. It can be built into the format required by this website using my <link href="https://github.com/steve-fryatt/xmldocs">XML Docs tools</link>; these may be useful as a starting point for using the content in other forms, and are also released under the EUPL&nbsp;v1.2.</p>
+
+<p>The content of the example archives, made available to download at points throughout the tutorial, is licenced under the MIT No Attribution License in order to make the examples as useful as possible to those wishing to learn from them. The intent is that whilst re-use of the tutorial text itself must be done within the terms of version 1.2 of the EUPL, free use of the example code can be made by developers in their own RISC&nbsp;OS applications.</p>
+</section>
 </index>
 
 <chapter file="ch01-an-example-application.xml"/>
+<chapter file="ch02-a-side-toolbar.xml"/>
 
 </manual>
