@@ -56,14 +56,20 @@
 
 <image id="fig-side-bar-browser" file="side-bar-browser.png" title="The updated templates file, with the new toolbox pane" />
 
-<p>Opening the window template up for editing, the first thing that we need to do is to adjust the window flags and parameters. In the <window>Edit window</window> dialogue shown in <reference id="fig-side-bar-flags"/> (or your template editor&rsquo;s equivalent) turn off <em>all</em> of the window furniture &ndash; including the title bar. The pane won&rsquo;t be able to move independently of the window that it&rsquo;s attached to, so there&rsquo;s no need to give the user the option of trying! Under the heading of <icon>Window behaviour</icon>, the <icon>Moveable</icon> flag is also unset &ndash; this corresponds to the &lsquo;window is moveable&rsquo; flag in bit 1 of the window flags, and indicates that the <em>user</em> can&rsquo;t initiate window movement &ndash; the <em>application</em> still can, though.</p>
+<p>Opening the window template up for editing, we can change the window title to something short like &ldquo;TB&rdquo; &ndash; although this doesn&rsquo;t really matter, since the title will never be shown to the user. To make it look like a toolbox, we&rsquo;ve also added four action buttons which are each 92 &times; 92 OS&nbsp;Units and offset by 4 OS&nbsp;Units from each edge of the window: the visible area is the adjusted to be 100 &times; 388 OS&nbsp;Units. The end result can be seen in <reference id="fig-side-bar-template"/>; the buttons are just for show, as we won&rsquo;t be using them for anything in this demonstration.</p>
+
+<image id="fig-side-bar-template" file="side-bar-template.png" title="Editing the toolbox pane in WinEd"/>
+
+<p>Next, we must adjust the window&rsquo;s flags and parameters to meet the requirements of a toolbox pane, as seen in <reference id="fig-side-bar-flags"/>. This is the <window>Edit window</window> dialogue in <cite>WinEd</cite>; other template editors will have a close equivalent.</p>
+
+<p>The first action is to turn off <em>all</em> of the window furniture &ndash; including the title bar. The pane won&rsquo;t be able to move independently of the window that it&rsquo;s attached to, so there&rsquo;s no need to give the user the option of trying! Under the heading of <icon>Window behaviour</icon>, the <icon>Moveable</icon> flag is also unset &ndash; this corresponds to the &lsquo;window is moveable&rsquo; flag in bit 1 of the window flags, and indicates that the <em>user</em> can&rsquo;t initiate window movement &ndash; the <em>application</em> still can, though.</p>
 
 <image id="fig-side-bar-flags" file="side-bar-flags.png" title="Editing the pane&rsquo;s window flags in WinEd"/>
 
 <p>The other flag which has been set is <icon>Pane</icon>, which corresponds to the &lsquo;window is a pane&rsquo; flag at bit 5 of the window flags. The <cite>Programmer&rsquo;s Reference Manual</cite> is a little vague about what this flag does, but most developers will probably have discovered that what it <em>doesn&rsquo;t</em> do is cause the window follow its parent around the screen automatically! It fact it does two quite important things: <!-- To Be Completed -->...</p>
 
 
-<p>Out of view at the bottom of the dialogue, all scroll events off since we don&rsquo;t need the pane to scroll. In addition, all of the window colours have been left at their default, <cite>Style Guide</cite> compliant values.</p>
+<p>Down at the bottom of the dialogue, all of the scroll events are off, since we don&rsquo;t need the pane to scroll. In addition, all of the window colours have been left at their default, <cite>Style Guide</cite> compliant values.</p>
 
 </section>
 </chapter>
