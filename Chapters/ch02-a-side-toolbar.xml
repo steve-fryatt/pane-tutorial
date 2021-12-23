@@ -66,10 +66,216 @@
 
 <image id="fig-side-bar-flags" file="side-bar-flags.png" title="Editing the pane&rsquo;s window flags in WinEd"/>
 
-<p>The other flag which has been set is <icon>Pane</icon>, which corresponds to the &lsquo;window is a pane&rsquo; flag at bit 5 of the window flags. The <cite>Programmer&rsquo;s Reference Manual</cite> is a little vague about what this flag does, but most developers will probably have discovered that what it <em>doesn&rsquo;t</em> do is cause the window follow its parent around the screen automatically! It fact it does two quite important things: <!-- To Be Completed -->...</p>
-
+<p>The other flag which we have set is <icon>Pane</icon>, which corresponds to the &lsquo;window is a pane&rsquo; flag at bit 5 of the window flags. The <cite>Programmer&rsquo;s Reference Manual</cite> is a little vague about what this flag does, but most developers will probably have discovered that what it <em>doesn&rsquo;t</em> do is cause the window follow its parent around the screen automatically! In fact it does a few important things, which we&rsquo;ll discuss later in this chapter.</p>
 
 <p>Down at the bottom of the dialogue, all of the scroll events are off, since we don&rsquo;t need the pane to scroll. In addition, all of the window colours have been left at their default, <cite>Style Guide</cite> compliant values.</p>
+
+<p>With the toolbox window design added to the templates and the file saved back into our application, we can add a couple of lines to <function>PROCinitialise</function> to load it and create a window for us to work with, as shown in <reference id="list-side-bar-load-template"/>.</p>
+
+<code id="list-side-bar-load-template" lang="bbcbasic" title="Loading the toolbox template">PROCtemplate_load(&quot;ToolBox&quot;, b%, buffer_size%, -1)
+SYS &quot;Wimp_CreateWindow&quot;,,b% TO ToolBoxWindow%</code>
+
+<p>This follows the same pattern as used for the other two templates: creating the window, and placing the resulting handle into the <variable>ToolBoxWindow%</variable> variable for future reference.</p>
+</section>
+
+
+<section>
+<title>Handling pane events</title>
+
+<p>Handling panes is actually fairly straight-forward &ndash; it&rsquo;s just the details which can seem confusing! It boils down to this: if the Wimp won&rsquo;t do the work for us, we need to track movement of the main window and ensure that every time it moves, we move the pane into the correct relative position. Fortunately, there are only two ways that a window can move: if we do it ourselves, or if it is done by something outside our application (such as the user, or another application). In the latter case, the request will arrive through the <name>Open_Window_Request</name> event; in the former, we&rsquo;ll know about it.</p>
+
+<p>In our existing application, we have the following two lines in <function>PROCpoll</function>, to handle the <name>Open_Window_Request</name> and <name>Close_Window_Request</name> events:</p>
+
+<code lang="bbcbasic">WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%
+WHEN 3      : SYS &quot;Wimp_CloseWindow&quot;,,b%</code>
+
+<p>If we want to adjust the position of the toolbox pane whenever the main window moves, then we can change the first line into a <code>IF</code> statement as follows:</p>
+
+<code lang="bbcbasic">WHEN 2
+  IF !b% = MainWindow% THEN
+    PROChandle_pane_windows(b%)
+  ELSE
+    SYS &quot;Wimp_OpenWindow&quot;,,b%
+  ENDIF</code>
+
+<p>Now, if the window to which the event relates is the main window, then <function>PROChandle_pane_windows()</function> is called; otherwise, the <swi>Wimp_OpenWindow</swi> SWI is called as before. We&rsquo;ll worry about what <function>PROChandle_pane_windows()</function> looks like later on.</p>
+
+<p>Of course, if the main window and its toolbox should be acting as one, then in addition to moving when the main window moves, the pane should be closed when the main window closes. We can look after this in a very similar way, adding another <code>IF</code> statement to the <name>Close_Window_Request</name> event handler in place of the current one-liner:</p>
+
+<code lang="bbcbasic">WHEN 3
+  IF !b% = MainWindow% THEN
+    !q% = ToolBoxWindow%
+    SYS &quot;Wimp_CloseWindow&quot;,,q%
+  ENDIF
+  SYS &quot;Wimp_CloseWindow&quot;,,b%</code>
+
+<p>With this in place, if the window being closed is the main window, then the toolbox window will also be closed first. Putting it all together, we end up with a new version of <function>PROCpoll</function> which can be seen in <reference id="list-side-bar-poll"/>.</p>
+
+<code id="list-side-bar-poll" lang="bbcbasic" title="Handling events for the toolbox pane">DEF PROCpoll
+LOCAL reason%
+
+SYS "Wimp_Poll", &amp;3C01, b% TO reason%
+
+CASE reason% OF
+  WHEN 2
+    IF !b% = MainWindow% THEN
+      PROChandle_pane_windows(b%)
+    ELSE
+      SYS &quot;Wimp_OpenWindow&quot;,,b%
+    ENDIF
+  WHEN 3
+    IF !b% = MainWindow% THEN
+      !q% = ToolBoxWindow%
+      SYS &quot;Wimp_CloseWindow&quot;,,q%
+    ENDIF
+    SYS &quot;Wimp_CloseWindow&quot;,,b%
+  WHEN 6      : PROCmouse_click(b%)
+  WHEN 9      : PROCmenu_selection(b%)
+  WHEN 17, 18 : IF b%!16 = 0 THEN Quit% = TRUE
+ENDCASE
+ENDPROC</code>
+
+<p>This deals with things outside of our application moving the main window, but what about us doing it ourselves? Fortunately, there&rsquo;s only one place where we do, which is at the end of <function>PROCopen_main_window</function>:</p>
+
+<code lang="bbcbasic">REM Open the window at the top of the window stack.
+
+q%!28 = -1 : REM Open window at top of stack
+SYS &quot;Wimp_OpenWindow&quot;,,q%</code>
+
+<p>Fortunately, this is just another call to <swi>Wimp_OpenWindow</swi>, so we should just be able to replace it with a call to <function>PROChandle_pane_windows()</function> in the same was as we did in the <name>Open_Window_Request</name> event handler. This means that our new <function>PROCopen_main_window()</function> will look as seen in <reference id="list-side-bar-open"/>.</p>
+
+<code id="list-side-bar-open" lang="bbcbasic" title="Opening the main window and its toolbox pane">DEF PROCopen_main_window
+LOCAL screen_width%, screen_height%, window_size%
+
+REM Get the window details.
+
+!q% = MainWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,q%
+
+REM If the window isn't open, resize and centre it on the screen.
+
+IF (q%!32 AND &amp;10000) = 0 THEN
+  window_size% = WindowSize%
+
+  REM Read the screen dimensions.
+
+  screen_width% = FNread_mode_dimension(11, 4)
+  screen_height% = FNread_mode_dimension(12, 5)
+
+  REM Ensure that the window fills no more than 75% of either dimension.
+
+  IF window_size% &gt; (screen_width% * 0.75) THEN window_size% = screen_width% * 0.75
+  IF window_size% &gt; (screen_height% * 0.75) THEN window_size% = screen_height% * 0.75
+
+  REM Update the window dimensions.
+
+  q%!4 = (screen_width% - window_size%) / 2   : REM Visible Area Minimum X
+  q%!8 = (screen_height% - window_size%) / 2  : REM Visible Area Minimum Y
+
+  q%!12 = q%!4 + window_size%                 : REM Visible Area Maximum X
+  q%!16 = q%!8 + window_size%                 : REM Visible Area Maximum Y
+ENDIF
+
+REM Open the window at the top of the window stack.
+
+q%!28 = -1 : REM Open window at top of stack
+PROChandle_pane_windows(q%)
+ENDPROC</code>
+
+<p>Aside from working out what goes into the <function>PROChandle_pane_windows()</function> procedure, that&rsquo;s all of the code that we will need in order to handle our new toolbox.</p>
+</section>
+
+
+<section>
+<title>Where does it go?</title>
+
+<p>Now that we have ensured that our <function>PROChandle_pane_windows()</function> procedure will be called every time the positions of the main window and toolbox pane need to be updated, all that remains is to work out how to join the two together.</p>
+
+<p>The procedure takes a single parameter, <variable>main%</variable>, which is a pointer to the <swi>Wimp_WindowState</swi> block for the main window. Whether this arrived through <swi>Wimp_Poll</swi> into the block pointed to by <variable>b%</variable>, or was put into the block pointed to by <variable>q%</variable> using <swi>Wimp_WindowState</swi> in <function>PROCopen_main_window</function>, it contains details of where the main window is required to be opened.</p>
+
+<p>The first thing that we need to do is to create an equivalent window state block for the toolbox pane, which we can then update with the necessary values calculated from the main window&rsquo;s position. Unfortunately we can&rsquo;t use our usual scratch block of memory pointed to by <variable>q%</variable>, because that could already be holding the data for the main window if we have been called from <function>PROCopen_main_window</function>. However, we know that only 36 bytes will be in use from what is at least a 256 byte block, so we can just load the pane information in at an offset of 64 bytes.</p>
+
+<code lang="bbcbasic">pane% = main% + 64
+
+!pane% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,pane%</code>
+
+<p>Since the pane can&rsquo;t be resized by the user, we can be fairly confident that its width and height will still be as they were saved in the templates file. These can be used to give us the values for the pane&rsquo;s width and height, saving us from having to use constants in the code. Before making any changes to the pane window state block&rsquo;s contents, we therefore calculate the width and height of the pane&rsquo;s visible area and store the two values for future use.</p>
+
+<code lang="bbcbasic">width% = pane%!12 - pane%!4   : REM Visible Area Maximum X - Minimum X
+height% = pane%!16 - pane%!8  : REM Visible Area Maximum Y - Minimum Y</code>
+
+<p>As already noted, we know where the main window should be on screen. We also know the relationship that we want to have between the main window and its pane, as shown in <reference id="fig-side-bar-pos-plane"/>. We can therefore move the pane so that it is in the correct position relative to the main window, update the main window&rsquo;s position if necessary, then call <swi>Wimp_OpenWindow</swi> for both windows in turn.</p>
+
+<image id="fig-side-bar-pos-plane" file="side-bar-pos-plane.png" title="The relationship between the main window and its toolbar" />
+
+<p><reference id="fig-side-bar-pos-plane"/> shows the relationship between the main window and its pane. The tops of the two windows (<maths>y1</maths> for the two visible areas).</p>
+
+
+
+
+
+<code lang="bbcbasic">DEF PROChandle_pane_windows(main%)
+LOCAL pane%, width%, height%
+
+REM Get the Window State block for the pane, using some of the spare
+REM space above the data for the state of the main window.
+
+pane% = main% + 64
+
+!pane% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,pane%
+
+REM Find the width and height of the pane's visible area.
+
+width% = pane%!12 - pane%!4   : REM Visible Area Maximum X - Minimum X
+height% = pane%!16 - pane%!8  : REM Visible Area Maximum Y - Minimum Y
+
+REM Move the pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+pane%!4 = main%!4 - width%    : REM Visible Area Minimum X
+pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y
+pane%!12 = main%!4            : REM Visible Area Maximum X
+pane%!16 = main%!16           : REM Visible Area Maximum Y
+
+REM Unless the main window is to be opened behind the pane, meaning that the
+REM pane must already be in the correct place in the stack, set the pane's
+REM Open Behind so that it appears in the stack where the main window is to go.
+
+IF pane%!28 &lt;&gt; !pane% THEN pane%!28 = main%!28
+
+SYS &quot;Wimp_OpenWindow&quot;,,pane%
+
+REM Set the main window's Open Behind so that it opens behind the pane.
+
+main%!28 = !pane%
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%
+ENDPROC</code>
+
+
+
+
+
+
+
+
+
+
+<p>The Wimp expects panes to be <em>above</em> their parent windows in the window stack: this makes sense, because if they were below, they wouldn&rsquo;t be visible if they overlapped the parent at all (in the way that a toolbar does, for example).</p>
+
+
+
+
+
+
+
+
+
+<p>In fact, it does two quite important things. As the <cite>Programmer&rsquo;s Reference Manual</cite> notes, it ensures that if the pane window gains <intro>input focus</intro>, then the window </p>
+
+
 
 </section>
 </chapter>
