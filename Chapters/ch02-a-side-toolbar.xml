@@ -284,12 +284,61 @@ ENDPROC</code>
 <p>The full code can be found in <reference id="dl-side-bar-1"/>.</p>
 
 <download id="dl-side-bar-1" file="SideBar1" title="A simple vertical toolbox pane" compatibility="armv7"/>
+</section>
 
 
+<section>
+<title>A small improvement</title>
 
+<p>If you&rsquo;re familiar with <cite>Draw</cite>, then there&rsquo;s one small difference which you might notice in the behaviour of the toolbox in our example application compared to the toolbox in <cite>Draw</cite>. If a <cite>Draw</cite> window is moved off the left-hand edge of the screen, then the toolbox pane stops moving when it hits the edge and begins to retract over the parent window as seen in <reference id="fig-side-bar-draw-offscreen"/>. Only when the pane is flush with the side of the main window does it begin to move off the screen again.</p>
 
+<image id="fig-side-bar-draw-offscreen" file="side-bar-draw-offscreen.png" title="Draw&rsquo;s toolbox stays on screen as long as possible"/>
 
+<p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROChandle_pane_windows()</function>, where we set the coordinates of the pane&rsquo;s visible area. Above we used the following fixed calculations:</p>
 
+<code lang="bbcbasic">REM Move the pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+pane%!4 = main%!4 - width%    : REM Visible Area Minimum X
+pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y
+pane%!12 = main%!4            : REM Visible Area Maximum X
+pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
+
+<p>We can replace this by testing the minimum <maths>X</maths> coordinate of the main window&rsquo;s visible area, then applying different calculations for the pane&rsquo;s <maths>X</maths> coordinates as follows:</p>
+
+<list>
+<li>If the main window is on-screen by more than the width of the pane, then the pane is anchored by its right-hand edge as before.</li>
+<li>If the main window is on-screen by less than the width of the pane, then the pane is positioned up against the left-hand side of the screen and does not reference its horizontal position to the main window at all.</li>
+<li>If the main window is off off-screen, then the pane is anchored by its left-hand edge.</li>
+</list>
+
+<p>The code to implement this can be seen in <reference id="list-side-bar-slide"/>.</p>
+
+<code id="list-side-bar-slide" lang="bbcbasic" title="Calculating the horizontal position of the pane more flexibly">REM Move the pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+CASE TRUE OF
+WHEN main%!4 > width%
+  pane%!4 = main%!4 - width%  : REM Visible Area Minimum X
+  pane%!12 = main%!4          : REM Visible Area Maximum X
+WHEN main%!4 > 0
+  pane%!4 = 0                 : REM Visible Area Minimum X
+  pane%!12 = width%           : REM Visible Area Maximum X
+OTHERWISE
+  pane%!4 = main%!4           : REM Visible Area Minimum X
+  pane%!12 = main%!4 + width% : REM Visible Area Maximum X
+ENDCASE
+
+pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y
+pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
+
+<p>With this in place, our own pane begins to behave in a more <cite>Draw</cite>-like way when it reaches the edge of the screen, as seen in <reference id="fig-side-bar-offscreen"/>.</p>
+
+<image id="fig-side-bar-offscreen" file="side-bar-offscreen.png" title="Our own toolbox can now behave more dynamically, too"/>
+
+<p>The full code can be found in <reference id="dl-side-bar-2"/>.</p>
+
+<download id="dl-side-bar-2" file="SideBar2" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
 </section>
 </chapter>
 </manual>
