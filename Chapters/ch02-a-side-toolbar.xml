@@ -111,9 +111,9 @@ ENDPROC</code>
 
 <code id="list-side-bar-poll-open" lang="bbcbasic" title="Dealing with Open Window Request events">DEF PROCopen_window_request(b%)
 IF !b% = MainWindow% THEN
-	PROChandle_pane_windows(b%)
+  PROChandle_pane_windows(b%)
 ELSE
-	SYS &quot;Wimp_OpenWindow&quot;,,b%
+  SYS &quot;Wimp_OpenWindow&quot;,,b%
 ENDIF
 ENDPROC</code>
 
@@ -121,8 +121,8 @@ ENDPROC</code>
 
 <code id="list-side-bar-poll-close" lang="bbcbasic" title="Dealing with Close Window Request events">DEF PROCclose_window_request(b%)
 IF !b% = MainWindow% THEN
-	!q% = ToolBoxWindow%
-	SYS &quot;Wimp_CloseWindow&quot;,,q%
+  !q% = ToolBoxWindow%
+  SYS &quot;Wimp_CloseWindow&quot;,,q%
 ENDIF
 
 SYS &quot;Wimp_CloseWindow&quot;,,b%
@@ -216,7 +216,7 @@ pane%!4 = main%!4 - width%    : REM Visible Area Minimum X</code>
 <section>
 <title>Lost in the stack</title>
 
-<p>This deals with the position of the pane in the <maths>X</maths> and <maths>Y</maths> dimensions, but what about the <maths>Z</maths> dimension &ndash; its position in the window stack? The Wimp requires that panes appear directly above their parent window; however, this is still left up to the application to manage.</p>
+<p>The code above deals with the position of the pane in the <maths>X</maths> and <maths>Y</maths> dimensions, but what about the <maths>Z</maths> dimension &ndash; its position in the window stack? The Wimp requires that panes appear directly above their parent window; however, this is still left up to the application to manage.</p>
 
 <p>There's a very practical reason for this requirement. If something like a toolbar pane goes behind its parent window in the stack, then it will very likely be obscured by its parent. Even if the pane is in front, if it isn&rsquo;t <em>immediately</em> in front, then it&rsquo;s possible for other windows to get in between as seen in <reference id="fig-side-bar-loose"/> (the application was deliberately broken in order to allow this to occur).</p>
 
@@ -235,6 +235,10 @@ pane%!4 = main%!4 - width%    : REM Visible Area Minimum X</code>
 <code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,pane%</code>
 
 <p>With the pane open in the correct place, all that remains to do is to open the main window. This is done using the block from the <name>Open_Window_Request</name> event almost unchanged: the only thing that we alter is the handle of the window to open behind, which we set to the handle of the pane. This ensures that the pane is <em>always</em> directly in front of the main window.</p>
+
+<code lang="bbcbasic">main%!28 = !pane%
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
 
 <p>Putting all of the code above together, <function>PROChandle_pane_windows()</function> will look as shown in <reference id="list-side-bar-panes"/>.</p>
 
