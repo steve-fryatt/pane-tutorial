@@ -322,10 +322,10 @@ pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
 REM relative to where the main window is to go.
 
 CASE TRUE OF
-WHEN main%!4 > width%
+WHEN main%!4 &gt; width%
   pane%!4 = main%!4 - width%  : REM Visible Area Minimum X
   pane%!12 = main%!4          : REM Visible Area Maximum X
-WHEN main%!4 > 0
+WHEN main%!4 &gt; 0
   pane%!4 = 0                 : REM Visible Area Minimum X
   pane%!12 = width%           : REM Visible Area Maximum X
 OTHERWISE
