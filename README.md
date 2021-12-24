@@ -1,7 +1,7 @@
 Handling Panes
 ==============
 
-A tutorial on writing RISC OS Wimp software in C.
+A tutorial on the usage of pane windows under the RISC OS Wimp.
 
 
 Introduction
