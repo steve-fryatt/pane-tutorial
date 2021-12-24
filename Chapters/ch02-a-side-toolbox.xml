@@ -32,7 +32,7 @@
    - A Side Toolbox
   -->
 
-<chapter id="chap-side-bar">
+<chapter id="chap-side-box">
 <resources>
 <images>Chapter02</images>
 <downloads>Chapter02</downloads>
@@ -46,33 +46,33 @@
 <section>
 <p>If one were to survey members of the RISC&nbsp;OS community to find out what a &ldquo;toolbox&rdquo; looked like, the answer which came back would probably be along the lines of &ldquo;like the one in <cite>Draw</cite>&rdquo;. <cite>Draw</cite>&rsquo;s toolbox has been present as standard on all systems since the days of RISC&nbsp;OS&nbsp;2, and is still functional to this day. It&rsquo;s also one of the easiest panes to implement, so let&rsquo;s start by making one of our own.</p>
 
-<image id="fig-side-bar-draw" file="side-bar-draw.png" title="Draw&rsquo;s toolbar has become someting of a design classic" />
+<image id="fig-side-box-draw" file="side-box-draw.png" title="Draw&rsquo;s toolbar has become someting of a design classic" />
 </section>
 
 <section>
 <title>Making our first pane</title>
 
-<p>The first thing that we need to do is design the pane itself. As far as the Wimp is concerned, panes are just normal windows, so we&rsquo;ll go back to our template editor of choice (here I&rsquo;m using <cite>WinEd</cite>) and add a new window called &ldquo;Toolbox&rdquo;. We can see that window in the browser in <reference id="fig-side-bar-browser"/>, although the screenshot shows it after editing is complete &ndash; <cite>WinEd</cite> (and probably most other template editors) will give it a full set of scroll bars by default.</p>
+<p>The first thing that we need to do is design the pane itself. As far as the Wimp is concerned, panes are just normal windows, so we&rsquo;ll go back to our template editor of choice (here I&rsquo;m using <cite>WinEd</cite>) and add a new window called &ldquo;Toolbox&rdquo;. We can see that window in the browser in <reference id="fig-side-box-browser"/>, although the screenshot shows it after editing is complete &ndash; <cite>WinEd</cite> (and probably most other template editors) will give it a full set of scroll bars by default.</p>
 
-<image id="fig-side-bar-browser" file="side-bar-browser.png" title="The updated templates file, with the new toolbox pane" />
+<image id="fig-side-box-browser" file="side-box-browser.png" title="The updated templates file, with the new toolbox pane" />
 
-<p>Opening the window template up for editing, we can change the window title to something short like &ldquo;TB&rdquo; &ndash; although this doesn&rsquo;t really matter, since the title will never be shown to the user. To make it look like a toolbox, we&rsquo;ve also added four action buttons which are each 92 &times; 92 OS&nbsp;Units and offset by 4 OS&nbsp;Units from each edge of the window: the visible area is the adjusted to be 100 &times; 388 OS&nbsp;Units. The end result can be seen in <reference id="fig-side-bar-template"/>; the buttons are just for show, as we won&rsquo;t be using them for anything in this demonstration.</p>
+<p>Opening the window template up for editing, we can change the window title to something short like &ldquo;TB&rdquo; &ndash; although this doesn&rsquo;t really matter, since the title will never be shown to the user. To make it look like a toolbox, we&rsquo;ve also added four action buttons which are each 92 &times; 92 OS&nbsp;Units and offset by 4 OS&nbsp;Units from each edge of the window: the visible area is the adjusted to be 100 &times; 388 OS&nbsp;Units. The end result can be seen in <reference id="fig-side-box-template"/>; the buttons are just for show, as we won&rsquo;t be using them for anything in this demonstration.</p>
 
-<image id="fig-side-bar-template" file="side-bar-template.png" title="Editing the toolbox pane in WinEd"/>
+<image id="fig-side-box-template" file="side-box-template.png" title="Editing the toolbox pane in WinEd"/>
 
-<p>Next, we must adjust the window&rsquo;s flags and parameters to meet the requirements of a toolbox pane, as seen in <reference id="fig-side-bar-flags"/>. This is the <window>Edit window</window> dialogue in <cite>WinEd</cite>; other template editors will have a close equivalent.</p>
+<p>Next, we must adjust the window&rsquo;s flags and parameters to meet the requirements of a toolbox pane, as seen in <reference id="fig-side-box-flags"/>. This is the <window>Edit window</window> dialogue in <cite>WinEd</cite>; other template editors will have a close equivalent.</p>
 
 <p>The first action is to turn off <em>all</em> of the window furniture &ndash; including the title bar. The pane won&rsquo;t be able to move independently of the window that it&rsquo;s attached to, so there&rsquo;s no need to give the user the option of trying! Under the heading of <icon>Window behaviour</icon>, the <icon>Moveable</icon> flag is also unset &ndash; this corresponds to the &lsquo;window is moveable&rsquo; flag in bit 1 of the window flags, and indicates that the <em>user</em> can&rsquo;t initiate window movement &ndash; the <em>application</em> still can, though.</p>
 
-<image id="fig-side-bar-flags" file="side-bar-flags.png" title="Editing the pane&rsquo;s window flags in WinEd"/>
+<image id="fig-side-box-flags" file="side-box-flags.png" title="Editing the pane&rsquo;s window flags in WinEd"/>
 
 <p>The other flag which we have set is <icon>Pane</icon>, which corresponds to the &lsquo;window is a pane&rsquo; flag at bit 5 of the window flags. The <cite>Programmer&rsquo;s Reference Manual</cite> is a little vague about what this flag does, but most developers will probably have discovered that what it <em>doesn&rsquo;t</em> do is cause the window follow its parent around the screen automatically! In fact it does a few important things, which we&rsquo;ll discuss later in this chapter.</p>
 
 <p>Down at the bottom of the dialogue, all of the scroll events are off, since we don&rsquo;t need the pane to scroll. In addition, all of the window colours have been left at their default, <cite>Style Guide</cite> compliant values.</p>
 
-<p>With the toolbox window design added to the templates and the file saved back into our application, we can add a couple of lines to <function>PROCinitialise</function> to load it and create a window for us to work with, as shown in <reference id="list-side-bar-load-template"/>.</p>
+<p>With the toolbox window design added to the templates and the file saved back into our application, we can add a couple of lines to <function>PROCinitialise</function> to load it and create a window for us to work with, as shown in <reference id="list-side-box-load-template"/>.</p>
 
-<code id="list-side-bar-load-template" lang="bbcbasic" title="Loading the toolbox template">PROCtemplate_load(&quot;ToolBox&quot;, b%, buffer_size%, -1)
+<code id="list-side-box-load-template" lang="bbcbasic" title="Loading the toolbox template">PROCtemplate_load(&quot;ToolBox&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO ToolBoxWindow%</code>
 
 <p>This follows the same pattern as used for the other two templates: creating the window, and placing the resulting handle into the <variable>ToolBoxWindow%</variable> variable for future reference.</p>
@@ -89,9 +89,9 @@ SYS &quot;Wimp_CreateWindow&quot;,,b% TO ToolBoxWindow%</code>
 <code lang="bbcbasic">WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%
 WHEN 3      : SYS &quot;Wimp_CloseWindow&quot;,,b%</code>
 
-<p>These just pass the requests straight back to the Wimp to handle, which is all that&rsquo;s necessary for a simple application. If we want to adjust the position of the toolbox pane whenever the main window moves, however, then we will need to do a bit more work. To keep <function>PROCpoll</function> tidy, we will define two new event handling procedures &ndash; <function>PROCopen_window_request()</function> and <function>PROCclose_window_request()</function> &ndash; and use these to replace the calls to <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi>, as seen in <reference id="list-side-bar-poll"/>.</p>
+<p>These just pass the requests straight back to the Wimp to handle, which is all that&rsquo;s necessary for a simple application. If we want to adjust the position of the toolbox pane whenever the main window moves, however, then we will need to do a bit more work. To keep <function>PROCpoll</function> tidy, we will define two new event handling procedures &ndash; <function>PROCopen_window_request()</function> and <function>PROCclose_window_request()</function> &ndash; and use these to replace the calls to <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi>, as seen in <reference id="list-side-box-poll"/>.</p>
 
-<code id="list-side-bar-poll" lang="bbcbasic" title="Handling events for the toolbox pane">DEF PROCpoll
+<code id="list-side-box-poll" lang="bbcbasic" title="Handling events for the toolbox pane">DEF PROCpoll
 LOCAL reason%
 
 SYS "Wimp_Poll", &amp;3C01, b% TO reason%
@@ -107,9 +107,9 @@ ENDPROC</code>
 
 <p>Before either of these two new procedures will do anything, they will check the handle of the window to which the event applies. If it&rsquo;s the handle of the main window, then they will need to do the work required to handle the pane as well; for any other window, they can simply call the appropriate Wimp SWI as before.</p>
 
-<p>In the case of <function>PROCopen_window_request()</function>, we will change the code so that any <name>Open_Window_Request</name> events relating to the main window are passed on again to another new procedure: <function>PROChandle_pane_windows()</function>. Events for other windows will simply be passed on to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-bar-poll-open"/>; We&rsquo;ll worry about what <function>PROChandle_pane_windows()</function> looks like later on.</p>
+<p>In the case of <function>PROCopen_window_request()</function>, we will change the code so that any <name>Open_Window_Request</name> events relating to the main window are passed on again to another new procedure: <function>PROChandle_pane_windows()</function>. Events for other windows will simply be passed on to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-box-poll-open"/>; We&rsquo;ll worry about what <function>PROChandle_pane_windows()</function> looks like later on.</p>
 
-<code id="list-side-bar-poll-open" lang="bbcbasic" title="Dealing with Open Window Request events">DEF PROCopen_window_request(b%)
+<code id="list-side-box-poll-open" lang="bbcbasic" title="Dealing with Open Window Request events">DEF PROCopen_window_request(b%)
 IF !b% = MainWindow% THEN
   PROChandle_pane_windows(b%)
 ELSE
@@ -117,9 +117,9 @@ ELSE
 ENDIF
 ENDPROC</code>
 
-<p>Of course, if the main window and its toolbox should be acting as one, then in addition to moving when the main window moves, the pane should be closed when the main window closes. We can look after this in a very similar way with our new <function>PROCclose_window_request()</function>, seen in <reference id="list-side-bar-poll-close"/>. If the window being closed is the main window, then the toolbox window will be closed first; either way, the window referenced by the event is closed afterwards.</p>
+<p>Of course, if the main window and its toolbox should be acting as one, then in addition to moving when the main window moves, the pane should be closed when the main window closes. We can look after this in a very similar way with our new <function>PROCclose_window_request()</function>, seen in <reference id="list-side-box-poll-close"/>. If the window being closed is the main window, then the toolbox window will be closed first; either way, the window referenced by the event is closed afterwards.</p>
 
-<code id="list-side-bar-poll-close" lang="bbcbasic" title="Dealing with Close Window Request events">DEF PROCclose_window_request(b%)
+<code id="list-side-box-poll-close" lang="bbcbasic" title="Dealing with Close Window Request events">DEF PROCclose_window_request(b%)
 IF !b% = MainWindow% THEN
   !q% = ToolBoxWindow%
   SYS &quot;Wimp_CloseWindow&quot;,,q%
@@ -135,9 +135,9 @@ ENDPROC</code>
 q%!28 = -1 : REM Open window at top of stack
 SYS &quot;Wimp_OpenWindow&quot;,,q%</code>
 
-<p>Fortunately, this is just another call to <swi>Wimp_OpenWindow</swi>, so we should just be able to replace it with a call to <function>PROChandle_pane_windows()</function> in the same was as we did in the <name>Open_Window_Request</name> event handler. This means that our new <function>PROCopen_main_window()</function> will look as seen in <reference id="list-side-bar-open"/>.</p>
+<p>Fortunately, this is just another call to <swi>Wimp_OpenWindow</swi>, so we should just be able to replace it with a call to <function>PROChandle_pane_windows()</function> in the same was as we did in the <name>Open_Window_Request</name> event handler. This means that our new <function>PROCopen_main_window()</function> will look as seen in <reference id="list-side-box-open"/>.</p>
 
-<code id="list-side-bar-open" lang="bbcbasic" title="Opening the main window and its toolbox pane">DEF PROCopen_main_window
+<code id="list-side-box-open" lang="bbcbasic" title="Opening the main window and its toolbox pane">DEF PROCopen_main_window
 LOCAL screen_width%, screen_height%, window_size%
 
 REM Get the window details.
@@ -198,11 +198,11 @@ SYS &quot;Wimp_GetWindowState&quot;,,pane%</code>
 <code lang="bbcbasic">width% = pane%!12 - pane%!4   : REM Visible Area Maximum X - Minimum X
 height% = pane%!16 - pane%!8  : REM Visible Area Maximum Y - Minimum Y</code>
 
-<p>As already noted, we know where the main window should be on screen. We also know the relationship that we want to have between the main window and its pane, as shown in <reference id="fig-side-bar-pos-plane"/>. We can therefore move the pane so that it is in the correct position relative to the main window, update the main window&rsquo;s position if necessary, then call <swi>Wimp_OpenWindow</swi> for both windows in turn.</p>
+<p>As already noted, we know where the main window should be on screen. We also know the relationship that we want to have between the main window and its pane, as shown in <reference id="fig-side-box-pos-plane"/>. We can therefore move the pane so that it is in the correct position relative to the main window, update the main window&rsquo;s position if necessary, then call <swi>Wimp_OpenWindow</swi> for both windows in turn.</p>
 
-<image id="fig-side-bar-pos-plane" file="side-bar-pos-plane.png" title="The relationship between the main window and its toolbar" />
+<image id="fig-side-box-pos-plane" file="side-box-pos-plane.png" title="The relationship between the main window and its toolbar" />
 
-<p><reference id="fig-side-bar-pos-plane"/> shows the relationship between the main window and its pane. The tops of the two windows (<maths>y1</maths> for the two visible areas) should be level, so we can copy the <maths>y1</maths> value from the main window to the pane. The bottom of the pane (its <maths>y0</maths>) is the height of the pane below the top of the main window.</p>
+<p><reference id="fig-side-box-pos-plane"/> shows the relationship between the main window and its pane. The tops of the two windows (<maths>y1</maths> for the two visible areas) should be level, so we can copy the <maths>y1</maths> value from the main window to the pane. The bottom of the pane (its <maths>y0</maths>) is the height of the pane below the top of the main window.</p>
 
 <code lang="bbcbasic">pane%!16 = main%!16           : REM Visible Area Maximum Y
 pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y</code>
@@ -218,9 +218,9 @@ pane%!4 = main%!4 - width%    : REM Visible Area Minimum X</code>
 
 <p>The code above deals with the position of the pane in the <maths>X</maths> and <maths>Y</maths> dimensions, but what about the <maths>Z</maths> dimension &ndash; its position in the window stack? The Wimp requires that panes appear directly above their parent window; however, this is still left up to the application to manage.</p>
 
-<p>There's a very practical reason for this requirement. If something like a toolbar pane goes behind its parent window in the stack, then it will very likely be obscured by its parent. Even if the pane is in front, if it isn&rsquo;t <em>immediately</em> in front, then it&rsquo;s possible for other windows to get in between as seen in <reference id="fig-side-bar-loose"/> (the application was deliberately broken in order to allow this to occur).</p>
+<p>There's a very practical reason for this requirement. If something like a toolbar pane goes behind its parent window in the stack, then it will very likely be obscured by its parent. Even if the pane is in front, if it isn&rsquo;t <em>immediately</em> in front, then it&rsquo;s possible for other windows to get in between as seen in <reference id="fig-side-box-loose"/> (the application was deliberately broken in order to allow this to occur).</p>
 
-<image id="fig-side-bar-loose" file="side-bar-loose.png" title="If we&rsquo;re not careful, other windows can get in the way" />
+<image id="fig-side-box-loose" file="side-box-loose.png" title="If we&rsquo;re not careful, other windows can get in the way" />
 
 <p>There are a couple of more technical reasons, too, which relate to the behaviour of the &lsquo;window is a pane&rsquo; flag. When checking to see if our main window is at the top of the window stack, or obscured by any other windows (for the &lsquo;window is fully visible&rsquo; flag at bit 17 of the window flags), the Wimp will ignore any windows immediately in front of it so long as they have their pane flags set. Without use of the pane flag, a window whose pane obscures any part of its work area can never be reported as being fully visible by the Wimp.</p>
 
@@ -240,9 +240,9 @@ pane%!4 = main%!4 - width%    : REM Visible Area Minimum X</code>
 
 SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
 
-<p>Putting all of the code above together, <function>PROChandle_pane_windows()</function> will look as shown in <reference id="list-side-bar-panes"/>.</p>
+<p>Putting all of the code above together, <function>PROChandle_pane_windows()</function> will look as shown in <reference id="list-side-box-panes"/>.</p>
 
-<code id="list-side-bar-panes" lang="bbcbasic">DEF PROChandle_pane_windows(main%)
+<code id="list-side-box-panes" lang="bbcbasic">DEF PROChandle_pane_windows(main%)
 LOCAL pane%, width%, height%
 
 REM Get the Window State block for the pane, using some of the spare
@@ -281,22 +281,22 @@ main%!28 = !pane%
 SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
 
-<p>Running our new application should reveal a main window similar to that shown in <reference id="fig-side-bar-complete"/>. If the main window is moved, the pane should remain securely attached at all times.</p>
+<p>Running our new application should reveal a main window similar to that shown in <reference id="fig-side-box-complete"/>. If the main window is moved, the pane should remain securely attached at all times.</p>
 
-<image id="fig-side-bar-complete" file="side-bar-complete.png" title="Our main window with a simple vertical toolbox attached"/>
+<image id="fig-side-box-complete" file="side-box-complete.png" title="Our main window with a simple vertical toolbox attached"/>
 
-<p>The full code can be found in <reference id="dl-side-bar-1"/>.</p>
+<p>The full code can be found in <reference id="dl-side-box-1"/>.</p>
 
-<download id="dl-side-bar-1" file="SideBar1" title="A simple vertical toolbox pane" compatibility="armv7"/>
+<download id="dl-side-box-1" file="SideBar1" title="A simple vertical toolbox pane" compatibility="armv7"/>
 </section>
 
 
 <section>
 <title>A small improvement</title>
 
-<p>If you&rsquo;re familiar with <cite>Draw</cite>, then there&rsquo;s one small difference which you might notice in the behaviour of the toolbox in our example application compared to the toolbox in <cite>Draw</cite>. If a <cite>Draw</cite> window is moved off the left-hand edge of the screen, then the toolbox pane stops moving when it hits the edge and begins to retract over the parent window as seen in <reference id="fig-side-bar-draw-offscreen"/>. Only when the pane is flush with the side of the main window does it begin to move off the screen again.</p>
+<p>If you&rsquo;re familiar with <cite>Draw</cite>, then there&rsquo;s one small difference which you might notice in the behaviour of the toolbox in our example application compared to the toolbox in <cite>Draw</cite>. If a <cite>Draw</cite> window is moved off the left-hand edge of the screen, then the toolbox pane stops moving when it hits the edge and begins to retract over the parent window as seen in <reference id="fig-side-box-draw-offscreen"/>. Only when the pane is flush with the side of the main window does it begin to move off the screen again.</p>
 
-<image id="fig-side-bar-draw-offscreen" file="side-bar-draw-offscreen.png" title="Draw&rsquo;s toolbox stays on screen as long as possible"/>
+<image id="fig-side-box-draw-offscreen" file="side-box-draw-offscreen.png" title="Draw&rsquo;s toolbox stays on screen as long as possible"/>
 
 <p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROChandle_pane_windows()</function>, where we set the coordinates of the pane&rsquo;s visible area. Above we used the following fixed calculations:</p>
 
@@ -316,9 +316,9 @@ pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
 <li>If the main window is off off-screen, then the pane is anchored by its left-hand edge.</li>
 </list>
 
-<p>The code to implement this can be seen in <reference id="list-side-bar-slide"/>.</p>
+<p>The code to implement this can be seen in <reference id="list-side-box-slide"/>.</p>
 
-<code id="list-side-bar-slide" lang="bbcbasic" title="Calculating the horizontal position of the pane more flexibly">REM Move the pane so that it's in the correct X and Y position
+<code id="list-side-box-slide" lang="bbcbasic" title="Calculating the horizontal position of the pane more flexibly">REM Move the pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
 CASE TRUE OF
@@ -336,13 +336,13 @@ ENDCASE
 pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y
 pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
 
-<p>With this in place, our own pane begins to behave in a more <cite>Draw</cite>-like way when it reaches the edge of the screen, as seen in <reference id="fig-side-bar-offscreen"/>.</p>
+<p>With this in place, our own pane begins to behave in a more <cite>Draw</cite>-like way when it reaches the edge of the screen, as seen in <reference id="fig-side-box-offscreen"/>.</p>
 
-<image id="fig-side-bar-offscreen" file="side-bar-offscreen.png" title="Our own toolbox can now behave more dynamically, too"/>
+<image id="fig-side-box-offscreen" file="side-box-offscreen.png" title="Our own toolbox can now behave more dynamically, too"/>
 
-<p>The full code can be found in <reference id="dl-side-bar-2"/>.</p>
+<p>The full code can be found in <reference id="dl-side-box-2"/>.</p>
 
-<download id="dl-side-bar-2" file="SideBar2" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
+<download id="dl-side-box-2" file="SideBar2" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
 </section>
 </chapter>
 </manual>
