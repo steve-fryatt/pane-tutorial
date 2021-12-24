@@ -29,7 +29,7 @@
 
 <!-- Chapter 2
    -
-   - A Side Toolbar
+   - A Side Toolbox
   -->
 
 <chapter id="chap-side-bar">
@@ -37,9 +37,9 @@
 <images>Chapter02</images>
 <downloads>Chapter02</downloads>
 </resources>
-<filename>a-side-toolbar.php</filename>
-<uri>a-side-toolbar</uri>
-<title>A Side Toolbar</title>
+<filename>a-side-toolbox.php</filename>
+<uri>a-side-toolbox</uri>
+<title>A Side Toolbox</title>
 
 <summary>Everyone knows what the toolbox in <cite>Draw</cite> looks like, so let&rsquo;s make one of our own.</summary>
 
