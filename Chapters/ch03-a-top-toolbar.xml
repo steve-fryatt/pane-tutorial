@@ -254,6 +254,27 @@ ENDPROC</code>
 
 <download id="dl-top-bar-2" file="TopBar2" title="Taking account of the toolbar in the work area" compatibility="armv7"/>
 </section>
+
+<section>
+<title>Overlapping panes</title>
+
+<p>Another minor niggle can be seen if we bring the window to the edge of the screen: as the toolbox retracts over the main window, it obscures the left-hand end of the toolbar. This isn&rsquo;t an enormous problem, and a simple solution would simply to to have the toolbox fixed so that it doesn&rsquo;t push back over the main window.</p>
+
+<image id="fig-top-bar-overlap" file="top-bar-overlap.png" title="At the side of the screen, the toolbox begins to obscure the toolbar"/>
+
+<p>An alternative approach would be to push the toolbox down the side of the main window, so it sits below the base of the toolbar. This is simple enough to do, and can be achieved by adding in the height of the toolbar to the calculation in <function>PROChandle_pane_windows()</function> which sets the vertical position of the toolbox &ndash; the changes required can be seen in <reference id="list-top-bar-offset-toolbox"/>.</p>
+
+<code id="list-top-bar-offset-toolbox" lang="bbcbasic" title="Offsetting the toolbox so that it clears the toolbar">toolbox%!8 = main%!16 - bar_height% - box_height% : REM Visible Area Minimum Y
+toolbox%!16 = main%!16 - bar_height%              : REM Visible Area Maximum Y</code>
+
+<p>With this small modification in place, the toolbar is now anchored lower down the side of the main window and slides in below the work area of the toolbar as seen in <reference id="fig-top-bar-overlap-adjust"/>.</p>
+
+<image id="fig-top-bar-overlap-adjust" file="top-bar-overlap-adjust.png" title="Moving the toolbox down to miss the toolbar"/>
+
+<p>A full copy of the application with the modification can be found in <reference id="dl-top-bar-3"/>.</p>
+
+<download id="dl-top-bar-3" file="TopBar3" title="Preventing the toolbox overlapping the toolbar" compatibility="armv7"/>
+</section>
 </chapter>
 </manual>
 
