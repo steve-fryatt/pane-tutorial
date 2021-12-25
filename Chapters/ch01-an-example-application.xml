@@ -483,7 +483,7 @@ ENDCASE</code>
 
 <p>The final thing that we need to do is to handle <name>Menu_Selection</name> events, for which we will use <function>PROCmenu_selection()</function> as seen in <reference id="list-example-app-menu-select" />.</p>
 
-<code id="list-example-app-menu-select" lang="bbcbasic" title="Handling menu selections">DEF PROCmenu_selection(block%)
+<code id="list-example-app-menu-select" lang="bbcbasic" title="Handling menu selections">DEF PROCmenu_selection(b%)
 LOCAL reopen%
 
 SYS &quot;Wimp_GetPointerInfo&quot;,,q%
@@ -491,7 +491,7 @@ reopen% = (q%!8 = 1)
 
 CASE MenuOpen% OF
 WHEN IconbarMenu%
-	CASE !block% OF
+	CASE !b% OF
 		WHEN 1	: Quit% = TRUE
 	ENDCASE
 ENDCASE
