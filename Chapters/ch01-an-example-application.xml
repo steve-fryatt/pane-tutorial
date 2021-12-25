@@ -193,7 +193,7 @@ SYS &quot;Wimp_OpenTemplate&quot;,,&quot;&lt;PaneDemo$Dir&gt;.Templates&quot;
 
 PROCtemplate_load(&quot;Main&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO MainWindow%
-WindowSize% = b%!8 - b%!0 : REM Width is Visible Area Maximum X - Minimun X
+WindowSize% = b%!12 - b%!4 : REM Height is Visible Area Maximum Y - Minimun Y
 
 PROCtemplate_load(&quot;ProgInfo&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%

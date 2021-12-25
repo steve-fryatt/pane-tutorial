@@ -52,7 +52,7 @@
 <section>
 <title>Adding a toolbar</title>
 
-<p>Just as with the toolbox in the previous chapter, the first thing that we will need to do in order to create a toolbar is to design a suitable window template. This time, we will create a toolbar containing a writable icon, which will span the top of our main window &ndash; a bit like the URL bar in a browser. The template has been called &ldquo;Toolbar&rdquo;, and can be seen in <reference id="fig-top-bar-template"/> being edited in <cite>WinEd</cite>.</p>
+<p>Just as with the toolbox in the previous chapter, the first thing that we will need to do in order to create a toolbar is to design a suitable window template. This time, we will create a toolbar containing a couple of action buttons and a writable icon, which will span the top of our main window &ndash; a bit like the URL bar in a browser. The template has been called &ldquo;Toolbar&rdquo;, and can be seen in <reference id="fig-top-bar-template"/> being edited in <cite>WinEd</cite>.</p>
 
 <image id="fig-top-bar-template" file="top-bar-template.png" title="The template for the new toolbar, in WinEd"/>
 
@@ -182,22 +182,22 @@ toolbar%!16 = main%!16                  : REM Visible Area Maximum Y
 
 REM Find the width and height of the toolbox pane's visible area.
 
-box_width%% = toolbox%!12 - toolbox%!4  : REM Visible Area Maximum X - Minimum X
+box_width% = toolbox%!12 - toolbox%!4   : REM Visible Area Maximum X - Minimum X
 box_height% = toolbox%!16 - toolbox%!8  : REM Visible Area Maximum Y - Minimum Y
 
 REM Move the toolbox pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
 CASE TRUE OF
-WHEN main%!4 &gt; box_width%%
-  toolbox%!4 = main%!4 - box_width%%    : REM Visible Area Minimum X
+WHEN main%!4 &gt; box_width%
+  toolbox%!4 = main%!4 - box_width%     : REM Visible Area Minimum X
   toolbox%!12 = main%!4                 : REM Visible Area Maximum X
 WHEN main%!4 &gt; 0
   toolbox%!4 = 0                        : REM Visible Area Minimum X
-  toolbox%!12 = box_width%%             : REM Visible Area Maximum X
+  toolbox%!12 = box_width%              : REM Visible Area Maximum X
 OTHERWISE
   toolbox%!4 = main%!4                  : REM Visible Area Minimum X
-  toolbox%!12 = main%!4 + box_width%%   : REM Visible Area Maximum X
+  toolbox%!12 = main%!4 + box_width%    : REM Visible Area Maximum X
 ENDCASE
 
 toolbox%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y
@@ -225,13 +225,34 @@ main%!28 = ToolBarWindow%
 SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
 
-<p>Running the upplication application should reveal a new toolbar attached to the top of the main window, as shown in <reference id="fig-side-box-complete"/>. Both the toolbar and the original toolbox should move and adjust their sizes together.</p>
+<p>Running the upplication application should reveal a new toolbar attached to the top of the main window, as shown in <reference id="fig-top-bar-complete"/>. If moved around the screen or resized, both the toolbar and the original toolbox should move and adjust their sizes together. Note that if the caret is placed in the toolbar&rsquo;s writable icon, the main window is shown as having input focus: this is a result of the panes having their &lsquo;window is a pane&rsquo; flags set.</p>
 
 <image id="fig-top-bar-complete" file="top-bar-complete.png" title="The window with both toolbar and toolbox"/>
 
 <p>The full code can be found in <reference id="dl-top-bar-1"/>.</p>
 
 <download id="dl-top-bar-1" file="TopBar1" title="A simple toolbar and vertical toolbox pane" compatibility="armv7"/>
+</section>
+
+
+<section>
+<title>Missing work area</title>
+
+<p>Although it works, there are a few rough edges with our new pane&rsquo;s implementation as it stands. The first should be obvious as soon as the main window opens: the toolbar slices the top of the work area off, and obscures part of the first row of squares.</p>
+
+<p>This shouldn&rsquo;t be too surprising, as the toolbar pane is overlaying part of the main window&rsquo;s work area. It&rsquo;s up to us to us to make an allowance for the effect, and the easiest way is simply to extend the work area by the height of the toolbar pane. One solution can be seen in <reference id="fig-top-bar-extended"/>; the new <maths>y1</maths> extent of 64 OS&nbsp;Units allows for both the pane&rsquo;s work area height of 60 OS&nbsp;Units and the lower window border of 4 OS&nbsp;Units.</p>
+
+<image id="fig-top-bar-extended" file="top-bar-extended.png" title="Extending the main window work area to allow for the toolbar"/>
+
+<p>An alternative approach would be to simply add 64 OS&nbsp;Units to the &minus;1040 OS&nbsp;Units of the <maths>y0</maths> extent, to give &minus;1104 OS&nbsp;Units. The Wimp doesn&rsquo;t mind either way, and it&rsquo;s up to the developer to take the presence of the toolbar into account when calculating the position of mouse clicks in the window or deciding where to plot items in a redraw loop.</p>
+
+<p>With these amended templates in place, the full set of squares can be seen in the main window, as shown in <reference id="fig-top-bar-complete-workarea"/>.</p>
+
+<image id="fig-top-bar-complete-workarea" file="top-bar-complete-workarea.png" title="An extended work area makes the window contents fully visible"/>
+
+<p>A copy of the application with an updated main window template can be found in <reference id="dl-top-bar-2"/>.</p>
+
+<download id="dl-top-bar-2" file="TopBar2" title="Taking account of the toolbar in the work area" compatibility="armv7"/>
 </section>
 </chapter>
 </manual>
