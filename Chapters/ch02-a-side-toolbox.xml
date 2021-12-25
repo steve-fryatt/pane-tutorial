@@ -188,29 +188,29 @@ ENDPROC</code>
 
 <p>The first thing that we need to do is to create an equivalent window state block for the toolbox pane, which we can then update with the necessary values calculated from the main window&rsquo;s position. Unfortunately we can&rsquo;t use our usual scratch block of memory pointed to by <variable>q%</variable>, because that could already be holding the data for the main window if we have been called from <function>PROCopen_main_window</function>. However, we know that only 36 bytes will be in use from what is at least a 256 byte block, so we can just load the pane information in at an offset of 64 bytes.</p>
 
-<code lang="bbcbasic">pane% = main% + 64
+<code lang="bbcbasic">toolbox% = main% + 64
 
-!pane% = ToolBoxWindow%
-SYS &quot;Wimp_GetWindowState&quot;,,pane%</code>
+!toolbox% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,toolbox%</code>
 
 <p>Since the pane can&rsquo;t be resized by the user, we can be fairly confident that its width and height will still be as they were saved in the templates file. These can be used to give us the values for the pane&rsquo;s width and height, saving us from having to use constants in the code. Before making any changes to the pane window state block&rsquo;s contents, we therefore calculate the width and height of the pane&rsquo;s visible area and store the two values for future use.</p>
 
-<code lang="bbcbasic">width% = pane%!12 - pane%!4   : REM Visible Area Maximum X - Minimum X
-height% = pane%!16 - pane%!8  : REM Visible Area Maximum Y - Minimum Y</code>
+<code lang="bbcbasic">box_width% = toolbox%!12 - toolbox%!4   : REM Visible Area Maximum X - Minimum X
+box_height% = toolbox%!16 - toolbox%!8  : REM Visible Area Maximum Y - Minimum Y</code>
 
 <p>As already noted, we know where the main window should be on screen. We also know the relationship that we want to have between the main window and its pane, as shown in <reference id="fig-side-box-pos-plane"/>. We can therefore move the pane so that it is in the correct position relative to the main window, update the main window&rsquo;s position if necessary, then call <swi>Wimp_OpenWindow</swi> for both windows in turn.</p>
 
-<image id="fig-side-box-pos-plane" file="side-box-pos-plane.png" title="The relationship between the main window and its toolbar" />
+<image id="fig-side-box-pos-plane" file="side-box-pos-plane.png" title="The relationship between the main window and its toolbox" />
 
 <p><reference id="fig-side-box-pos-plane"/> shows the relationship between the main window and its pane. The tops of the two windows (<maths>y1</maths> for the two visible areas) should be level, so we can copy the <maths>y1</maths> value from the main window to the pane. The bottom of the pane (its <maths>y0</maths>) is the height of the pane below the top of the main window.</p>
 
-<code lang="bbcbasic">pane%!16 = main%!16           : REM Visible Area Maximum Y
-pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y</code>
+<code lang="bbcbasic">toolbox%!16 = main%!16                  : REM Visible Area Maximum Y
+toolbox%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y</code>
 
 <p>In a similar way, the right-hand side of the pane (its <maths>x1</maths>) is on the left-hand side of the main window, while its left-hand side is the width of the pane further to the left.</p>
 
-<code lang="bbcbasic">pane%!12 = main%!4            : REM Visible Area Maximum X
-pane%!4 = main%!4 - width%    : REM Visible Area Minimum X</code>
+<code lang="bbcbasic">toolbox%!12 = main%!4                   : REM Visible Area Maximum X
+toolbox%!4 = main%!4 - box_width%       : REM Visible Area Minimum X</code>
 </section>
 
 <section>
@@ -228,55 +228,55 @@ pane%!4 = main%!4 - width%    : REM Visible Area Minimum X</code>
 
 <p>Keeping the <maths>Z</maths> order of the windows correct is fairly straight-forward. The <name>Open_Window_Request</name> block for the main window contains the position in the window stack at which it should be opened, in terms of the handle of the window below which it should be opened at offset 28. Since the toolbox pane should be in front of the window, we copy this value into the pane&rsquo;s block so that the pane appears at the correct position in the stack.</p>
 
-<code lang="bbcbasic">IF main%!28 &lt;&gt; !pane% THEN pane%!28 = main%!28</code>
+<code lang="bbcbasic">IF main%!28 &lt;&gt; ToolBoxWindow% THEN toolbox%!28 = main%!28</code>
 
 <p>There&rsquo;s one exception to this, however. If the Wimp is already asking us to open the main window behind the pane, then both the pane and the main window must already be in the correct positions in the window stack. In this case, there&rsquo;s no point attempting to open the pane behind itself, so we just leave things as they are. The pane is now ready to be opened in its new location, using a call to <swi>Wimp_OpenWindow</swi>.</p>
 
-<code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,pane%</code>
+<code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,toolbox%</code>
 
 <p>With the pane open in the correct place, all that remains to do is to open the main window. This is done using the block from the <name>Open_Window_Request</name> event almost unchanged: the only thing that we alter is the handle of the window to open behind, which we set to the handle of the pane. This ensures that the pane is <em>always</em> directly in front of the main window.</p>
 
-<code lang="bbcbasic">main%!28 = !pane%
+<code lang="bbcbasic">main%!28 = ToolBoxWindow%
 
 SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
 
 <p>Putting all of the code above together, <function>PROChandle_pane_windows()</function> will look as shown in <reference id="list-side-box-panes"/>.</p>
 
-<code id="list-side-box-panes" lang="bbcbasic">DEF PROChandle_pane_windows(main%)
-LOCAL pane%, width%, height%
+<code id="list-side-box-panes" lang="bbcbasic" title="The code to position the pane and the main window">DEF PROChandle_pane_windows(main%)
+LOCAL toolbox%, box_width%, box_height%
 
 REM Get the Window State block for the pane, using some of the spare
 REM space above the data for the state of the main window.
 
-pane% = main% + 64
+toolbox% = main% + 64
 
-!pane% = ToolBoxWindow%
-SYS &quot;Wimp_GetWindowState&quot;,,pane%
+!toolbox% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,toolbox%
 
 REM Find the width and height of the pane's visible area.
 
-width% = pane%!12 - pane%!4   : REM Visible Area Maximum X - Minimum X
-height% = pane%!16 - pane%!8  : REM Visible Area Maximum Y - Minimum Y
+box_width% = toolbox%!12 - toolbox%!4   : REM Visible Area Maximum X - Minimum X
+box_height% = toolbox%!16 - toolbox%!8  : REM Visible Area Maximum Y - Minimum Y
 
 REM Move the pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-pane%!4 = main%!4 - width%    : REM Visible Area Minimum X
-pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y
-pane%!12 = main%!4            : REM Visible Area Maximum X
-pane%!16 = main%!16           : REM Visible Area Maximum Y
+toolbox%!4 = main%!4 - box_width%       : REM Visible Area Minimum X
+toolbox%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y
+toolbox%!12 = main%!4                   : REM Visible Area Maximum X
+toolbox%!16 = main%!16                  : REM Visible Area Maximum Y
 
 REM Unless the main window is to be opened behind the pane, meaning that the
 REM pane must already be in the correct place in the stack, set the pane's
 REM Open Behind so that it appears in the stack where the main window is to go.
 
-IF main%!28 &lt;&gt; !pane% THEN pane%!28 = main%!28
+IF main%!28 &lt;&gt; ToolBoxWindow% THEN toolbox%!28 = main%!28
 
-SYS &quot;Wimp_OpenWindow&quot;,,pane%
+SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
 
 REM Set the main window's Open Behind so that it opens behind the pane.
 
-main%!28 = !pane%
+main%!28 = ToolBoxWindow%
 
 SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
@@ -287,7 +287,7 @@ ENDPROC</code>
 
 <p>The full code can be found in <reference id="dl-side-box-1"/>.</p>
 
-<download id="dl-side-box-1" file="SideBar1" title="A simple vertical toolbox pane" compatibility="armv7"/>
+<download id="dl-side-box-1" file="SideBox1" title="A simple vertical toolbox pane" compatibility="armv7"/>
 </section>
 
 
@@ -303,10 +303,10 @@ ENDPROC</code>
 <code lang="bbcbasic">REM Move the pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-pane%!4 = main%!4 - width%    : REM Visible Area Minimum X
-pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y
-pane%!12 = main%!4            : REM Visible Area Maximum X
-pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
+toolbox%!4 = main%!4 - box_width%       : REM Visible Area Minimum X
+toolbox%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y
+toolbox%!12 = main%!4                   : REM Visible Area Maximum X
+toolbox%!16 = main%!16                  : REM Visible Area Maximum Y</code>
 
 <p>We can replace this by testing the minimum <maths>X</maths> coordinate of the main window&rsquo;s visible area, then applying different calculations for the pane&rsquo;s <maths>X</maths> coordinates as follows:</p>
 
@@ -322,19 +322,19 @@ pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
 REM relative to where the main window is to go.
 
 CASE TRUE OF
-WHEN main%!4 &gt; width%
-  pane%!4 = main%!4 - width%  : REM Visible Area Minimum X
-  pane%!12 = main%!4          : REM Visible Area Maximum X
+WHEN main%!4 &gt; box_width%
+  toolbox%!4 = main%!4 - box_width%     : REM Visible Area Minimum X
+  toolbox%!12 = main%!4                 : REM Visible Area Maximum X
 WHEN main%!4 &gt; 0
-  pane%!4 = 0                 : REM Visible Area Minimum X
-  pane%!12 = width%           : REM Visible Area Maximum X
+  toolbox%!4 = 0                        : REM Visible Area Minimum X
+  toolbox%!12 = box_width%              : REM Visible Area Maximum X
 OTHERWISE
-  pane%!4 = main%!4           : REM Visible Area Minimum X
-  pane%!12 = main%!4 + width% : REM Visible Area Maximum X
+  toolbox%!4 = main%!4                  : REM Visible Area Minimum X
+  toolbox%!12 = main%!4 + box_width%    : REM Visible Area Maximum X
 ENDCASE
 
-pane%!8 = main%!16 - height%  : REM Visible Area Minimum Y
-pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
+toolbox%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y
+toolbox%!16 = main%!16                  : REM Visible Area Maximum Y</code>
 
 <p>With this in place, our own pane begins to behave in a more <cite>Draw</cite>-like way when it reaches the edge of the screen, as seen in <reference id="fig-side-box-offscreen"/>.</p>
 
@@ -342,7 +342,7 @@ pane%!16 = main%!16           : REM Visible Area Maximum Y</code>
 
 <p>The full code can be found in <reference id="dl-side-box-2"/>.</p>
 
-<download id="dl-side-box-2" file="SideBar2" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
+<download id="dl-side-box-2" file="SideBox2" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
 </section>
 </chapter>
 </manual>

@@ -72,5 +72,6 @@
 
 <chapter file="ch01-an-example-application.xml"/>
 <chapter file="ch02-a-side-toolbox.xml"/>
+<chapter file="ch03-a-top-toolbar.xml"/>
 
 </manual>
