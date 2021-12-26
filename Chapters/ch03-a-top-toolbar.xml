@@ -52,7 +52,7 @@
 <section>
 <title>Adding a toolbar</title>
 
-<p>Just as with the toolbox in the previous chapter, the first thing that we will need to do in order to create a toolbar is to design a suitable window template. This time, we will create a toolbar containing a couple of action buttons and a writable icon, which will span the top of our main window &ndash; a bit like the URL bar in a browser. The template has been called &ldquo;Toolbar&rdquo;, and can be seen in <reference id="fig-top-bar-template"/> being edited in <cite>WinEd</cite>.</p>
+<p>Just as with the toolbox in the previous chapter, the first thing that we will need to do in order to create a toolbar is to design a suitable window template. This time, we will create a toolbar containing a couple of action buttons and a writeable icon, which will span the top of our main window &ndash; a bit like the URL bar in a browser. The template has been called &ldquo;Toolbar&rdquo;, and can be seen in <reference id="fig-top-bar-template"/> being edited in <cite>WinEd</cite>.</p>
 
 <image id="fig-top-bar-template" file="top-bar-template.png" title="The template for the new toolbar, in WinEd"/>
 
@@ -62,11 +62,11 @@
 
 <image id="fig-top-bar-extents" file="top-bar-extents.png" title="The work area width must be the same size as that of the main window"/>
 
-<p>The height of the work area (<maths>y1</maths> &minus; <maths>y0</maths>) is set to be 60 OS&nbsp;Units: this allows a standard writable icon with a height of 52 OS&nbsp;Units, plus a 4 OS&nbsp;Unit space around it.</p>
+<p>The height of the work area (<maths>y1</maths> &minus; <maths>y0</maths>) is set to be 60 OS&nbsp;Units: this allows a standard writeable icon with a height of 52 OS&nbsp;Units, plus a 4 OS&nbsp;Unit space around it.</p>
 
 <p>We have also adjusted the minimum sizes of the bar, although this is as much to keep <cite>WinEd</cite> happy: with the minimum <maths>y</maths> dimenstion set to zero, the Wimp will limit the size to that required for the vertical scroll bar which <cite>WinEd</cite> applies in editing mode.</p>
 
-<p>The window contains two action buttons and a writable icon, so that we can easily see how the work area moves around in relation to its parent window. All three icons are 52 OS&nbsp;Units high, to match the standard height for a writable icon, and there is a 4 OS&nbsp;Unit gap around the edges of the work area on all four sides.</p>
+<p>The window contains two action buttons and a writeable icon, so that we can easily see how the work area moves around in relation to its parent window. All three icons are 52 OS&nbsp;Units high, to match the standard height for a writeable icon, and there is a 4 OS&nbsp;Unit gap around the edges of the work area on all four sides.</p>
 
 <p>Once again, we can add the lines shown in <reference id="list-top-bar-load-template"/> to <function>PROCinitialise</function> in order to load the new template and create a window from it.</p>
 
@@ -225,7 +225,7 @@ main%!28 = ToolBarWindow%
 SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
 
-<p>Running the upplication application should reveal a new toolbar attached to the top of the main window, as shown in <reference id="fig-top-bar-complete"/>. If moved around the screen or resized, both the toolbar and the original toolbox should move and adjust their sizes together. Note that if the caret is placed in the toolbar&rsquo;s writable icon, the main window is shown as having input focus: this is a result of the panes having their &lsquo;window is a pane&rsquo; flags set.</p>
+<p>Running the upplication application should reveal a new toolbar attached to the top of the main window, as shown in <reference id="fig-top-bar-complete"/>. If moved around the screen or resized, both the toolbar and the original toolbox should move and adjust their sizes together. Note that if the caret is placed in the toolbar&rsquo;s writeable icon, the main window is shown as having input focus: this is a result of the panes having their &lsquo;window is a pane&rsquo; flags set.</p>
 
 <image id="fig-top-bar-complete" file="top-bar-complete.png" title="The window with both toolbar and toolbox"/>
 
@@ -274,6 +274,18 @@ toolbox%!16 = main%!16 - bar_height%              : REM Visible Area Maximum Y</
 <p>A full copy of the application with the modification can be found in <reference id="dl-top-bar-3"/>.</p>
 
 <download id="dl-top-bar-3" file="TopBar3" title="Preventing the toolbox overlapping the toolbar" compatibility="armv7"/>
+</section>
+
+
+<section>
+<title>Cropping the writeable field</title>
+
+<p>There&rsquo;s one final niggle to look at before we move on, which can be seen when the width of the main window is reduced. The writeable icon in the bar appears to be truncated, with the right-hand end disappearing off out of view as seen in <reference id="fig-top-bar-icon-crop"/>. Again, this isn&rsquo;t the end of the world &ndash; we could simply left-align the text and ignore it. In fact, if we wish to support RISC&nbsp;OS&nbsp;3.1 or earlier, then that&rsquo;s the only option unless we wish to investigate drawing our own icons.</p>
+
+<image id="fig-top-bar-icon-crop" file="top-bar-icon-crop.png" title="When the window is shrunk down, the writable icon is truncated"/>
+
+<p>However, if we&rsquo;re happy to support machines from the RiscPC onwards &ndash; which isn&rsquo;t an unreasonable idea &ndash; then we can adjust the size of the writeable icon as we re-open the panes.</p>
+
 </section>
 </chapter>
 </manual>
