@@ -193,14 +193,15 @@ SYS &quot;Wimp_OpenTemplate&quot;,,&quot;&lt;PaneDemo$Dir&gt;.Templates&quot;
 
 PROCtemplate_load(&quot;Main&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO MainWindow%
-WindowSize% = b%!12 - b%!4 : REM Height is Visible Area Maximum Y - Minimun Y
+WindowWidth% = b%!8 - b%!0    : REM Width is Visible Area Maximum X - Minimum X
+WindowHeight% = b%!12 - b%!4  : REM Height is Visible Area Maximum Y - Minimum Y
 
 PROCtemplate_load(&quot;ProgInfo&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%
 
 SYS &quot;Wimp_CloseTemplate&quot;</code>
 
-<p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively. Since the window is square, we also take the opportunity to calculate the size of one dimension in OS&nbsp;Units, and store that in the <variable>WindowSize%</variable> variable for future reference.</p>
+<p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively. We also take the opportunity to calculate the width and height in OS&nbsp;Units, and store the values in the <variable>WindowWidth%</variable> and <variable>WindowHeight%</variable> variables for future reference.</p>
 
 <p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
 
@@ -230,7 +231,7 @@ ENDPROC</code>
 <p>With the windows loaded, we will need to add some code to open the main window when the user clicks on our iconbar icon. Opening the window is fairly simple, and can be done with the procedure shown in <reference id="list-example-app-open-window" />.</p>
 
 <code id="list-example-app-open-window" lang="bbcbasic" title="Opening the main window">DEF PROCopen_main_window
-LOCAL screen_width%, screen_height%, window_size%
+LOCAL screen_width%, screen_height%, window_width%, window_height%
 
 REM Get the window details.
 
@@ -240,7 +241,8 @@ SYS &quot;Wimp_GetWindowState&quot;,,q%
 REM If the window isn't open, resize and centre it on the screen.
 
 IF (q%!32 AND &amp;10000) = 0 THEN
-  window_size% = WindowSize%
+  window_width% = WindowWidth%
+  window_height% = WindowHeight%
 
   REM Read the screen dimensions.
 
@@ -249,16 +251,21 @@ IF (q%!32 AND &amp;10000) = 0 THEN
 
   REM Ensure that the window fills no more than 75% of either dimension.
 
-  IF window_size% &gt; (screen_width% * 0.75) THEN window_size% = screen_width% * 0.75
-  IF window_size% &gt; (screen_height% * 0.75) THEN window_size% = screen_height% * 0.75
+  IF window_width% &gt; (screen_width% * 0.75) THEN window_width% = screen_width% * 0.75
+  IF window_height% &gt; (screen_height% * 0.75) THEN window_height% = screen_height% * 0.75
 
   REM Update the window dimensions.
 
-  q%!4 = (screen_width% - window_size%) / 2   : REM Minimum X
-  q%!8 = (screen_height% - window_size%) / 2  : REM Minimum Y
+  q%!4 = (screen_width% - window_width%) / 2	: REM Visible Area Minimum X
+  q%!8 = (screen_height% - window_height%) / 2	: REM Visible Area Minimum Y
 
-  q%!12 = q%!4 + window_size%                 : REM Maximum X
-  q%!16 = q%!8 + window_size%                 : REM Maximum Y
+  q%!12 = q%!4 + window_width%			: REM Visible Area Maximum X
+  q%!16 = q%!8 + window_height%			: REM Visible Area Maximum Y
+
+  REM Reset the scroll offsets.
+
+  q%!20 = 0
+  q%!24 = 0
 ENDIF
 
 REM Open the window at the top of the window stack.
@@ -269,7 +276,7 @@ ENDPROC</code>
 
 <p>This follows the standard approach to opening a window: obtain the parameter block required by <swi>Wimp_OpenWindow</swi> with a call to <swi>Wimp_GetWindowState</swi>, then adjust the parameters as required.</p>
 
-<p>If the window isn&rsquo;t currently on screen &ndash; which we can tell by looking at the &lsquo;window is open&rsquo; flag at bit 16 of the window flags stored at offset 32 into the returned parameter block &ndash; then we take the opportunity to adjust the window&rsquo;s size and position so that it is centred on the screen and as large as possible without filling more than three quarters of the display. The screen width and height are read using an <function>FNread_mode_dimension()</function> function that we&rsquo;ll define shortly, and this information is used to decide the maximum size that we wish the window to be. The window&rsquo;s visible area coordinates (at offsets 4 to 16 in the block) are then updated to centre the window. If the window is already open, we leave the coordinates alone as we don&rsquo;t want it to jump around or resize itself on screen.</p>
+<p>If the window isn&rsquo;t currently on screen &ndash; which we can tell by looking at the &lsquo;window is open&rsquo; flag at bit 16 of the window flags stored at offset 32 into the returned parameter block &ndash; then we take the opportunity to adjust the window&rsquo;s size and position so that it is centred on the screen and as large as possible without filling more than three quarters of the display. The screen width and height are read using an <function>FNread_mode_dimension()</function> function that we&rsquo;ll define shortly, and this information is used to decide the maximum size that we wish the window to be. The window&rsquo;s visible area coordinates (at offsets 4 to 16 in the block) are then updated to centre the window. If the window is already open, we leave the coordinates alone as we don&rsquo;t want it to jump around or resize itself on screen. Finally, the scroll offsets &ndash; at offsets 20 and 24 into the block &ndash; are reset to zero so that the window appears fully scrolled to the top-left regardless of size.</p>
 
 <p>The handle of the window to open behind (at offset 28 into the block) is set to &minus;1, indicating &ldquo;at the top of the stack&rdquo;, and then the block is passed to <swi>Wimp_OpenWindow</swi> to perform the operation. Taken together, this will mean that if the user clicks on our iconbar icon and the window is not open, it will be opened in front of the other windows and centred on the screen. If the window <em>is</em> open, however, a click on the iconbar will simply bring it to the top of the stack in its current position.</p>
 
