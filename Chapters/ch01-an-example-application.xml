@@ -104,6 +104,14 @@ ENDPROC</code>
 
 <code id="list-example-app-error" lang="bbcbasic" title="The Wimp error handling code">DEF FNwimperror_program
 LOCAL result%
+LOCAL ERROR
+
+REM An error in the error hander will cause the application to print a brief
+REM message out on screen, then exit immediately.
+
+ON ERROR LOCAL VDU 4 : PRINT &quot;Error in error handler (&quot;;REPORT$;&quot;; error code &quot;;ERL;&quot;)&quot; : END
+
+REM With the emergency error handler in place, now handle the original error.
 
 SYS &quot;Hourglass_Smash&quot;
 
@@ -113,7 +121,7 @@ SYS &quot;Wimp_ReportError&quot;, q%, &amp;0703, TaskName$, TaskSprite$, 1, 0 TO
 
 =(result% = 2)</code>
 
-<p>In the event of an error, <swi>Hourglass_Smash</swi> is called to ensure that the hourglass is cleared, then <swi>Wimp_ReportError</swi> is used to report the problem to the user. Since this is called from <code>ON&nbsp;ERROR</code>, the expectation is that <code>REPORT$</code> and <code>ERL</code> will have useful values.</p>
+<p>In the event of an error, <swi>Hourglass_Smash</swi> is called to ensure that the hourglass is cleared, then <swi>Wimp_ReportError</swi> is used to report the problem to the user. Since this is called from <code>ON&nbsp;ERROR</code>, the expectation is that <code>REPORT$</code> and <code>ERL</code> will have useful values. To be on the safe side, a local error hander is set up to catch any further errors and exit cleanly without going into an infinite loop. The original error handler, stacked by <code>LOCAL ERROR</code>, is restored when the function exits.</p>
 
 <p>Finally, <function>PROCpoll</function> is called repeatedly to handle the calls to <swi>Wimp_Poll</swi>; the code can be seen in <reference id="list-example-app-poll" />.</p>
 
