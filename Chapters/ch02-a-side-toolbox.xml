@@ -202,12 +202,12 @@ box_height% = toolbox%!16 - toolbox%!8  : REM Visible Area Maximum Y - Minimum Y
 
 <image id="fig-side-box-pos-plane" file="side-box-pos-plane.png" title="The relationship between the main window and its toolbox" />
 
-<p><reference id="fig-side-box-pos-plane"/> shows the relationship between the main window and its pane. The tops of the two windows (<maths>y1</maths> for the two visible areas) should be level, so we can copy the <maths>y1</maths> value from the main window to the pane. The bottom of the pane (its <maths>y0</maths>) is the height of the pane below the top of the main window.</p>
+<p><reference id="fig-side-box-pos-plane"/> shows the relationship between the main window and its pane. The tops of the two windows (<maths>Y1</maths> for the two visible areas) should be level, so we can copy the <maths>Y1</maths> value from the main window to the pane. The bottom of the pane (its <maths>Y0</maths>) is the height of the pane below the top of the main window.</p>
 
 <code lang="bbcbasic">toolbox%!16 = main%!16                  : REM Visible Area Maximum Y
 toolbox%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y</code>
 
-<p>In a similar way, the right-hand side of the pane (its <maths>x1</maths>) is on the left-hand side of the main window, while its left-hand side is the width of the pane further to the left.</p>
+<p>In a similar way, the right-hand side of the pane (its <maths>X1</maths>) is on the left-hand side of the main window, while its left-hand side is the width of the pane further to the left.</p>
 
 <code lang="bbcbasic">toolbox%!12 = main%!4                   : REM Visible Area Maximum X
 toolbox%!4 = main%!4 - box_width%       : REM Visible Area Minimum X</code>
