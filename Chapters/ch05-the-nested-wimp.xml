@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
+
+<!-- Copyright 2021, Stephen Fryatt (info@stevefryatt.org.uk)
+   -
+   - This file is part of Pane Tutorial:
+   -
+   -   http://www.stevefryatt.org.uk/software/
+   -
+   - Licensed under the EUPL, Version 1.2 only (the "Licence");
+   - You may not use this work except in compliance with the
+   - Licence.
+   -
+   - You may obtain a copy of the Licence at:
+   -
+   -   http://joinup.ec.europa.eu/software/page/eupl
+   -
+   - Unless required by applicable law or agreed to in
+   - writing, software distributed under the Licence is
+   - distributed on an "AS IS" basis, WITHOUT WARRANTIES
+   - OR CONDITIONS OF ANY KIND, either express or implied.
+   -
+   - See the Licence for the specific language governing
+   - permissions and limitations under the Licence.
+  -->
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+
+<!-- Chapter 5
+   -
+   - The Nested Wimp
+  -->
+
+<chapter id="chap-nest-wimp">
+<resources>
+<images>Chapter05</images>
+<downloads>Chapter05</downloads>
+</resources>
+<filename>the-nested-wimp.php</filename>
+<uri>the-nested-wimp</uri>
+<title>The Nested Wimp</title>
+
+<summary>It isn&rsquo;t necessary to do everything with panes by hand, so let&rsquo;s see how the Wimp can help us out. </summary>
+
+<section>
+<p>Over the past few chapters, we have explored how to use pane windows to add toolboxes and toolbars to our small application. It has been a fairly manual process: setting the windows up and then keeping everything in step every time things move on screen.</p>
+
+<p>If we&rsquo;re willing to forego compatibility back to RISC&nbsp;OS&nbsp;2, then there is another way. The <intro>Nested Window Manager</intro> (or Nested Wimp, as we&rsquo;ll call it from now on) was introduced by Acorn back in the late 1990s, as an add-on for the RiscPC-era systems. Intended to support things like web browsers with complex framesets and embedded objects, it is included as a standard part of the OS in RISC&nbsp;OS&nbsp;4, 5 and Six.</p>
+
+<image id="fig-nest-wimp-paint" file="nest-wimp-paint.png" title="Amongst other things, the Nested Wimp can embed tools into scroll bars"/>
+
+<p>Whether to use the Nested Wimp is going to be a decision for individual developers, but for modern software &ndash; albeit software which meets certain criteria &ndash; it makes a lot of sense. Use of the new functionality can significantly simply the handling of pane windows, as well as make available design options which were previously a <em>lot</em> of work to implement. Users who are installing new software are most likely to be the same users who have upgraded their OS to at least RISC&nbsp;OS&nbsp;4.02, so the lack of support for RISC&nbsp;OS&nbsp;3 may not be a big problem..</p>
+</section>
+
+
+<section>
+<title>What can it do?</title>
+
+<p>The Nested Wimp&rsquo;s headline feature is the ability to attach (&ldquo;nest&rdquo;) child windows into a parent, very much as we have been doing with the toolbar in our example application. There are some disadvantages: it can&rsquo;t support windows <em>outside</em> the frame of the parent window, so the side toolbox that we have previously created isn&rsquo;t an option. On the positive side, it allows an application to do things like embed toolboxes into scroll bars <reference id="fig-nest-wimp-paint">as seen in Paint</reference> &ndash; previously something which required a lot of lateral thinking by an application developer.</p>
+
+<p>Compared to how we have handled panes up to this point in the series, the Nested Wimp is a little different. The application still needs to carefully position both the parent window and any panes, but it&rsquo;s a one-off thing done before the first call to <swi>Wimp_OpenWindow</swi>. On subsequent calls to <swi>Wimp_OpenWindow</swi>, triggered by <name>Open_Window_Request</name> events, the application can simply pass incoming event blocks to <swi>Wimp_OpenWindow</swi> without any checks &ndash; if pane windows need to be moved, the Wimp will take care of it.</p>
+
+
+
+</section>
+</chapter>
+</manual>
+

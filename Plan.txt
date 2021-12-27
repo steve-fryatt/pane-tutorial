@@ -1,0 +1,9 @@
+Chapter 03
+----------
+
+Diagram to show attachment of pane below toolbar.
+
+Diagram to show the redraw area for the icon graphically:
+   +-------------------------------+--
+   |                               |
+   +-------------------------------+--
