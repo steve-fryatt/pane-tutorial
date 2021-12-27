@@ -98,7 +98,7 @@ ENDPROC</code>
 
 <p>For now, we do very little in the way of initialisation. The global variable <variable>Quit%</variable> is initialised to <name>FALSE</name>, to ensure that the appliction does not exit immediately, and a couple of buffers &ndash; pointed to by the variables <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 1024 and 256 bytes respectively. Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be used as a store for loading template definitions and be passed as the event block to <swi>Wimp_Poll</swi>; <variable>q%</variable> will mostly be used as a second parameter block by other Wimp SWI calls.</p>
 
-<p>The program indicates that it knows about Wimp version 310: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications should use this as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. This means that <swi>Wimp_Initialise</swi> needs to be passed a list of user messages that the application requires in <name>R3</name>, so we build one up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
+<p>The program indicates that it knows about Wimp version 310: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications should aim for RISC&nbsp;OS&nbsp;3.1 as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. This means that <swi>Wimp_Initialise</swi> needs to be passed a list of user messages that the application requires in <name>R3</name>, so we build one up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
 
 <p>Error handling is looked after by <function>FNwimperror_program</function>, which can be seen in <reference id="list-example-app-error" />.</p>
 
@@ -131,11 +131,11 @@ LOCAL reason%
 SYS &quot;Wimp_Poll&quot;, &amp;3C01, b% TO reason%
 
 CASE reason% OF
-	WHEN 17, 18	: IF b%!16 = 0 THEN Quit% = TRUE
+  WHEN 17, 18 : IF b%!16 = 0 THEN Quit% = TRUE
 ENDCASE
 ENDPROC</code>
 
-<p>For now, there&rsquo;s not much here: we&rsquo;re only interested in <name>Message_Quit</name>, which has the value of zero; if one of these arrives, we set the <variable>Quit%</variable> to <name>TRUE</name> so that the program will terminate. This ensures that, in the absence of any other user interface, it can still be shut down from the <cite>Task Manager</cite>.</p>
+<p>For now, there&rsquo;s not much here: we&rsquo;re only interested in <name>Message_Quit</name>, which has the value of zero; if one of these messages arrives, we set the <variable>Quit%</variable> variable to <name>TRUE</name> so that the program will terminate. This ensures that, in the absence of any other user interface, it can still be shut down from the <cite>Task Manager</cite>.</p>
 
 <p>The BASIC program can be saved as <file>!RunImage</file> inside a <file>!PaneDemo</file> application folder, as seen in <reference id="fig-example-app-folder" />.</p>
 
@@ -145,7 +145,7 @@ ENDPROC</code>
 
 <code id="list-example-app-boot" lang="obey" title="The !Boot file">If &quot;&lt;PaneDemo$Dir&gt;&quot;=&quot;&quot; Then Set PaneDemo$Dir &lt;Obey$Dir&gt;</code>
 
-<p>The <file>!Run</file> file, seen in <reference id="list-example-app-run" />, is similarly minimalist: setting the system variable, adjusting the wimpslot and launching the BASIC code.</p>
+<p>The <file>!Run</file> file, in <reference id="list-example-app-run" />, is similarly minimalist: setting the system variable, adjusting the wimpslot and launching the BASIC code.</p>
 
 <code id="list-example-app-run" lang="obey" title="The !Run file">Set PaneDemo$Dir &lt;Obey$Dir&gt;
 
@@ -201,8 +201,8 @@ SYS &quot;Wimp_OpenTemplate&quot;,,&quot;&lt;PaneDemo$Dir&gt;.Templates&quot;
 
 PROCtemplate_load(&quot;Main&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO MainWindow%
-WindowWidth% = b%!8 - b%!0    : REM Width is Visible Area Maximum X - Minimum X
-WindowHeight% = b%!12 - b%!4  : REM Height is Visible Area Maximum Y - Minimum Y
+WindowWidth% = b%!8 - b%!0    : REM Width is Visible Area X1 - X0
+WindowHeight% = b%!12 - b%!4  : REM Height is Visible Area Y1 - Y0
 
 PROCtemplate_load(&quot;ProgInfo&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%
@@ -219,7 +219,7 @@ LOCAL templ_size%, indir_size%, workspace%
 REM Find the size required for the template and indirected data.
 
 $TemplateName%=LEFT$(name$ + STRING$(12, CHR$(13)), 12)
-SYS &quot;Wimp_LoadTemplate&quot;,,,,, -1, TemplateName%, 0 TO ,templ_size%, indir_size%
+SYS &quot;Wimp_LoadTemplate&quot;,,,,,-1, TemplateName%, 0 TO ,templ_size%, indir_size%
 
 REM Return if the template won't fit in the buffer.
 
@@ -264,21 +264,22 @@ IF (q%!32 AND &amp;10000) = 0 THEN
 
   REM Update the window dimensions.
 
-  q%!4 = (screen_width% - window_width%) / 2	: REM Visible Area Minimum X
-  q%!8 = (screen_height% - window_height%) / 2	: REM Visible Area Minimum Y
+  q%!4 = (screen_width% - window_width%) / 2    : REM Visible Area X0
+  q%!8 = (screen_height% - window_height%) / 2  : REM Visible Area Y0
 
-  q%!12 = q%!4 + window_width%			: REM Visible Area Maximum X
-  q%!16 = q%!8 + window_height%			: REM Visible Area Maximum Y
+  q%!12 = q%!4 + window_width%                  : REM Visible Area X1
+  q%!16 = q%!8 + window_height%                 : REM Visible Area Y1
 
   REM Reset the scroll offsets.
 
-  q%!20 = 0
-  q%!24 = 0
+  q%!20 = 0                                     : REM X Scroll Offset
+  q%!24 = 0                                     : REM Y Scroll Offset
 ENDIF
 
 REM Open the window at the top of the window stack.
 
-q%!28 = -1 : REM Open window at top of stack
+q%!28 = -1 : REM Window to open behind (-1 is top of stack)
+
 SYS &quot;Wimp_OpenWindow&quot;,,q%
 ENDPROC</code>
 

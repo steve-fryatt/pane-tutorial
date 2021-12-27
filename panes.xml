@@ -56,7 +56,7 @@
 
 <p>The examples in this tutorial are written in BASIC, but the techniques are equally applicable to other languages such as C &ndash; I hope that I have managed to explain them in a way that allows them to be applied in your environment of choice. The example code is all licenced under the MIT No Attribution Licence, with the aim of making it as widely useful as possible.</p>
 
-<p>Many thanks to all those on the <link href="https://www.riscosopen.org/forum/">ROOL Forums</link> who have offered suggestions while I&rsquo;ve worked on this guide.</p>
+<p>Many thanks to all those on the <link href="https://www.riscosopen.org/forum/">ROOL Forums</link> who have offered suggestions while I&rsquo;ve worked on this guide; in particular Steve Drain, whose input helped to clarify some of my misunderstandings on the subject.</p>
 </section>
 
 <chapterlist/>
