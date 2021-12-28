@@ -44,7 +44,7 @@
 <summary>We&rsquo;ll need a simple application to add our panes to, so let&rsquo;s start by putting one together.</summary>
 
 <section>
-<p>Over the course of this tutorial, we&rsquo;ll look at the different ways that panes can be used in RISC&nbsp;OS Wimp applications, and the code required to make them work. Since examples almost always make things easier to follow, we&rsquo;ll start by creating a minimalist application which contains the essentials required to get the windows and their panes on to the desktop. Although we will build up that code piece by piece in this chapter, the complete application will be <reference id="dl-example-app">available to download at the end</reference> &ndash; so don&rsquo;t worry too much about copying the bits into a text editor as you go!</p>
+<p>Over the course of this tutorial, we&rsquo;ll be looking at the different ways that panes can be used in RISC&nbsp;OS Wimp applications, and the code required to make them work. Since examples almost always make things easier to follow, we&rsquo;ll start by creating a minimalist application containing the essentials required to get the windows and their panes on to the desktop. Although we will build up that code piece by piece in this chapter, the complete application will be <reference id="dl-example-app">available to download at the end</reference> &ndash; so don&rsquo;t worry too much about copying the bits into a text editor as you go!</p>
 
 <p>The language that we will be working in is BBC&nbsp;BASIC, although the concepts introduced should be easy enough to translate into other languages as required. The code will be self-contained, to avoid the distraction of using additional libraries, but I&rsquo;ll be borrowing a number of the routines from my <link href="../libraries">WimpLib BASIC Library</link> to save re-inventing too many wheels along the way.</p>
 
@@ -74,7 +74,7 @@ END</code>
 
 <p>The code initialises a pair of global variables &ndash; <variable>TaskName$</variable> and <variable>TaskSprite$</variable> &ndash; which contain the application name and sprite necessary for the error handling. It then sets up a simple error handler, before calling <function>PROCinitialise</function> to get its interaction with the Wimp up and running.</p>
 
-<p>If this goes OK, then the error hander is updated to be a little less drastic than the original one, before the code drops into the standard Wimp poll loop. Finally, when the <variable>Quit%</variable> variable becomes <name>TRUE</name>, indicating that the program should exit, it falls out of the <code>WHILE</code> loop and calls <swi>Wimp_CloseDown</swi> to tidy things up.</p>
+<p>If this goes OK, then the error hander is updated to be a little less drastic than the original one, before the code drops into the standard Wimp poll loop. Finally, when the <variable>Quit%</variable> variable becomes <name>TRUE</name>, indicating that the program should exit, it falls out of the <keyword>WHILE</keyword> loop and calls <swi>Wimp_CloseDown</swi> to tidy things up.</p>
 
 <p>The initialisation is carried out by <function>PROCinitialise</function>, which can be seen in <reference id="list-example-app-init" />.</p>
 
@@ -96,9 +96,9 @@ q%!0 = 0       : REM Message_Quit
 SYS &quot;Wimp_Initialise&quot;, 310, &amp;4B534154, TaskName$, q%
 ENDPROC</code>
 
-<p>For now, we do very little in the way of initialisation. The global variable <variable>Quit%</variable> is initialised to <name>FALSE</name>, to ensure that the appliction does not exit immediately, and a couple of buffers &ndash; pointed to by the variables <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 1024 and 256 bytes respectively. Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be used as a store for loading template definitions and be passed as the event block to <swi>Wimp_Poll</swi>; <variable>q%</variable> will mostly be used as a second parameter block by other Wimp SWI calls.</p>
+<p>For now, we do very little in the way of initialisation. The global variable <variable>Quit%</variable> is initialised to <name>FALSE</name>, to ensure that the appliction does not exit immediately, and a couple of buffers &ndash; pointed to by the variables <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 1024 and 256 bytes respectively (remembering that in BASIC, <keyword>DIM</keyword> includes zero in its byte count). Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be used as a store for loading template definitions and be passed as the event block to <swi>Wimp_Poll</swi>; <variable>q%</variable> will mostly be used as a second parameter block when calling other Wimp SWIs.</p>
 
-<p>The program indicates that it knows about Wimp version 310: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications should use this as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. This means that <swi>Wimp_Initialise</swi> needs to be passed a list of user messages that the application requires in <name>R3</name>, so we build one up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
+<p>The program indicates that it knows about Wimp version 3.10 by passing <code>310</code> in <name>R1</name> to <swi>Wimp_Initialise</swi>: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications will usually aim for RISC&nbsp;OS&nbsp;3.1 as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. The <code>310</code> means that <swi>Wimp_Initialise</swi> will expect to be passed a list of user messages that the application requires in <name>R3</name>, so we build one up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
 
 <p>Error handling is looked after by <function>FNwimperror_program</function>, which can be seen in <reference id="list-example-app-error" />.</p>
 
@@ -121,7 +121,9 @@ SYS &quot;Wimp_ReportError&quot;, q%, &amp;0703, TaskName$, TaskSprite$, 1, 0 TO
 
 =(result% = 2)</code>
 
-<p>In the event of an error, <swi>Hourglass_Smash</swi> is called to ensure that the hourglass is cleared, then <swi>Wimp_ReportError</swi> is used to report the problem to the user. Since this is called from <code>ON&nbsp;ERROR</code>, the expectation is that <code>REPORT$</code> and <code>ERL</code> will have useful values. To be on the safe side, a local error hander is set up to catch any further errors and exit cleanly without going into an infinite loop. The original error handler, stacked by <code>LOCAL ERROR</code>, is restored when the function exits.</p>
+<p>In the event of an error, <swi>Hourglass_Smash</swi> is called to ensure that the hourglass is cleared, then <swi>Wimp_ReportError</swi> is used to report the problem to the user. Since this is called from <keyword>ON&nbsp;ERROR</keyword>, the expectation is that <keyword>REPORT$</keyword> and <keyword>ERL</keyword> will have useful values. The user&rsquo;s response to the error box is checked, and the function returns <name>TRUE</name> if it was <icon>Continue</icon> or <name>FALSE</name> if it was <icon>Cancel</icon>.</p>
+
+<p>To be on the safe side, a local error hander is set up to catch any further errors and exit cleanly without going into an infinite loop. This is very much into &ldquo;last resort&rdquo; territory, so it just restores VDU&nbsp;4 text output and writes to the screen. The original error handler, stacked by <keyword>LOCAL&nbsp;ERROR</keyword>, is restored when the function exits.</p>
 
 <p>Finally, <function>PROCpoll</function> is called repeatedly to handle the calls to <swi>Wimp_Poll</swi>; the code can be seen in <reference id="list-example-app-poll" />.</p>
 
@@ -131,11 +133,11 @@ LOCAL reason%
 SYS &quot;Wimp_Poll&quot;, &amp;3C01, b% TO reason%
 
 CASE reason% OF
-	WHEN 17, 18	: IF b%!16 = 0 THEN Quit% = TRUE
+  WHEN 17, 18 : IF b%!16 = 0 THEN Quit% = TRUE
 ENDCASE
 ENDPROC</code>
 
-<p>For now, there&rsquo;s not much here: we&rsquo;re only interested in <name>Message_Quit</name>, which has the value of zero; if one of these arrives, we set the <variable>Quit%</variable> to <name>TRUE</name> so that the program will terminate. This ensures that, in the absence of any other user interface, it can still be shut down from the <cite>Task Manager</cite>.</p>
+<p>For now, there&rsquo;s not much here: we&rsquo;re only interested in <name>Message_Quit</name>, which has the value of zero; if one of these messages arrives, we set the global <variable>Quit%</variable> variable to <name>TRUE</name> so that the program will terminate. This ensures that, in the absence of any other user interface, it can still be shut down from the <cite>Task Manager</cite>.</p>
 
 <p>The BASIC program can be saved as <file>!RunImage</file> inside a <file>!PaneDemo</file> application folder, as seen in <reference id="fig-example-app-folder" />.</p>
 
@@ -145,7 +147,7 @@ ENDPROC</code>
 
 <code id="list-example-app-boot" lang="obey" title="The !Boot file">If &quot;&lt;PaneDemo$Dir&gt;&quot;=&quot;&quot; Then Set PaneDemo$Dir &lt;Obey$Dir&gt;</code>
 
-<p>The <file>!Run</file> file, seen in <reference id="list-example-app-run" />, is similarly minimalist: setting the system variable, adjusting the wimpslot and launching the BASIC code.</p>
+<p>The <file>!Run</file> file, in <reference id="list-example-app-run" />, is similarly minimalist: setting the system variable, adjusting the wimpslot and launching the BASIC code.</p>
 
 <code id="list-example-app-run" lang="obey" title="The !Run file">Set PaneDemo$Dir &lt;Obey$Dir&gt;
 
@@ -177,13 +179,13 @@ $(q% + 24) = sprite$
 SYS &quot;Wimp_CreateIcon&quot;,,q%
 ENDPROC</code>
 
-<p>This procedure takes the name of the sprite to use in the icon as a parameter, then creates a standard iconbar icon, 68 by 68 OS&nbsp;Units in size, with that sprite and no text. For now, we won&rsquo;t act on clicks made on the icon; this can be added when we have a window to open.</p>
+<p>This procedure takes the name of the sprite to use in the icon as a parameter, then creates a standard iconbar icon, 68 &times; 68 OS&nbsp;Units in size, with that sprite and no text. For now, we won&rsquo;t act on clicks made on the icon; this can be added when we have a window to open.</p>
 </section>
 
 <section>
 <title>Adding some windows</title>
 
-<p>Before we can add a pane to our application, we&rsquo;ll need a window to which it can be attached. To this end, we will create a couple of windows in a templates file: a main window and, to prove that our pane handling code doesn&rsquo;t adversely affect any other windows in the application, a standard program information window. These can be seen in <reference id="fig-example-app-templates"/>, being edited in <cite>WinEd</cite> (other template editors are available).</p>
+<p>Before we can add a pane to our application, we&rsquo;ll need a window to which it can be attached. To this end, we will create a couple of windows in a templates file: a main window and, to prove that our pane handling code doesn&rsquo;t adversely affect any other windows in the application, a standard program information window. These can be seen in <reference id="fig-example-app-templates"/>, being edited in the <cite>WinEd</cite> template editor. All of the examples in this tutorial will show <cite>WinEd</cite>, but if you have a different favourite editor, that will be fine to use as well.</p>
 
 <image id="fig-example-app-templates" file="example-app-templates.png" title="The two windows contained in our Templates file"/>
 
@@ -201,8 +203,8 @@ SYS &quot;Wimp_OpenTemplate&quot;,,&quot;&lt;PaneDemo$Dir&gt;.Templates&quot;
 
 PROCtemplate_load(&quot;Main&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO MainWindow%
-WindowWidth% = b%!8 - b%!0    : REM Width is Visible Area Maximum X - Minimum X
-WindowHeight% = b%!12 - b%!4  : REM Height is Visible Area Maximum Y - Minimum Y
+WindowWidth% = b%!8 - b%!0    : REM Width is Visible Area X1 - X0
+WindowHeight% = b%!12 - b%!4  : REM Height is Visible Area Y1 - Y0
 
 PROCtemplate_load(&quot;ProgInfo&quot;, b%, buffer_size%, -1)
 SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%
@@ -211,15 +213,16 @@ SYS &quot;Wimp_CloseTemplate&quot;</code>
 
 <p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively. We also take the opportunity to calculate the width and height in OS&nbsp;Units, and store the values in the <variable>WindowWidth%</variable> and <variable>WindowHeight%</variable> variables for future reference.</p>
 
-<p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
+<p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI and expects there to be a global <variable>TemplateName%</variable> variable pointing to a 12 character plus terminator, word-aligned buffer for holding the template names. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
 
 <code id="list-example-app-load-temp" lang="bbcbasic" title="Load a window template into memory">DEF PROCtemplate_load(name$, buffer%, size%, fonts%)
 LOCAL templ_size%, indir_size%, workspace%
 
+$TemplateName% = LEFT$(name$ + STRING$(12, CHR$(13)), 12)
+
 REM Find the size required for the template and indirected data.
 
-$TemplateName%=LEFT$(name$ + STRING$(12, CHR$(13)), 12)
-SYS &quot;Wimp_LoadTemplate&quot;,,,,, -1, TemplateName%, 0 TO ,templ_size%, indir_size%
+SYS &quot;Wimp_LoadTemplate&quot;,,,,,-1, TemplateName%, 0 TO ,templ_size%, indir_size%
 
 REM Return if the template won't fit in the buffer.
 
@@ -234,7 +237,7 @@ REM Load the template into the buffer.
 SYS &quot;Wimp_LoadTemplate&quot;,,buffer%, workspace%, workspace% + indir_size%, fonts%, TemplateName%, 0
 ENDPROC</code>
 
-<p>The procedure takes a pointer to the larger of the two buffers that we defined in <function>PROCinitialise</function>, then uses <swi>Wimp_LoadTemplate</swi> to find out how much space the template definition will take, and how much space it will require to store any indirected icon data. Assuming the definition will fit into the supplied buffer, <code>DIM</code> is used to allocate the indirected icon storage, then <swi>Wimp_LoadTemplate</swi> is used again &ndash; this time to actually load the definition into memory.</p>
+<p>The procedure takes a pointer to the larger of the two buffers that we defined in <function>PROCinitialise</function>, then uses <swi>Wimp_LoadTemplate</swi> to find out how much space the template definition will take, and how much space it will require to store any indirected icon data. Assuming that the definition will fit into the supplied buffer, <keyword>DIM</keyword> is used to allocate the indirected icon storage, then <swi>Wimp_LoadTemplate</swi> is used again &ndash; this time to actually load the definition into memory.</p>
 
 <p>With the windows loaded, we will need to add some code to open the main window when the user clicks on our iconbar icon. Opening the window is fairly simple, and can be done with the procedure shown in <reference id="list-example-app-open-window" />.</p>
 
@@ -264,27 +267,28 @@ IF (q%!32 AND &amp;10000) = 0 THEN
 
   REM Update the window dimensions.
 
-  q%!4 = (screen_width% - window_width%) / 2	: REM Visible Area Minimum X
-  q%!8 = (screen_height% - window_height%) / 2	: REM Visible Area Minimum Y
+  q%!4 = (screen_width% - window_width%) / 2    : REM Visible Area X0
+  q%!8 = (screen_height% - window_height%) / 2  : REM Visible Area Y0
 
-  q%!12 = q%!4 + window_width%			: REM Visible Area Maximum X
-  q%!16 = q%!8 + window_height%			: REM Visible Area Maximum Y
+  q%!12 = q%!4 + window_width%                  : REM Visible Area X1
+  q%!16 = q%!8 + window_height%                 : REM Visible Area Y1
 
   REM Reset the scroll offsets.
 
-  q%!20 = 0
-  q%!24 = 0
+  q%!20 = 0                                     : REM X Scroll Offset
+  q%!24 = 0                                     : REM Y Scroll Offset
 ENDIF
 
 REM Open the window at the top of the window stack.
 
-q%!28 = -1 : REM Open window at top of stack
+q%!28 = -1 : REM Window to open behind (-1 is top of stack)
+
 SYS &quot;Wimp_OpenWindow&quot;,,q%
 ENDPROC</code>
 
 <p>This follows the standard approach to opening a window: obtain the parameter block required by <swi>Wimp_OpenWindow</swi> with a call to <swi>Wimp_GetWindowState</swi>, then adjust the parameters as required.</p>
 
-<p>If the window isn&rsquo;t currently on screen &ndash; which we can tell by looking at the &lsquo;window is open&rsquo; flag at bit 16 of the window flags stored at offset 32 into the returned parameter block &ndash; then we take the opportunity to adjust the window&rsquo;s size and position so that it is centred on the screen and as large as possible without filling more than three quarters of the display. The screen width and height are read using an <function>FNread_mode_dimension()</function> function that we&rsquo;ll define shortly, and this information is used to decide the maximum size that we wish the window to be. The window&rsquo;s visible area coordinates (at offsets 4 to 16 in the block) are then updated to centre the window. If the window is already open, we leave the coordinates alone as we don&rsquo;t want it to jump around or resize itself on screen. Finally, the scroll offsets &ndash; at offsets 20 and 24 into the block &ndash; are reset to zero so that the window appears fully scrolled to the top-left regardless of size.</p>
+<p>If the window isn&rsquo;t currently on screen &ndash; which we can tell by looking at the &lsquo;window is open&rsquo; flag at bit 16 of the window flags stored at offset 32 into the returned parameter block &ndash; then we take the opportunity to adjust the window&rsquo;s size and position so that its visible area is centred on the screen and as large as possible without filling more than three quarters of the display. The screen width and height are read using an <function>FNread_mode_dimension()</function> function that we&rsquo;ll define shortly, and this information is used to decide the maximum size that we wish the window to be. The window&rsquo;s visible area coordinates (at offsets 4 to 16 in the block) are then updated to centre the window. If the window is already open, we leave the coordinates alone as we don&rsquo;t want it to jump around or resize itself on screen. Finally, the scroll offsets &ndash; at offsets 20 and 24 into the block &ndash; are reset to zero so that the window appears fully scrolled to the top-left regardless of size.</p>
 
 <p>The handle of the window to open behind (at offset 28 into the block) is set to &minus;1, indicating &ldquo;at the top of the stack&rdquo;, and then the block is passed to <swi>Wimp_OpenWindow</swi> to perform the operation. Taken together, this will mean that if the user clicks on our iconbar icon and the window is not open, it will be opened in front of the other windows and centred on the screen. If the window <em>is</em> open, however, a click on the iconbar will simply bring it to the top of the stack in its current position.</p>
 
@@ -315,11 +319,11 @@ WHEN -2 : REM Iconbar
 ENDCASE
 ENDPROC</code>
 
-<p>This takes a pointer to the <swi>Wimp_Poll</swi> event block and, when the window handle is the iconbar and the button is <mouse>Adjust</mouse>, calls <function>PROCopen_main_window</function>. Finally, we can add a new entry into the <code>CASE</code> statement in <function>PROCpoll</function> to call the code when a <name>Mouse_Click</name> event is received.</p>
+<p>This takes a pointer to the <swi>Wimp_Poll</swi> event block and, when the window handle is the iconbar and the button is <mouse>Adjust</mouse>, calls <function>PROCopen_main_window</function>. Finally, we can add a new entry into the <keyword>CASE</keyword> statement in <function>PROCpoll</function> to call the code when a <name>Mouse_Click</name> event is received.</p>
 
-<p>In order for our windows to work as expected, there are a couple of other events that we must handle: <name>Open_Window_Request</name> and <name>Close_Window_Request</name>. As their names suggest, these are sent to our task when one of its windows is to be opened (which includes every time that it changes position or size) or closed &ndash; without them, our windows can not be moved or closed. They can often seem fairly pointless in a simple application, but turn out to be essential for handling panes &ndash; as we&rsquo;ll see over the coming chapters.</p>
+<p>In order for our windows to work as expected, there are a couple of other events that we must handle: <name>Open_Window_Request</name> and <name>Close_Window_Request</name>. As their names suggest, these are sent to our task when one of its windows is to be opened (which includes every time that it changes position or size) or closed; without them, our windows can not be moved or closed. They can often seem fairly pointless in a simple application, but turn out to be essential for handling panes &ndash; as we&rsquo;ll see over the coming chapters.</p>
 
-<p>The complete event handling <code>CASE</code> statement in <function>PROCpoll</function> should now look as :</p>
+<p>The complete event handling <keyword>CASE</keyword> statement in <function>PROCpoll</function> should now look as follows:</p>
 
 <code lang="bbcbasic">CASE reason% OF
   WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%
@@ -407,9 +411,9 @@ IF (buffer% &lt;&gt; 0) THEN menu%!36 = menu%!36 OR &amp;100
 
 =menu%</code>
 
-<p>Taking the menu title and the number of entries to be added to it as parameters, the function calculates the size of block required (at 28 bytes plus an additional 24 for each entry), then uses <code>DIM</code> to allocate the required amount. In fact, we allocate one additional byte, for reasons which will become apparent when we start to add entries to the block.</p>
+<p>Taking the menu title and the number of entries that it will contain as parameters, the function calculates the size of block required (at 28 bytes plus an additional 24 for each entry), then uses <keyword>DIM</keyword> to allocate the required amount. In fact, we allocate one additional byte, for reasons which will become apparent when we start to add entries to the block.</p>
 
-<p>The menu title is set up &ndash; using an indirected string, again allocated using <code>DIM</code>, if it contains more than 12 characters &ndash; and then the remainder of the menu header is filled in with the standard values. Finally each of the menu entries is initialised to be non-indirected, with an empty string and the default sets of flags. The final item has the menu flags set to &amp;80 to indicate that it is the last, while after the loop has completed, the first will have its menu flags updated to include &amp;100 if the title was indirected.</p>
+<p>The menu title is set up &ndash; using an indirected string, again allocated using <keyword>DIM</keyword>, if it contains more than twelve characters &ndash; and then the remainder of the menu header is filled in with the standard values. Finally each of the menu entries is initialised to be non-indirected, with an empty string and the default sets of flags. The final item has the menu flags set to &amp;80 to indicate that it is the last, while after the loop has completed, the first item will have its menu flags updated to include &amp;100 if the title was indirected.</p>
 
 <p>With the structure set up, <function>PROCmenu_add_entry()</function>, as defined in <reference id="list-example-app-menu-entry" />, is used to fill in the entries.</p>
 
@@ -456,7 +460,7 @@ ENDPROC</code>
 
 <p>This routine takes a pointer to the menu block to be updated and the index of the target entry, along with the menu item text and a submenu pointer (which can be zero if not required). It starts by finding the address of the entry within the block by stepping through the menu structure, checking the &lsquo;last item&rsquo; flag bits as it goes. This way, there's no danger of inadvertently writing off the end of a menu block by getting entry numbers confused.</p>
 
-<p>Once the entry has been found, the text is stored in a similar way to that used by <function>FNmenu_construct()</function> for the menu title. If the text is 12 characters or less in length, then it is stored directly in the icon&rsquo;s data; otherwise, an indirected buffer is claimed, the text is stored in that, then the icon is configured to use it. The reason that <function>FNmenu_construct()</function> allocated an additional byte for the menu block lies here: if the final item&rsquo;s text is 12 characters long, then the <code>$</code> operator used to store the text will write its terminator into the byte immediately following the menu block!</p>
+<p>Once the entry has been found, the text is stored in a similar way to that used by <function>FNmenu_construct()</function> for the menu title. If the text is twelve characters or less in length, then it is stored directly in the icon&rsquo;s data; otherwise, an indirected buffer is claimed, the text is stored in that, then the icon is configured to use it. The reason that <function>FNmenu_construct()</function> allocated an additional byte for the menu block lies here: if the final item&rsquo;s text is twelve characters long, then the <code>$</code> operator used to store the text will write its terminator into the byte immediately following the menu block!</p>
 
 <p>With the item&rsquo;s text stored, the menu&rsquo;s width is updated to reflect it. This value is only used when the System Font is selected for the desktop, so the code assumes that characters are 16 OS&nbsp;Units wide for the purposes of the calculation. Finally, the submenu pointer is updated with the value supplied.</p>
 
@@ -484,7 +488,7 @@ ENDPROC</code>
 
 <p>The <cite>Style Guide</cite> dictates that iconbar menus are opened 64 OS&nbsp;Units to the left of the mouse position, with their base 96 OS&nbsp;Units from the bottom of the screen. To achieve this, we step through the menu entries adding up the heights of each entry and its associated gap, plus any separators that they have. At the end of this, we will have one gap too many, so one is removed. Finally, the address of the menu block is stored in the global <variable>MenuOpen%</variable> for future reference, and the menu is opened with a call to <swi>Wimp_CreateMenu</swi>.</p>
 
-<p>This code needs to be called when the user clicks <mouse>Menu</mouse> on our iconbar icon, so we add a new entry to the <code>CASE</code> statements in <function>PROCmouse_click()</function> to handle it:</p>
+<p>This code needs to be called when the user clicks <mouse>Menu</mouse> on our iconbar icon, so we add a new entry to the <keyword>CASE</keyword> statements in <function>PROCmouse_click()</function> to handle it:</p>
 
 <code lang="bbcbasic">CASE b%!12 OF
 WHEN -2 : REM Iconbar
@@ -506,19 +510,19 @@ reopen% = (q%!8 = 1)
 
 CASE MenuOpen% OF
 WHEN IconbarMenu%
-	CASE !b% OF
-		WHEN 1	: Quit% = TRUE
-	ENDCASE
+  CASE !b% OF
+    WHEN 1  : Quit% = TRUE
+  ENDCASE
 ENDCASE
 
 IF reopen% THEN SYS &quot;Wimp_CreateMenu&quot;,,MenuOpen%
 ENDPROC</code>
 
-<p>As with our <name>Mouse_Click</name> event handler, this takes a pointer to the <swi>Wimp_Poll</swi> event block. The list of menu selection indexes contained in the block is decoded using a <code>CASE</code> statement; if the <menu>Quit</menu> entry is selected, the <variable>Quit%</variable> variable is set to <name>TRUE</name> so that the application will exit.</p>
+<p>As with our <name>Mouse_Click</name> event handler, this takes a pointer to the event block returned from <swi>Wimp_Poll</swi>. The list of menu selection indexes contained in the block is decoded using a <keyword>CASE</keyword> statement; if the <menu>Quit</menu> entry is selected, the <variable>Quit%</variable> variable is set to <name>TRUE</name> so that the application will exit.</p>
 
 <p>Before any work is done, <swi>Wimp_GetPointerInfo</swi> is called to get the mouse state and determine whether an <mouse>Adjust</mouse> click was used, and hence whether the menu needs to be re-opened afterwards. It&rsquo;s a bit moot if we only have the option of exiting the application, but even so, in the event that it was, <swi>Wimp_CreateMenu</swi> is called to restore the menu!</p>
 
-<p>The final tweak is to add <name>Menu_Selection</name> events to the <code>CASE</code> statement in <function>PROCpoll</function>, which should now look as follows:</p>
+<p>The final tweak is to add <name>Menu_Selection</name> events to the <keyword>CASE</keyword> statement in <function>PROCpoll</function>, which should now look as follows:</p>
 
 <code lang="bbcbasic">CASE reason% OF
   WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%

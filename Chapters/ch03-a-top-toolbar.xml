@@ -44,7 +44,7 @@
 <summary>Many applications have toolbars across the tops of their windows; just don&rsquo;t call them ribbons.</summary>
 
 <section>
-<p>An alternative to a toolbox at the side of a window, as we <reference id="chap-side-box">created in the last chapter</reference>, is a toolbar across the top of a window. Which to go for is more of a stylistic question than a technical one, and it&rsquo;s possible to have both at the same time. <cite>Ovation&nbsp;Pro</cite> does just this, as seen in <reference id="fig-top-bar-ovation"/>.</p>
+<p>An alternative to a toolbox at the side of a window, as we <reference id="chap-side-box">created in the last chapter</reference>, is a toolbar across the top of a window. Which to go for is more of a stylistic question than a technical one, and it&rsquo;s even possible to have both at the same time. <cite>Ovation&nbsp;Pro</cite> does just this, as can be seen in <reference id="fig-top-bar-ovation"/>.</p>
 
 <image id="fig-top-bar-ovation" file="top-bar-ovation.png" title="Ovation Pro has both a side toolbox and a toolbar at the same time"/>
 
@@ -60,13 +60,13 @@
 
 <p>Much of the window design, including the window flags, is the same as for the toolbox. The toolbar has no window furniture, has its &lsquo;window is a pane&rsquo; flag set and its &lsquo;window is moveable&rsquo; flag clear.</p>
 
-<p>Compared to the toolbox, we need to take a little more care over the window dimensions. We want the toolbar to span the width of the main window, so the work area width (<maths>X1</maths> &minus; <maths>X0</maths>) <em>must</em> be at least as large as that of the main window: 1040 OS&nbsp;Units in this case. In our demo, we can simply set this in the template definition, as seen in <reference id="fig-top-bar-extents"/>. However, it&rsquo;s important to remember that if our application was to ever call <swi>Wimp_SetExtent</swi> in order to increase the width of the main window&rsquo;s work area, it would also have to make the same adjustment to the toolbar &ndash; otherwise, the toolbar will stop short of the right-hand side of the window.</p>
+<p>Compared to the toolbox, we need to take a little more care over the window dimensions. We want the toolbar to span the width of the main window, so the work area width (<maths>X1</maths> &minus; <maths>X0</maths>) <em>must</em> be at least as large as that of the main window: 1040 OS&nbsp;Units in this case. In our demo, we can simply set this in the template definition, as seen in <reference id="fig-top-bar-extents"/>. However, it&rsquo;s important to remember that if our application was to ever call <swi>Wimp_SetExtent</swi> in order to increase the width of the main window&rsquo;s work area, it would also have to make the same adjustment to the toolbar &ndash; if it does not, then the toolbar could stop short of the right-hand side of the window.</p>
 
 <image id="fig-top-bar-extents" file="top-bar-extents.png" title="The work area width must be the same size as that of the main window"/>
 
-<p>The height of the work area (<maths>Y1</maths> &minus; <maths>Y0</maths>) is set to be 60 OS&nbsp;Units: this allows a standard writeable icon with a height of 52 OS&nbsp;Units, plus a 4 OS&nbsp;Unit space above and below it.</p>
+<p>The height of the work area (<maths>Y1</maths> &minus; <maths>Y0</maths>) is set to be 60 OS&nbsp;Units: this allows for a standard writeable icon with a height of 52 OS&nbsp;Units, plus a 4 OS&nbsp;Unit space above and below it.</p>
 
-<p>We have also adjusted the minimum sizes of the bar, although this is as much to keep <cite>WinEd</cite> happy: with the minimum <maths>y</maths> dimenstion set to zero, the Wimp will limit the size to that required for the vertical scroll bar which <cite>WinEd</cite> applies in editing mode, making it hard to set the dimensions that we require.</p>
+<p>We have also adjusted the minimum sizes of the bar, although this is as much to keep <cite>WinEd</cite> happy as anything else. With the minimum <maths>y</maths> dimension set to the default value of zero, the Wimp will limit the size to that required for the vertical scroll bar which <cite>WinEd</cite> applies in editing mode, making it hard to set the dimensions that we require.</p>
 
 <p>The window contains two action buttons and a writeable icon, so that we can easily see how the work area moves around in relation to its parent window. All three icons are 52 OS&nbsp;Units high, to match the standard height for a writeable icon, and there is a 4 OS&nbsp;Unit gap around the edges of the work area on all four sides.</p>
 
@@ -95,16 +95,16 @@ ENDIF
 SYS &quot;Wimp_CloseWindow&quot;,,b%
 ENDPROC</code>
 
-<p>The code that we need to add to <function>PROChandle_pane_windows()</function> should already be fairly familiar. First, we need to create a window state block for the toolbar pane, just as we do for the toolbox. To keep things simple, we&rsquo;ll borrow another 32 bytes from the <name>Open_Window_Request</name> event block, placing the toolbar pane&rsquo;s data at an offset of 128 bytes into the block.</p>
+<p>The code that we need to add to <function>PROChandle_pane_windows()</function> should already be fairly familiar. First, we need to create a window state block for the toolbar pane, just as we do for the toolbox. To keep things simple, we&rsquo;ll borrow another 32 bytes from the <name>Open_Window_Request</name> event block, this time placing the toolbar pane&rsquo;s data at an offset of 128 bytes into the block.</p>
 
 <code lang="bbcbasic">toolbar% = main% + 128
 
 !toolbar% = ToolBarWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbar%</code>
 
-<p>The calculations for the position of the toolbox will remain as they are, before which we will insert in a similar set of calculations for the new toolbar. To be able to do this, we&rsquo;ll need the height of the bar &ndash; which we can get from its visible area as before.</p>
+<p>The calculations for the position of the toolbox will remain as they are, before which we will insert in a similar set of calculations for the new toolbar. To be able to do this, we&rsquo;ll need to know the height of the bar &ndash; which we can get from its visible area as before.</p>
 
-<code lang="bbcbasic">box_height% = toolbar%!16 - toolbar%!8  : REM Visible Area Maximum Y - Minimum Y</code>
+<code lang="bbcbasic">bar_height% = toolbar%!16 - toolbar%!8    : REM Visible Area Y1 - Y0</code>
 
 <p>We don&rsquo;t need the width of the bar, because that will be tied to the width of the main window&rsquo;s visible area as shown in <reference id="fig-top-bar-pos-plane"/>.</p>
 
@@ -112,13 +112,13 @@ SYS &quot;Wimp_GetWindowState&quot;,,toolbar%</code>
 
 <p>The tops of the two windows (<maths>Y1</maths> for the two visible areas) are once again level, whilst the bottom of the pane (its <maths>Y0</maths>) is the height of the pane below the top (<maths>Y1</maths>) of the main window. This means that the vertical dimensions for the toolbar&rsquo;s visible area are calculated in exactly the same way as for the toolbox.</p>
 
-<code lang="bbcbasic">toolbar%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y
-toolbar%!16 = main%!16                  : REM Visible Area Maximum Y</code>
+<code lang="bbcbasic">toolbar%!8 = main%!16 - bar_height%       : REM Visible Area Y0
+toolbar%!16 = main%!16                    : REM Visible Area Y1</code>
 
 <p>The horizontal positioning of the toolbar is, if anything, easier than for the toolbox: it aligns completely with the visible area of the main window, so <maths>X0</maths> and <maths>X1</maths> can be copied directly from the main window&rsquo;s data block.</p>
 
-<code lang="bbcbasic">toolbar%!4 = main%!4                    : REM Visible Area Minimum X
-toolbar%!12 = main%!12                  : REM Visible Area Maximum X</code>
+<code lang="bbcbasic">toolbar%!4 = main%!4                      : REM Visible Area X0
+toolbar%!12 = main%!12                    : REM Visible Area X1</code>
 
 <p>This is why the horizontal extent of the pane has to match that of the main window: if the main window is fully extended, the pane has to be able to follow suit.</p>
 </section>
@@ -129,25 +129,17 @@ toolbar%!12 = main%!12                  : REM Visible Area Maximum X</code>
 
 <p>Just as with our previous example, the two panes must appear directly in front of the main window in the window stack. The exact order doesn&rsquo;t matter to the Wimp, so we will choose to put the toolbar in front of the main window, and the toolbox in front of the toolbar. When deciding, it pays to look at positions where the different panes might overlap, and consider which will look best to the user.</p>
 
-<p>As before, we start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox.</p>
+<p>We will start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox directly behind the window that&rsquo;s in front of the main window &ndash; inserting it in front of the main window, exactly <reference id="sect-side-box-stack">as we did before</reference>.</p>
 
-<code lang="bbcbasic">IF (main%!28 &lt;&gt; ToolBarWindow%) OR (toolbar%!28 &lt;&gt; ToolBoxWindow%) THEN toolbox%!28 = main%!28
+<code lang="bbcbasic">toolbox%!28 = main%!28
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbox%</code>
 
-<p>We still need to check to see if the windows are already in their correct places in the stack, but with two panes to consider we must now check <em>both</em> whether the main window is behind the toolbar, <em>and</em> whether the toolbar is behind the toolbox. If either isn&rsquo;t in the correct place, then we will need to re-position the toolbox &ndash; as the top window of the pile &ndash; and work down from that.</p>
-
-<p>With the toolbox open, we can open the toolbar behind it...</p>
+<p>With the toolbox open in the correct place, we can open the toolbar behind it, which will mean that it will end up inserted directly in front of the main window in a similar way.</p>
 
 <code lang="bbcbasic">toolbar%!28 = ToolBoxWindow%
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%</code>
-
-<p>...and then, at the bottom of our little pile of windows, comes the main window itself.</p>
-
-<code lang="bbcbasic">main%!28 = ToolBarWindow%
-
-SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
 
 <p>Putting all of the new code together with the old, <function>PROChandle_pane_windows()</function> now looks as shown in <reference id="list-top-bar-panes"/>.</p>
 
@@ -156,6 +148,9 @@ LOCAL toolbox%, toolbar%, box_width%, box_height%, bar_height%
 
 REM Get the Window State block for the toolbox pane, using some of the
 REM spare space above the data for the state of the main window.
+REM
+REM Note: ON RISC OS 5, we could more clearly use DIM toolbox% LOCAL 64
+REM here to allocate the required memory from the stack.
 
 toolbox% = main% + 64
 
@@ -172,45 +167,44 @@ SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
 
 REM Find the height of the toolbar pane's visible area.
 
-bar_height% = toolbar%!16 - toolbar%!8  : REM Visible Area Maximum Y - Minimum Y
+bar_height% = toolbar%!16 - toolbar%!8    : REM Visible Area Y1 - Y0
 
 REM Move the toolbar pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-toolbar%!4 = main%!4                    : REM Visible Area Minimum X
-toolbar%!8 = main%!16 - bar_height%     : REM Visible Area Minimum Y
-toolbar%!12 = main%!12                  : REM Visible Area Maximum X
-toolbar%!16 = main%!16                  : REM Visible Area Maximum Y
+toolbar%!4 = main%!4                      : REM Visible Area X0
+toolbar%!8 = main%!16 - bar_height%       : REM Visible Area Y0
+toolbar%!12 = main%!12                    : REM Visible Area X1
+toolbar%!16 = main%!16                    : REM Visible Area Y1
 
 REM Find the width and height of the toolbox pane's visible area.
 
-box_width% = toolbox%!12 - toolbox%!4   : REM Visible Area Maximum X - Minimum X
-box_height% = toolbox%!16 - toolbox%!8  : REM Visible Area Maximum Y - Minimum Y
+box_width% = toolbox%!12 - toolbox%!4     : REM Visible Area X1 - X0
+box_height% = toolbox%!16 - toolbox%!8    : REM Visible Area Y1 - Y0
 
 REM Move the toolbox pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
 CASE TRUE OF
 WHEN main%!4 &gt; box_width%
-  toolbox%!4 = main%!4 - box_width%     : REM Visible Area Minimum X
-  toolbox%!12 = main%!4                 : REM Visible Area Maximum X
+	toolbox%!4 = main%!4 - box_width%       : REM Visible Area X0
+	toolbox%!12 = main%!4                   : REM Visible Area X1
 WHEN main%!4 &gt; 0
-  toolbox%!4 = 0                        : REM Visible Area Minimum X
-  toolbox%!12 = box_width%              : REM Visible Area Maximum X
+	toolbox%!4 = 0                          : REM Visible Area X0
+	toolbox%!12 = box_width%                : REM Visible Area X1
 OTHERWISE
-  toolbox%!4 = main%!4                  : REM Visible Area Minimum X
-  toolbox%!12 = main%!4 + box_width%    : REM Visible Area Maximum X
+	toolbox%!4 = main%!4                    : REM Visible Area X0
+	toolbox%!12 = main%!4 + box_width%      : REM Visible Area X1
 ENDCASE
 
-toolbox%!8 = main%!16 - box_height%     : REM Visible Area Minimum Y
-toolbox%!16 = main%!16                  : REM Visible Area Maximum Y
+toolbox%!8 = main%!16 - box_height%       : REM Visible Area Y0
+toolbox%!16 = main%!16                    : REM Visible Area Y1
 
-REM Unless the main window is to be opened behind the toolbar pane, and the
-REM toolbar pane is already behind the toolbox pane, meaning that all three
-REM windows must already be in the correct place in the stack, set the toolbox's
-REM Open Behind so that it appears in the stack where the main window is to go.
+REM Open the toolbox pane behind the same window that the main window
+REM was opened behind. This will place it directly in front of the
+REM main window.
 
-IF (main%!28 &lt;&gt; ToolBarWindow%) OR (toolbar%!28 &lt;&gt; ToolBoxWindow%) THEN toolbox%!28 = main%!28
+toolbox%!28 = main%!28
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
 
@@ -219,12 +213,6 @@ REM Set the toolbar window's Open Behind so that it opens behind the toolbox.
 toolbar%!28 = ToolBoxWindow%
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
-
-REM Set the main window's Open Behind so that it opens behind the toolbar.
-
-main%!28 = ToolBarWindow%
-
-SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
 
 <p>Running the updated application should reveal a new toolbar attached to the top of the main window, as shown in <reference id="fig-top-bar-complete"/>. If resized or moved around the screen, both the toolbar and the original toolbox should move and adjust their sizes together. Note that if the caret is placed in the toolbar&rsquo;s writeable icon, the main window is shown as having input focus: this is a result of the panes having their &lsquo;window is a pane&rsquo; flags set.</p>
@@ -260,7 +248,7 @@ ENDPROC</code>
 <section>
 <title>Overlapping panes</title>
 
-<p>Another minor niggle can be seen if we bring the window to the edge of the screen: as the toolbox retracts over the main window, it obscures the left-hand end of the toolbar. It&rsquo;s worth noting that if we had put the two panes in the other order, with the toolbar in front of the main window and the toolbox at the top, then the toolbar would be retracting <em>under</em> the toolbar &ndash; which would look even stranger.</p>
+<p>Another minor niggle can be seen if we bring the window to the edge of the screen: as the toolbox retracts over the main window, it obscures the left-hand end of the toolbar. It&rsquo;s worth noting that if we had put the two panes in the other order, with the toolbar in front of the main window and the toolbox at the top, then the toolbox would be retracting <em>under</em> the toolbar &ndash; which would look even stranger.</p>
 
 <image id="fig-top-bar-overlap" file="top-bar-overlap.png" title="At the side of the screen, the toolbox begins to obscure the toolbar"/>
 
@@ -268,8 +256,8 @@ ENDPROC</code>
 
 <p>An alternative approach would be to push the toolbox down the side of the main window, so that it sits below the base of the toolbar. This is simple enough to do, and can be achieved by adding in the height of the toolbar to the calculation in <function>PROChandle_pane_windows()</function> which sets the vertical position of the toolbox &ndash; the changes required can be seen in <reference id="list-top-bar-offset-toolbox"/>.</p>
 
-<code id="list-top-bar-offset-toolbox" lang="bbcbasic" title="Offsetting the toolbox so that it clears the toolbar">toolbox%!8 = main%!16 - (bar_height% + box_height%) : REM Visible Area Minimum Y
-toolbox%!16 = main%!16 - bar_height%                : REM Visible Area Maximum Y</code>
+<code id="list-top-bar-offset-toolbox" lang="bbcbasic" title="Offsetting the toolbox so that it clears the toolbar">toolbox%!8 = main%!16 - (bar_height% + box_height%) : REM Visible Area Y0
+toolbox%!16 = main%!16 - bar_height%                : REM Visible Area Y1</code>
 
 <p>With this small modification in place, the toolbar is now anchored lower down the side of the main window and slides in below the work area of the toolbar as seen in <reference id="fig-top-bar-overlap-adjust"/>.</p>
 
@@ -290,14 +278,14 @@ toolbox%!16 = main%!16 - bar_height%                : REM Visible Area Maximum Y
 
 <p>However, if we&rsquo;re happy to only support machines from the RiscPC onwards &ndash; which isn&rsquo;t an unreasonable idea in modern software &ndash; then we can improve things more easily. RISC&nbsp;OS&nbsp;3.5 introduced a new <swi>Wimp_ResizeIcon</swi> SWI, which we can use to adjust the size of the writeable icon as we re-open the panes.</p>
 
-<p>To make the application as general as possible, we&rsquo;ll start by adding the code shown in <reference id="list-top-bar-test-resize"/> to <function>PROCinitialise</function>. This will check to see if the <swi>Wimp_ResizeIcon</swi> functionality is available; if it isn&rsquo;t, we can just skip the resizing operation.</p>
+<p>To make the application as general as possible, we&rsquo;ll start by adding the code shown in <reference id="list-top-bar-test-resize"/> to <function>PROCinitialise</function>. This will check to see if the <swi>Wimp_ResizeIcon</swi> functionality is available; if it isn&rsquo;t, we can just skip the resizing operation. This way, the application will still work all the way back to RISC&nbsp;OS&nbsp;3.1, albeit with less visual finesse.</p>
 
 <code id="list-top-bar-test-resize" lang="bbcbasic" title="Testing for the Wimp_ResizeIcon SWI">SYS &quot;XOS_SWINumberFromString&quot;,,&quot;Wimp_ResizeIcon&quot; TO ;flags%
 ResizeIconAvailable% = ((flags% AND 1) = 0)</code>
 
-<p>This attempts to read the number for the <swi>Wimp_ResizeIcon</swi> SWI; if the SWI doesn&rsquo;t exist, an error will be raised and the call will return with the V flag set. The value of the flag is tested, and the <variable>ResizeIconAvailable%</variable> variable set to <name>TRUE</name> or <name>FALSE</name> depending on the outcome. It&rsquo;s good practice to test for specific functionality when possible, instead of testing Wimp or OS version numbers &ndash; aside from anything else, it&rsquo;s much easier to keep on top of in terms of code complexity!</p>
+<p>The code attempts to read the number for the <swi>Wimp_ResizeIcon</swi> SWI; if the SWI doesn&rsquo;t exist, an error will be raised and the call will return with the V flag set. The value of the flag is tested, and the <variable>ResizeIconAvailable%</variable> variable set to <name>TRUE</name> or <name>FALSE</name> depending on the outcome. It&rsquo;s good practice to test for specific functionality when possible, instead of testing Wimp or OS version numbers &ndash; aside from anything else, it&rsquo;s much easier to keep on top of in terms of code complexity!</p>
 
-<p>The resizing operation itself can be performed in <function>PROChandle_pane_windows()</function>, immediately after the position of the toolbar window has been set. The code required can be seen in <reference id="list-top-bar-resize-icon"/> &ndash; it has been bracketed in an <code>IF ... ENDIF</code> statement, so that it will only be called if the <swi>Wimp_ResizeIcon</swi> SWI is available.</p>
+<p>The resizing operation itself can be performed in <function>PROChandle_pane_windows()</function>, immediately after the position of the toolbar window has been set. The code required can be seen in <reference id="list-top-bar-resize-icon"/> &ndash; it has been bracketed in an <keyword>IF ... ENDIF</keyword> statement, so that it will only be called if the <swi>Wimp_ResizeIcon</swi> SWI is available.</p>
 
 <code id="list-top-bar-resize-icon" lang="bbcbasic" title="Resizing the writeable icon">IF ResizeIconAvailable% THEN
   icon% = main% + 192
@@ -306,7 +294,7 @@ ResizeIconAvailable% = ((flags% AND 1) = 0)</code>
   icon%!4 = 0 : REM Writeable Icon Handle
   SYS &quot;Wimp_GetIconState&quot;,,icon%
 
-  bar_rhs% = (toolbar%!12 - toolbar%!4) + toolbar%!20 : REM Visible Area (Maximum - Minimum) + X Scroll Offset
+  bar_rhs% = (toolbar%!12 - toolbar%!4) + toolbar%!20 : REM Visible Area (X1 - X0) + X Scroll Offset
 
   SYS &quot;Wimp_ResizeIcon&quot;, icon%!0, icon%!4, icon%!8, icon%!12, bar_rhs% - 4, icon%!20
   SYS &quot;Wimp_ForceRedraw&quot;, ToolBarWindow%, icon%!8, icon%!12, bar_rhs%, icon%!20
@@ -317,7 +305,7 @@ ENDIF</code>
 
 <p>Attempting to change the size of an icon &ndash; not least a <em>writeable</em> icon &ndash; is taking us a little way into &ldquo;here be dragons&rdquo; territory. We start by reading the current state of the writeable icon into another spare part of the <name>Open_Window_Request</name> block, using <swi>Wimp_GetIconState</swi>. This gives us the icon&rsquo;s current coordinates; the top, bottom and left-hand side (<maths>Y1</maths>, <maths>Y0</maths> and <maths>X0</maths>) will not be changing, and can therefore be used directly in the call to resize the icon.</p>
 
-<p>The right-hand side of the icon (<maths>X1</maths>) will be related to the right-hand side of the toolbar&rsquo;s visible work area, so we calculate this in work area coordinates by calculating the width of the visible area (<maths>X1</maths> &minus; <maths>X0</maths>) and adding on any scroll offset in the X direction. This offset should be zero, but it&rsquo;s usually easier to do window coordinate calculations in full &ndash; that way, they continue to work even if the assumptions change!</p>
+<p>The right-hand side of the icon (<maths>X1</maths>) will be related to the right-hand side of the toolbar&rsquo;s visible work area, so we calculate this in work area coordinates by taking the width of the visible area (<maths>X1</maths> &minus; <maths>X0</maths>) and adding on any scroll offset in the X direction. This offset should be zero, but it&rsquo;s usually a good idea to do window coordinate calculations in full &ndash; that way, they continue to work even if the assumptions change!</p>
 
 <p>Now that we have the work area coordinate for the right-hand edge of the visible toolbar, we can use <swi>Wimp_ResizeIcon</swi> to set the right-hand coordinate of the icon to be 4 OS&nbsp;Units in to the left from this. The Wimp won't refresh the display for us, however, so we also need to call <swi>Wimp_ForceRedraw</swi> for the whole area of the icon <em>and</em> the space between it and the edge of the toolbar.</p>
 
