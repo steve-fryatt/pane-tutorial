@@ -66,7 +66,7 @@
 
 <p>The toolbar window itself has also been updated, removing the pair of action buttons and the writeable field. In their place are four &lsquo;heading&rsquo; icons, which should line up with the columns of coloured squares in the main window. The buttons are now passive &ndash; neither visibly pressing nor generating <name>Mouse_Click</name> events &ndash; although as before this is merely cosmetic.</p>
 
-<p>For the code itself, we have gone back to <reference id="dl-top-bar-2"/> and stripped out all of the code relating to the toolbox pane. First, we no longer need to load or the window, reducing the template code in <function>PROCinitialise</function> to loading the remaining three windows as seen in <reference id="list-col-head-load"/>.</p>
+<p>For the code itself, we have gone back to <reference id="dl-top-bar-2"/> and stripped out all of the code relating to the toolbox pane. First, we no longer need to load or create the window, reducing the template code in <function>PROCinitialise</function> to processing the remaining three windows as seen in <reference id="list-col-head-load"/>.</p>
 
 <code id="list-col-head-load" lang="bbcbasic" title="Loading the three window templates">REM Load the window templates
 
