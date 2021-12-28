@@ -52,11 +52,11 @@
 <section>
 <title>Making our first pane</title>
 
-<p>The first thing that we need to do is design the pane itself. As far as the Wimp is concerned, panes are just normal windows, so we&rsquo;ll go back to our template editor of choice (here I&rsquo;m using <cite>WinEd</cite>) and add a new window called &ldquo;Toolbox&rdquo;. We can see that window in the browser in <reference id="fig-side-box-browser"/>, although the screenshot shows it after editing is complete &ndash; <cite>WinEd</cite> (and probably most other template editors) will give it a full set of scroll bars by default.</p>
+<p>The first thing that we will need to do is design the pane itself. As far as the Wimp is concerned, panes are just normal windows, so we&rsquo;ll go back to our template editor of choice (again, I&rsquo;m using <cite>WinEd</cite> here, but other editors would also be fine) and add a new window called &ldquo;Toolbox&rdquo;. We can see that window in the browser in <reference id="fig-side-box-browser"/>, although the screenshot shows it after editing is complete &ndash; <cite>WinEd</cite> (and probably most other template editors) will give it a full set of scroll bars in the template browser by default.</p>
 
 <image id="fig-side-box-browser" file="side-box-browser.png" title="The updated templates file, with the new toolbox pane" />
 
-<p>Opening the window template up for editing, we can change the window title to something short like &ldquo;TB&rdquo; &ndash; although this doesn&rsquo;t really matter, since the title will never be shown to the user. To make it look like a toolbox, we&rsquo;ve also added four action buttons which are each 92 &times; 92 OS&nbsp;Units and offset by 4 OS&nbsp;Units from each edge of the window: the visible area is the adjusted to be 100 &times; 388 OS&nbsp;Units. The end result can be seen in <reference id="fig-side-box-template"/>; the buttons are just for show, as we won&rsquo;t be using them for anything in this demonstration.</p>
+<p>Opening the window template up for editing, we can change the window title to something short like &ldquo;TB&rdquo; &ndash; although this doesn&rsquo;t really matter, since the title will never be shown to the user. To make it look like a toolbox, we&rsquo;ve also added four action buttons which are each 92 &times; 92 OS&nbsp;Units and offset by 4 OS&nbsp;Units from each edge of the window: the visible area is then adjusted to be 100 &times; 388 OS&nbsp;Units. The end result can be seen in <reference id="fig-side-box-template"/>; the buttons are just for show, as we won&rsquo;t be using them for anything in this demonstration.</p>
 
 <image id="fig-side-box-template" file="side-box-template.png" title="Editing the toolbox pane in WinEd"/>
 
@@ -107,7 +107,7 @@ ENDPROC</code>
 
 <p>Each of these event-handling procedures will need to check each incoming event, to see which window it applies to. If it&rsquo;s the handle of the main window, then &ndash; in addition to calling the appropriate Wimp SWI as before &ndash; any additional work required to handle the pane will need to be performed as well.</p>
 
-<p>In the case of <function>PROCopen_window_request()</function>, we will change the code so that for any <name>Open_Window_Request</name> events relating to the main window, a new <function>PROChandle_pane_windows()</function> procedure will be called after the event has been passed to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-box-poll-open"/>; <function>PROChandle_pane_windows()</function> will handle the panes for us, but we&rsquo;ll worry about what it looks like later on.</p>
+<p>In the case of <function>PROCopen_window_request()</function>, we will change the code so that for any <name>Open_Window_Request</name> events relating to the main window, a new <function>PROChandle_pane_windows()</function> procedure will be called after the event has been passed to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-box-poll-open"/>; <function>PROChandle_pane_windows()</function> will look after moving the toolbox pane for us, but we&rsquo;ll worry about what it looks like later on.</p>
 
 <code id="list-side-box-poll-open" lang="bbcbasic" title="Dealing with Open Window Request events">DEF PROCopen_window_request(b%)
 SYS &quot;Wimp_OpenWindow&quot;,,b%
@@ -187,13 +187,13 @@ ENDPROC</code>
 <section>
 <title>Setting the visible area</title>
 
-<p>Now that we have ensured that our <function>PROChandle_pane_windows()</function> procedure will be called following every <swi>Wimp_OpenWindow</swi> call which applies to the main window, all that remains is to work out how to adjust the toolbox pane so that the two windows appear to be joined together on screen. We need to know where the main window ended up on screen, and fortunately this information is waiting for us.</p>
+<p>Now that we have ensured that our new <function>PROChandle_pane_windows()</function> procedure will be called following every <swi>Wimp_OpenWindow</swi> call which applies to the main window, all that remains to be done is to work out how to adjust the toolbox pane so that the two windows appear to be joined together on screen. To do this, we will need to know where the main window ended up on screen once it was opened, and fortunately this information is already waiting for us.</p>
 
-<p>Since the arrival of the Nested Wimp with RISC&nbsp;OS&nbsp;4.02, the <swi>Wimp_OpenWindow</swi> SWI has been documented as returning with the contents of the window state block passed in <name>R1</name> updated to reflect where the window was actually opened. In the <cite>Nested Window Manager Functional Specification</cite>, Acorn wrote that &ldquo;since RISC&nbsp;OS&nbsp;2 (and possibly even earlier), <swi>Wimp_OpenWindow</swi> has had undocumented return conditions: values at <name>R1</name>+4 to <name>R1</name>+24 are updated to represent the actual parameters of the opened window after valid ranges have been taken into account, and the window has been forced on-screen (if applicable).&rdquo;</p>
+<p>Since the arrival of the Nested Wimp with RISC&nbsp;OS&nbsp;4.02, the <swi>Wimp_OpenWindow</swi> SWI has been documented as returning with the contents of the window state block, passed to it in <name>R1</name>, updated to reflect where the window was actually opened. In the <cite>Nested Window Manager Functional Specification</cite>, Acorn wrote that &ldquo;since RISC&nbsp;OS&nbsp;2 (and possibly even earlier), <swi>Wimp_OpenWindow</swi> has had undocumented return conditions: values at <name>R1</name>+4 to <name>R1</name>+24 are updated to represent the actual parameters of the opened window after valid ranges have been taken into account, and the window has been forced on-screen (if applicable).&rdquo;</p>
 
-<p>Thanks to this piece of retrospective documentation, it is safe for us to rely on this behaviour in new software. The <function>PROChandle_pane_windows()</function> procedure takes a single parameter, <variable>main%</variable>, which is a pointer to the block that was used to open the main window. Whether this arrived through <swi>Wimp_Poll</swi> into the block pointed to by <variable>b%</variable>, or was set up in the block pointed to by <variable>q%</variable> by a call to <swi>Wimp_WindowState</swi> in <function>PROCopen_main_window</function>, it has been passed to <swi>Wimp_OpenWindow</swi> and now contains details of where the main window is on screen.</p>
+<p>Thanks to this piece of retrospective documentation, it is safe for us to rely on this behaviour in new software. The <function>PROChandle_pane_windows()</function> procedure takes a single parameter, <variable>main%</variable>, which is a pointer to the block that was used to open the main window. Whether this arrived through <swi>Wimp_Poll</swi> into the block pointed to by <variable>b%</variable>, or was set up in the block pointed to by <variable>q%</variable> by a call to <swi>Wimp_WindowState</swi> in <function>PROCopen_main_window</function>, it has been passed to <swi>Wimp_OpenWindow</swi> and now contains details of exactly where the main window is on screen.</p>
 
-<p>The first thing that we need to do is to create an equivalent window state block for the toolbox pane, which we can then update with the necessary values calculated from the main window&rsquo;s position. Unfortunately we can&rsquo;t use our usual scratch block of memory pointed to by <variable>q%</variable>, because that could already be holding the data for the main window if we have been called from <function>PROCopen_main_window</function>. However, we know that only 36 bytes will be in use from what is at least a 256 byte block, so we can just load the pane information in at an offset of 64 bytes. To make things simpler to follow, we&rsquo;ll define a local variable <variable>toolbox%</variable> which points to this offset, then access the toolbox pane&rsquo;s data through it.</p>
+<p>The first thing that we need to do is to create an equivalent window state block for the toolbox pane, which we can then update with the necessary values calculated from the main window&rsquo;s position. Unfortunately we can&rsquo;t use our usual scratch block of memory pointed to by <variable>q%</variable>, because that could already be holding the data for the main window if we have been called from <function>PROCopen_main_window</function>. However, we know that only 36 bytes will be in use from what is at least a 256 byte block, so we can just load the pane information into some of the unused space at the end, with an offset of 64 bytes. To make things simpler to follow, we&rsquo;ll define a local variable <variable>toolbox%</variable> which points to this offset, then access the toolbox pane&rsquo;s data through it.</p>
 
 <code lang="bbcbasic">toolbox% = main% + 64
 
@@ -221,7 +221,7 @@ toolbox%!4 = main%!4 - box_width%         : REM Visible Area X0</code>
 </section>
 
 
-<section>
+<section id="sect-side-box-stack">
 <title>Lost in the stack</title>
 
 <p>The code above deals with the position of the pane in the <maths>X</maths> and <maths>Y</maths> dimensions, but what about the <maths>Z</maths> dimension &ndash; its position in the window stack? The Wimp requires that panes appear directly above their parent window; however, this is still left up to the application to manage.</p>
@@ -234,11 +234,11 @@ toolbox%!4 = main%!4 - box_width%         : REM Visible Area X0</code>
 
 <p>In a similar way, if a window with its pane flag set gains the caret, then the Wimp will give input focus to (and set the &lsquo;window has input focus&rsquo; flag at bit 20 of the window flags for) the first window <em>below</em> it in the stack which is not a pane. Finally, when working out which bits of a window might need redrawing following a re-size, the Wimp will treat any panes immediately above it as being transparent &ndash; on the basis that the application may be about to move them anyway.</p>
 
-<p>Keeping the <maths>Z</maths> order of the windows correct is fairly straight-forward. The window state block for the main window contains the position in the window stack at which it was opened, in terms of the handle of the window that it is positioned beneath at offset 28. Since the toolbox pane should be in front of the main window, we can open it behind the same window that the main window is behind: meaning that it will end up between that window and our main window. To achieve this, we copy the window handle from the main window&rsquo;s block into the pane&rsquo;s block.</p>
+<p>Keeping the <maths>Z</maths> order of the windows correct is fairly straight-forward. The window state block for the main window contains the position in the window stack at which it was opened, in terms of the handle of the window that it is positioned beneath at offset 28. Since the toolbox pane should be in front of the main window, we can open it behind the same window that the main window has just been opened behind. This means that it will end up being inserted into the stack between that window and our main window, thereby ending up <em>in front of</em> our main window as required. To achieve this, we copy the window handle from the main window&rsquo;s block into the pane&rsquo;s block.</p>
 
 <code lang="bbcbasic">toolbox%!28 = main%!28</code>
 
-<p>Opening the toolbox pane directly behind the same window that the main window has been opened behind will result in the pane ending up <em>in front of</em> the main window &ndash; exactly where we need it to be. The pane is now ready to be opened in its new location, using a call to <swi>Wimp_OpenWindow</swi>.</p>
+<p>The pane is now ready to be opened in its new location, using a call to <swi>Wimp_OpenWindow</swi>.</p>
 
 <code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,toolbox%</code>
 
@@ -297,7 +297,7 @@ ENDPROC</code>
 
 <image id="fig-side-box-draw-offscreen" file="side-box-draw-offscreen.png" title="Draw&rsquo;s toolbox stays on screen as long as possible"/>
 
-<p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROChandle_pane_windows()</function>, where we set the coordinates of the pane&rsquo;s visible area. Above we used the following fixed calculations:</p>
+<p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROChandle_pane_windows()</function>, where we set the coordinates of the pane&rsquo;s visible area. In the code above, we used the following fixed calculations:</p>
 
 <code lang="bbcbasic">REM Move the pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
@@ -342,6 +342,8 @@ toolbox%!16 = main%!16                    : REM Visible Area Y1</code>
 <p>The full code can be found in <reference id="dl-side-box-2"/>.</p>
 
 <download id="dl-side-box-2" file="SideBox2" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
+
+<p>We&rsquo;ve now seen all of the building blocks required to attach a pane to our window, but there&rsquo;s no need to have it on the left-hand side of the work area &ndash; or even limit ourselves to a single pane! In <reference id="chap-top-bar">the next chapter</reference>, we&rsquo;ll take a look at adding a second pane in an alternative toolbar configuration.</p>
 </section>
 </chapter>
 </manual>

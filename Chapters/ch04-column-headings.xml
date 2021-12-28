@@ -44,7 +44,7 @@
 <summary>So far our toolbar has ignored the main window contents; what if we want it to remain in step with the work area?</summary>
 
 <section>
-<p>Now that we have added both a <reference id="chap-side-box">toolbox</reference> and a <reference id="chap-top-bar">toolbar</reference> to our example application in the past two chapters, it&rsquo;s time to look a subtle way of altering the configuration.</p>
+<p>Now that we have added both a <reference id="chap-side-box">toolbox</reference> and a <reference id="chap-top-bar">toolbar</reference> to our example application in the past two chapters, it&rsquo;s time to look a subtle way of altering the configuration a little more.</p>
 
 <p>So far, both of our panes have used &lsquo;fixed&rsquo; work areas which don&rsquo;t scroll: their X and Y scroll offsets were set to zero in the window templates, and remained at that value as the main window moved around. However, there&rsquo;s no reason why panes can&rsquo;t scroll in sympathy with their parent windows: a spreadsheet might need to do this if it was using a pane to show the column headings in a document, for example. In fact <cite>Fireworkz</cite>, seen in <reference id="fig-col-head-fireworkz"/>, does exactly this.</p>
 
