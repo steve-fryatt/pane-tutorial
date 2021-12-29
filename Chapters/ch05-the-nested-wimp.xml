@@ -50,7 +50,7 @@
 
 <image id="fig-nest-wimp-paint" file="nest-wimp-paint.png" title="Amongst other things, the Nested Wimp can embed tools into scroll bars"/>
 
-<p>The Nested Wimp&rsquo;s headline feature is the ability to attach (&ldquo;nest&rdquo;) child windows into a parent, very much as we have been doing with the toolbar in our example application. There are some disadvantages: it can&rsquo;t support windows <em>outside</em> the frame of the parent window, so the side toolbox that we have previously created isn&rsquo;t an option. On the positive side, it allows an application to do other more complex things like embed toolboxes into scroll bars, as seen in <reference id="fig-nest-wimp-paint"/> &ndash; previously something which required a lot of lateral thinking by an application developer.</p>
+<p>The Nested Wimp&rsquo;s headline feature is the ability to &ldquo;nest&rdquo; (or attach) child windows into a parent, very much as we have been doing with the <reference id="chap-col-head">toolbar in our example application</reference>. There are some disadvantages: it can&rsquo;t support windows <em>outside</em> the frame of the parent window, so the <reference id="chap-side-box">side toolbox</reference> that we have previously created isn&rsquo;t an option. On the positive side, it allows an application to do other more complex things like embed toolboxes into scroll bars, as seen in <reference id="fig-nest-wimp-paint"/> &ndash; previously something which required a lot of lateral thinking by an application developer.</p>
 
 <p>Whether to use the Nested Wimp is going to be a decision for individual developers, but for modern software &ndash; albeit software which meets certain criteria &ndash; it makes a lot of sense. Use of the new functionality can significantly simply the handling of pane windows, as well as make available design options which were previously a <em>lot</em> of work to implement. Users who are installing new software are most likely to be the same users who have upgraded their OS to at least RISC&nbsp;OS&nbsp;4.02, so the lack of support for RISC&nbsp;OS&nbsp;3 may not be a big problem.</p>
 </section>
@@ -59,7 +59,9 @@
 <section>
 <title>Re-creating our toolbar</title>
 
-<p>To see how the Nested Wimp works, we&rsquo;ll re-create our column-heading toolbar from <reference id="chap-col-head">the last chapter</reference> using its functionality. There will be no changes required to the templates, so we can launch straight in to the code &ndash;taking <reference id="dl-col-head-2"/> as our base.</p>
+<p>To see how the Nested Wimp works, we&rsquo;ll re-create our column-heading toolbar from <reference id="chap-col-head">the last chapter</reference> using its functionality &ndash; it looked as seen in <reference id="fig-nest-wimp-reminder"/>. There will be no changes required to the templates, so we can launch straight in to the code &ndash;taking <reference id="dl-col-head-2"/> as our base.</p>
+
+<image id="fig-nest-wimp-reminder" file="nest-wimp-reminder.png" title="The toolbar that we&rsquo;ll be re-creating"/>
 
 <p>The first thing that we will need to change is our application&rsquo;s <file>!Run</file> file. Since we will be using the Nested Wimp, we need to check that it is actually present on the system &ndash; which we do as seen in <reference id="list-nest-wimp-run"/>.</p>
 
@@ -70,7 +72,7 @@ RMEnsure WindowManager 3.80 Error PaneDemo requires the Nested Window Manager.
 WimpSlot -min 96K -max 96K
 Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
 
-<p>Since the Window Manager can&rsquo;t be replaced whilst the system is running, all that we can do is test for it and refuse to run if it isn&rsquo;t present. The user will need to install an update in <cite>!Boot</cite> &ndash; although as already noted, a suitable version of the Window Manager is present in ROM with RISC&nbsp;OS&nbsp;4, 5 and Six.</p>
+<p>Since the Window Manager can&rsquo;t be replaced whilst the system is running, all that we can do is test for it and refuse to start up if it isn&rsquo;t present. If this happens, the user will need to install an update in <cite>!Boot</cite> &ndash; although as already noted, a suitable version of the Window Manager is present in ROM with RISC&nbsp;OS&nbsp;4, 5 and Six.</p>
 
 <p>We will also need to update our call to <swi>Wimp_Initialise</swi> in <function>PROCinitialise</function>. Instead of passing 310 in <name>R0</name> to indicate that we wish to use the features of RISC&nbsp;OS&nbsp;3.1, we must now pass 380 as shown in <reference id="list-nest-wimp-init"/>, to tell the Wimp that we want its nested functionality to be available to us.</p>
 
@@ -78,9 +80,9 @@ Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
 
 SYS &quot;Wimp_Initialise&quot;, 380, &amp;4B534154, TaskName$, q%</code>
 
-<p>The big change between the two examples will be in how the toolbar pane is handled. Up to now, we have had to position our panes when the main window is initially opened, and then on every single <name>Open_Window_Request</name> event after that; we also need to remember to close them on the <name>Close_Window_Request</name> event. With the Nested Wimp we still need to position our panes when the window is initially opened, but when we do, we also let the Wimp know that they are attached to the main window &ndash; and more crucially, <em>how</em> they are attached.</p>
+<p>The big change between the two examples will be in how the toolbar pane is handled. Up to now, we have had to position our panes when the main window is initially opened, and then keep them up to date on every single <name>Open_Window_Request</name> event after that; we also need to remember to close them on the <name>Close_Window_Request</name> event. With the Nested Wimp we still need to position our panes when the window is initially opened, but when we do, we also let the Wimp know that they are attached to the main window &ndash; and more crucially, <em>how</em> they are attached.</p>
 
-<p>After that, with the main window and its toolbar open on screen, the Wimp deals with all of the positioning work that we have so far done by hand. This means that we can delete <function>PROCopen_window_request()</function> and <function>PROCclose_window_request()</function>, because we no longer need to do any special work on <name>Open_Window_Request</name> or <name>Close_Window_Request</name> events, and can instead just pass them to the <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi> SWIs respectively. As a result, <function>PROCpoll</function> can return to how it was in <reference id="chap-example-app"/>, as seen in <reference id="list-nest-wimp-poll"/>.</p>
+<p>After that, with the main window and its toolbar open on screen, the Wimp deals with all of the positioning work that we have so far done by hand. This means that we can delete bot h <function>PROCopen_window_request()</function> and <function>PROCclose_window_request()</function>, because we no longer need to do any special work on <name>Open_Window_Request</name> or <name>Close_Window_Request</name> events. Instead, we can just pass them to the <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi> SWIs respectively, as we did before we added any panes to our application. As a result, <function>PROCpoll</function> can return to how it was in <reference id="chap-example-app"/>, as seen in <reference id="list-nest-wimp-poll"/>.</p>
 
 <code id="list-nest-wimp-poll" lang="bbcbasic" title="Our Wimp_Poll loop has become simpler again">DEF PROCpoll
 LOCAL reason%
@@ -95,13 +97,18 @@ CASE reason% OF
 	WHEN 17, 18	: IF b%!16 = 0 THEN Quit% = TRUE
 ENDCASE
 ENDPROC</code>
+</section>
 
-<p>Opening the main window and its pane in <function>PROCopen_main_window</function> follows a familiar pattern. We start by setting up a couple of variables, <variable>main%</variable> and <variable>toolbar%</variable>, to point to blocks of memory in which to store window state blocks for the two windows; as before, we&rsquo;re putting them both into the 256 byte buffer pointed to by <variable>q%</variable>.</p>
+
+<section>
+<title>Opening windows</title>
+
+<p>Opening the main window and its pane in <function>PROCopen_main_window</function> follows a familiar pattern. We start by setting up a couple of variables, <variable>main%</variable> and <variable>toolbar%</variable>, to point to blocks of memory in which to store window state blocks for the two windows; as before, we&rsquo;re putting them both into the 256 byte buffer pointed to by <variable>q%</variable> to avoid having to dynamically allocate any memory.</p>
 
 <code lang="bbcbasic">main% = q%
 toolbar% = q% + 64</code>
 
-<p>We then use <swi>Wimp_GetWindowState</swi> to request details of the main window, reposition it as required, and then call <swi>Wimp_OpenWindow</swi> to open it up on the desktop. This code is almost exactly the same as that used in <function>PROCopen_main_window</function>, aside from a small change to the call to <swi>Wimp_OpenWindow</swi> for the main window, which we&rsquo;ll come back to shortly.</p>
+<p>We use <swi>Wimp_GetWindowState</swi> to request details of the main window, then reposition it as required ready for a call to <swi>Wimp_OpenWindow</swi>. Aside from the last SWI call, this code is exactly the same as that used in <function>PROCopen_main_window</function>.</p>
 
 <code lang="bbcbasic">REM Get the main window details.
 
@@ -140,11 +147,17 @@ ENDIF
 
 REM Open the window at the top of the window stack.
 
-main%!28 = -1 : REM Window to open behind (-1 is top of stack)
+main%!28 = -1 : REM Window to open behind (-1 is top of stack)</code>
 
-SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0</code>
+<p>The first difference from our previous examples comes with the call to <swi>Wimp_OpenWindow</swi> &ndash; instead of simply passing a pointer to the main window&rsquo;s state block in <name>R1</name>, we&rsquo;re using the so-called &ldquo;extended syntax&rdquo; of the SWI.</p>
 
-<p>Previously, at this point, we would call <function>PROChandle_pane_windows()</function> to set up and open the toolbar pane. Since positioning the windows is a one-off operation with the Nested Wimp, however, we will bring the code into <function>PROCopen_main_window</function>. Most of the code is identical to that which we have used before: getting the toolbar pane&rsquo;s details with <swi>Wimp_GetWindowState</swi>, then adjusting the position to suit the location of the main window.</p>
+<code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0</code>
+
+<p>It still takes a pointer to the window state block, but now <name>R2</name> contains the familiar Wimp magic constant of &amp;4B534154 &ndash; or &lsquo;TASK&rsquo; in ASCII. If present, this unlocks more functionality from the call: <name>R3</name> will then take the handle of this window&rsquo;s <intro>parent window</intro>, while <name>R4</name> takes the <intro>nesting flags</intro>.</p>
+
+<p>For the main window, we supply a parent window handle of &minus;1 to indicate that it will be a <intro>top level window</intro> &ndash; that it is not to be treated as being nested within any other window. This makes it exactly the same as a window opened using the conventional version of the SWI. None of the nesting flags apply, so they are set to &amp;0.</p>
+
+<p>Previously, having called <swi>Wimp_OpenWindow</swi> for the main window, we would go on to call <function>PROChandle_pane_windows()</function> to set up and open the toolbar pane. Since positioning the windows is a one-off operation with the Nested Wimp, however, we will bring the code into <function>PROCopen_main_window</function>. Most of the code is identical to that which we have used before: getting the toolbar pane&rsquo;s details with <swi>Wimp_GetWindowState</swi>, then adjusting the position to suit the location of the main window.</p>
 
 <code lang="bbcbasic">REM Get the toolbar details
 
@@ -163,7 +176,7 @@ toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
 toolbar%!12 = main%!12                            : REM Visible Area X1
 toolbar%!16 = main%!16                            : REM Visible Area Y1
 
-REM Align the toolbar pane's scroll offset with the main window.
+REM Align the toolbar pane's horizontal scroll offset with the main window.
 
 toolbar%!20 = main%!20                            : REM X Scroll Offset
 
@@ -171,19 +184,98 @@ REM Open the toolbox pane at the top of the stack, nested into the main window.
 
 toolbar%!28 = -1</code>
 
-<p>The magic of the Nested Wimp comes in the last line of the procedure, however: the call to <swi>Wimp_OpenWindow</swi> which opens the toolbar pane.</p>
+<p>The magic of the Nested Wimp comes in the last line of the procedure, however: the call to <swi>Wimp_OpenWindow</swi> which opens the toolbar pane. Once again, we will be using the extended version of the SWI.</p>
 
 <code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;08A90000</code>
-
-<p>This is the so-called &ldquo;extended syntax&rdquo; of the SWI; it still takes a pointer to the window state block in <name>R1</name>, but now <name>R2</name> contains the familiar Wimp magic constant of &amp;4B534154 &ndash; or &lsquo;TASK&rsquo; in ASCII. if present, this unlocks more functionality: <name>R3</name> now takes the handle of this window&rsquo;s <intro>parent window</intro>, while <name>R4</name> takes the <intro>nesting flags</intro>.</p>
-
-<p>When we called <swi>Wimp_OpenWindow</swi> for the main window, we passed a parent window handle of &minus;1 to indicate that it was a <intro>top level window</intro> &ndash; that it was not to be treated as being nested within any other window. Before the advent of the Nested Wimp, all windows behaved as if they were top level windows. None of the nesting flags applied, and so they were left unset (set to &amp;0).</p>
-
-<p>For the toolbar pane, however, we want the Wimp to treat it as being nested within the main window. To achieve this, when calling <swi>Wimp_OpenWindow</swi> for the toolbar pane, we pass the handle of the main window (the toolbar&rsquo;s parent window) in <name>R3</name>. We will also need to let the Wimp know how the two windows are joined together, and the nesting flags in <name>R4</name> do that.</p>
-
-<!-- Nesting Flags -->
+</section>
 
 
+<section>
+<title>Nesting windows</title>
+
+<p>Unlike the main window, which we opened as a top level window, we want the Wimp to treat the toolbar window as being nested within the main window. To achieve this, we pass the handle of the main window (the toolbar&rsquo;s parent window) in <name>R3</name> when calling <swi>Wimp_OpenWindow</swi> for the pane. We will also need to let the Wimp know how the two windows are joined together, and the nesting flags in <name>R4</name> do that.</p>
+
+<p>The flags are a 32-bit value, defined in <reference id="table-nest-wimp-flags"/>; the bits which are not listed (1 to 15, 28 to 31) are reserved and should be zero.</p>
+
+<table id="table-nest-wimp-flags" title="The Nesting Flags for Wimp_OpenWindow">
+<columns>
+<col align="centre">Bits</col>
+<col align="left">Purpose</col>
+</columns>
+<row><col>0</col><col>Update the window flags using the flags at offset 32 into the window state block pointed to by <name>R1</name></col></row>
+<row><col>16 &amp; 17</col><col>Anchor point for the left (<maths>X0</maths>) edge of the child</col></row>
+<row><col>18 &amp; 19</col><col>Anchor point for the bottom (<maths>Y0</maths>) edge of the child</col></row>
+<row><col>20 &amp; 21</col><col>Anchor point for the right (<maths>X1</maths>) edge of the child</col></row>
+<row><col>22 &amp; 23</col><col>Anchor point for the top (<maths>Y1</maths>) edge of the child</col></row>
+<row><col>24 &amp; 25</col><col>Anchor point for the X scroll offset of the child</col></row>
+<row><col>26 &amp; 27</col><col>Anchor point for the Y scroll offset of the child</col></row>
+</table>
+
+<p>Bit&nbsp;0 is interesting in itself, as for the first time it makes it possible to change the window flags of a window after it has been created. Previously, doing things like changing the window furniture (scroll bars, back icons, and so on) required a window to be deleted with <swi>Wimp_DeleteWindow</swi> and then re-created with the new flags. Now, with the Nested Wimp, an application can simply put the desired new values into the correct place within the block passed to <swi>Wimp_OpenWindow</swi>, and set this bit of the nesting flags.</p>
+
+<p>However, this is beside the point: what we&rsquo;re interested in at present are the anchor points between bit 16 and bit 27. These define how a child window is attached to its parent; in our case, how our toolbar will be attached to the main window. Each of the anchor points is given by a two-bit value, with the possible meanings listed in <reference id="table-nest-wimp-nest-values"/>.</p>
+
+<table id="table-nest-wimp-nest-values" title="The Nesting Values for Wimp_OpenWindow">
+<columns>
+<col align="centre">Setting</col>
+<col align="left">Meaning</col>
+</columns>
+<row><col>%00</col><col>Link to the work area of the parent</col></row>
+<row><col>%01</col><col>Link to the left or bottom (<maths>X0</maths> or <maths>Y0</maths>) of the parent&rsquo;s visible area</col></row>
+<row><col>%10</col><col>Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area</col></row>
+<row><col>%11</col><col>Reserved &ndash; do not use</col></row>
+</table>
+
+<p>There&rsquo;s a lot of information required here, but it can be broken down fairly logically &ndash; and we have already worked out all of the answers that we will need. If we look back at how we set up the toolbar&rsquo;s visible area, we see that the four coordinates were copied across from the main window&rsquo;s visible area as follows.</p>
+
+<code lang="bbcbasic">toolbar%!4 = main%!4                : REM Visible Area X0
+toolbar%!8 = main%!16 - bar_height% : REM Visible Area Y0
+toolbar%!12 = main%!12              : REM Visible Area X1
+toolbar%!16 = main%!16              : REM Visible Area Y1</code>
+
+<p>These four values correspond to the first four anchor points in the nesting flags, and we can draw the parallels in <reference id="table-nest-wimp-assign-anchors"/>.</p>
+
+<table id="table-nest-wimp-assign-anchors" title="Assigning the nesting flags">
+<columns>
+<col align="left">Point</col>
+<col align="left">Written To</col>
+<col align="left">Copied From</col>
+<col align="left">Anchored To</col>
+</columns>
+<row><col>Left Edge (<maths>X0</maths>)</col><col><code>toolbar%!4</code></col><col><code>main%!4</code></col><col>Visible Area X0</col></row>
+<row><col>Bottom Edge (<maths>Y0</maths>)</col><col><code>toolbar%!8</code></col><col><code>main%!16 - bar_height%</code></col><col>Visible Area Y1</col></row>
+<row><col>Right Edge (<maths>X1</maths>)</col><col><code>toolbar%!12</code></col><col><code>main%!12</code></col><col>Visible Area X1</col></row>
+<row><col>Top Edge (<maths>X1</maths>)</col><col><code>toolbar%!16</code></col><col><code>main%!16</code></col><col>Visible Area Y1</col></row>
+</table>
+
+<p>As can be seen from the first two columns, the anchor points in the nesting flags directly correspond to the four visible area coordinates stored at offsets 4 to 16 of the pane&rsquo;s window state block. In each case, when setting up the pane&rsquo;s visible area, we assign a value based on one of the visible area coordinates in the main window&rsquo;s state block, as shown in column three. This is the key to working out the anchoring: if we look at the value which we assign in each case, it will tell us where we have anchored that side of the pane window.</p>
+
+<p>Take the visible area <maths>X0</maths> value at <code>toolbox%!4</code>, for example: we assign this from <code>main%!4</code>, which is the visible area <maths>X0</maths> of the main window. This tells us that the visible area <maths>X0</maths> of the pane (the left edge of the child window) is attached to the visible area <maths>X0</maths> of the main window. If we look at the options in <reference id="table-nest-wimp-nest-values"/>, we can see this gives us a flag value of %01 &ndash; &ldquo;Link to the left or bottom (<maths>X0</maths> or <maths>Y0</maths>) of the parent&rsquo;s visible area&rdquo;.</p>
+
+<p>Similarly, the visible area <maths>X1</maths> value at <code>toolbox%!12</code> is being assigned from <code>main%!12</code>, which is the visible area <maths>X1</maths> of the main window. From this, we can tell that the right edge of the pane will be attached to the visible area <maths>X1</maths> of the main window, giving us a value of %10 &ndash; &ldquo;Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area&rdquo; &ndash; from <reference id="table-nest-wimp-nest-values"/>.</p>
+
+<p>For the visible area <maths>Y0</maths> value at <code>toolbox%!8</code>, we assign <code>main%!16 - bar_height%</code>; this is referencing <code>main!%16</code>, or the visible area <maths>Y1</maths> of the main window. The visible area <maths>Y1</maths> at <code>toolbar%!16</code> is assigned <code>main%!16</code>, which is again the visible area <maths>Y1</maths> of the main window. Consequently, we can tell that both the bottom and top edges of the pane will use values of %10 &ndash; &ldquo;Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area&rdquo; &ndash; from <reference id="table-nest-wimp-nest-values"/>.</p>
+
+<p>The way that the toolbar is anchored into the main window is summarised in <reference id="fig-nest-wimp-anchor"/>.</p>
+
+<image id="fig-nest-wimp-anchor" file="nest-wimp-anchor.png" title="Anchoring the toolbar to the main window" />
+
+<p>Working out the anchor points for the X and Y scroll offsets is a little different, but follows similar logic. Looking at our pane positioning code again, we can see that we assign the toolbar&rsquo;s scroll offsets as follows.</p>
+
+<code lang="bbcbasic">toolbar%!20 = main%!20              : REM X Scroll Offset</code>
+
+<p>We copy the horizontal scroll offset from the main window, because we want the column headings in the toolbar to line up with the columns in the main window. In previous examples, we would copy this value across on every <name>Open_Window_Request</name> event and now we want the Nested Wimp to keep the horizontal scroll offsets of the two windows in step. Consequently we want the horizontal scroll offset of the toolbar to be linked &rdquo;to the work area of the parent&rdquo; which is %00 from <reference id="table-nest-wimp-nest-values"/>.</p>
+
+<p>In contrast, we never change the vertical scroll offset. To make sure that the Nested Wimp doesn&rsquo;t either, we link it to the same part of the window as the visible area <maths>Y1</maths> value: %10 &ndash; &ldquo;Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area&rdquo; &ndash; from <reference id="table-nest-wimp-nest-values"/>.</p>
+
+<p>Putting these values together gives us %00&nbsp;00&nbsp;10&nbsp;00&nbsp;10&nbsp;10&nbsp;10&nbsp;01 for the top 16 bits of the nesting flags, or &amp;08A9 in hex. The bottom 16 bits are all clear, since we don&rsquo;t wish to have <swi>Wimp_OpenWindow</swi> updating the window flags, which gives a complete value of &amp;08A90000 for the nesting flags. <reference id="fig-nest-wimp-flags"/> shows how the value is assembled.</p>
+
+<image id="fig-nest-wimp-flags" file="nest-wimp-flags.png" title="Assembling the nesting flags" />
+</section>
+
+
+<section>
+<title>A complete application</title>
 
 <p>Putting it all together, we can delete <function>PROChandle_pane_windows()</function>; all of the functionality is now in the new <function>PROCopen_main_window</function>, in <reference id="list-nest-wimp-open"/>.</p>
 
@@ -264,11 +356,15 @@ toolbar%!28 = -1
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;08A90000
 ENDPROC</code>
 
+<p>Running our new application should give us the window seen in <reference id="fig-nest-wimp-headings"/> &ndash; indistinguishable, from a user&rsquo;s point of view at least, from the <reference id="chap-col-head">version that we built in the previous chapter</reference>.</p>
 
+<image id="fig-nest-wimp-headings" file="nest-wimp-headings.png" title="The column headings toolbar, handled by the Nested Wimp" />
 
+<p>Reducing the size of the main window and adjusting the scroll bars should reveal that the column headings in the toolbar correctly follow the main window contents, just as they did in our manually-managed bar. Whilst we might not have reduced the total amount of code by much, we have reduced the complexity of our <name>Open_Window_Request</name> and <name>Close_Window_Request</name> event handlers significantly. We have also passed all responsibility for keeping our window and its toolbar together to the Wimp.</p>
 
+<p>The complete application can be found in <reference id="dl-nest-wimp-scroll"/>.</p>
 
-
+<download id="dl-nest-wimp-scroll" file="NestedScroll" title="Column headings with the Nested Wimp" compatibility="armv7"/>
 </section>
 </chapter>
 </manual>
