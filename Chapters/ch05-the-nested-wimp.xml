@@ -57,9 +57,215 @@
 
 
 <section>
-<title>What can it do?</title>
+<title>Re-creating our toolbar</title>
 
-<p>Compared to how we have handled panes up to this point in the series, the Nested Wimp is a little different. The application still needs to carefully position both the parent window and any panes, but it&rsquo;s a one-off thing done before the first call to <swi>Wimp_OpenWindow</swi>. On subsequent calls to <swi>Wimp_OpenWindow</swi>, triggered by <name>Open_Window_Request</name> events, the application can simply pass incoming event blocks to <swi>Wimp_OpenWindow</swi> without any checks &ndash; if pane windows need to be moved, the Wimp will take care of it.</p>
+<p>To see how the Nested Wimp works, we&rsquo;ll re-create our column-heading toolbar from <reference id="chap-col-head">the last chapter</reference> using its functionality. There will be no changes required to the templates, so we can launch straight in to the code &ndash;taking <reference id="dl-col-head-2"/> as our base.</p>
+
+<p>The first thing that we will need to change is our application&rsquo;s <file>!Run</file> file. Since we will be using the Nested Wimp, we need to check that it is actually present on the system &ndash; which we do as seen in <reference id="list-nest-wimp-run"/>.</p>
+
+<code id="list-nest-wimp-run" lang="obey" title="The !Run file must test for the Nested Wimp">Set PaneDemo$Dir &lt;Obey$Dir&gt;
+
+RMEnsure WindowManager 3.80 Error PaneDemo requires the Nested Window Manager.
+
+WimpSlot -min 96K -max 96K
+Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
+
+<p>Since the Window Manager can&rsquo;t be replaced whilst the system is running, all that we can do is test for it and refuse to run if it isn&rsquo;t present. The user will need to install an update in <cite>!Boot</cite> &ndash; although as already noted, a suitable version of the Window Manager is present in ROM with RISC&nbsp;OS&nbsp;4, 5 and Six.</p>
+
+<p>We will also need to update our call to <swi>Wimp_Initialise</swi> in <function>PROCinitialise</function>. Instead of passing 310 in <name>R0</name> to indicate that we wish to use the features of RISC&nbsp;OS&nbsp;3.1, we must now pass 380 as shown in <reference id="list-nest-wimp-init"/>, to tell the Wimp that we want its nested functionality to be available to us.</p>
+
+<code id="list-nest-wimp-init" lang="bbcbasic" title="Initialising for the Nested Wimp">q%!0 = 0 : REM Message_Quit
+
+SYS &quot;Wimp_Initialise&quot;, 380, &amp;4B534154, TaskName$, q%</code>
+
+<p>The big change between the two examples will be in how the toolbar pane is handled. Up to now, we have had to position our panes when the main window is initially opened, and then on every single <name>Open_Window_Request</name> event after that; we also need to remember to close them on the <name>Close_Window_Request</name> event. With the Nested Wimp we still need to position our panes when the window is initially opened, but when we do, we also let the Wimp know that they are attached to the main window &ndash; and more crucially, <em>how</em> they are attached.</p>
+
+<p>After that, with the main window and its toolbar open on screen, the Wimp deals with all of the positioning work that we have so far done by hand. This means that we can delete <function>PROCopen_window_request()</function> and <function>PROCclose_window_request()</function>, because we no longer need to do any special work on <name>Open_Window_Request</name> or <name>Close_Window_Request</name> events, and can instead just pass them to the <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi> SWIs respectively. As a result, <function>PROCpoll</function> can return to how it was in <reference id="chap-example-app"/>, as seen in <reference id="list-nest-wimp-poll"/>.</p>
+
+<code id="list-nest-wimp-poll" lang="bbcbasic" title="Our Wimp_Poll loop has become simpler again">DEF PROCpoll
+LOCAL reason%
+
+SYS &quot;Wimp_Poll&quot;, &amp;3C01, b% TO reason%
+
+CASE reason% OF
+	WHEN 2		: SYS &quot;Wimp_OpenWindow&quot;,,b%
+	WHEN 3		: SYS &quot;Wimp_CloseWindow&quot;,,b%
+	WHEN 6		: PROCmouse_click(b%)
+	WHEN 9		: PROCmenu_selection(b%)
+	WHEN 17, 18	: IF b%!16 = 0 THEN Quit% = TRUE
+ENDCASE
+ENDPROC</code>
+
+<p>Opening the main window and its pane in <function>PROCopen_main_window</function> follows a familiar pattern. We start by setting up a couple of variables, <variable>main%</variable> and <variable>toolbar%</variable>, to point to blocks of memory in which to store window state blocks for the two windows; as before, we&rsquo;re putting them both into the 256 byte buffer pointed to by <variable>q%</variable>.</p>
+
+<code lang="bbcbasic">main% = q%
+toolbar% = q% + 64</code>
+
+<p>We then use <swi>Wimp_GetWindowState</swi> to request details of the main window, reposition it as required, and then call <swi>Wimp_OpenWindow</swi> to open it up on the desktop. This code is almost exactly the same as that used in <function>PROCopen_main_window</function>, aside from a small change to the call to <swi>Wimp_OpenWindow</swi> for the main window, which we&rsquo;ll come back to shortly.</p>
+
+<code lang="bbcbasic">REM Get the main window details.
+
+!main% = MainWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,main%
+
+REM If the window isn't open, resize and centre it on the screen.
+
+IF (main%!32 AND &amp;10000) = 0 THEN
+  window_width% = WindowWidth%
+  window_height% = WindowHeight%
+
+  REM Read the screen dimensions.
+
+  screen_width% = FNread_mode_dimension(11, 4)
+  screen_height% = FNread_mode_dimension(12, 5)
+
+  REM Ensure that the window fills no more than 75% of either dimension.
+
+  IF window_width% &gt; (screen_width% * 0.75) THEN window_width% = screen_width% * 0.75
+  IF window_height% &gt; (screen_height% * 0.75) THEN window_height% = screen_height% * 0.75
+
+  REM Update the window dimensions.
+
+  main%!4 = (screen_width% - window_width%) / 2   : REM Visible Area X0
+  main%!8 = (screen_height% - window_height%) / 2 : REM Visible Area Y0
+
+  main%!12 = main%!4 + window_width%              : REM Visible Area X1
+  main%!16 = main%!8 + window_height%             : REM Visible Area Y1
+
+  REM Reset the scroll offsets.
+
+  main%!20 = 0                                    : REM X Scroll Offset
+  main%!24 = 0                                    : REM Y Scroll Offset
+ENDIF
+
+REM Open the window at the top of the window stack.
+
+main%!28 = -1 : REM Window to open behind (-1 is top of stack)
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0</code>
+
+<p>Previously, at this point, we would call <function>PROChandle_pane_windows()</function> to set up and open the toolbar pane. Since positioning the windows is a one-off operation with the Nested Wimp, however, we will bring the code into <function>PROCopen_main_window</function>. Most of the code is identical to that which we have used before: getting the toolbar pane&rsquo;s details with <swi>Wimp_GetWindowState</swi>, then adjusting the position to suit the location of the main window.</p>
+
+<code lang="bbcbasic">REM Get the toolbar details
+
+!toolbar% = ToolBarWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
+
+REM Find the height of the toolbar pane's visible area.
+
+bar_height% = toolbar%!16 - toolbar%!8            : REM Visible Area Y1 - Y0
+
+REM Move the toolbar pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+toolbar%!4 = main%!4                              : REM Visible Area X0
+toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
+toolbar%!12 = main%!12                            : REM Visible Area X1
+toolbar%!16 = main%!16                            : REM Visible Area Y1
+
+REM Align the toolbar pane's scroll offset with the main window.
+
+toolbar%!20 = main%!20                            : REM X Scroll Offset
+
+REM Open the toolbox pane at the top of the stack, nested into the main window.
+
+toolbar%!28 = -1</code>
+
+<p>The magic of the Nested Wimp comes in the last line of the procedure, however: the call to <swi>Wimp_OpenWindow</swi> which opens the toolbar pane.</p>
+
+<code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;08A90000</code>
+
+<p>This is the so-called &ldquo;extended syntax&rdquo; of the SWI; it still takes a pointer to the window state block in <name>R1</name>, but now <name>R2</name> contains the familiar Wimp magic constant of &amp;4B534154 &ndash; or &lsquo;TASK&rsquo; in ASCII. if present, this unlocks more functionality: <name>R3</name> now takes the handle of this window&rsquo;s <intro>parent window</intro>, while <name>R4</name> takes the <intro>nesting flags</intro>.</p>
+
+<p>When we called <swi>Wimp_OpenWindow</swi> for the main window, we passed a parent window handle of &minus;1 to indicate that it was a <intro>top level window</intro> &ndash; that it was not to be treated as being nested within any other window. Before the advent of the Nested Wimp, all windows behaved as if they were top level windows. None of the nesting flags applied, and so they were left unset (set to &amp;0).</p>
+
+<p>For the toolbar pane, however, we want the Wimp to treat it as being nested within the main window. To achieve this, when calling <swi>Wimp_OpenWindow</swi> for the toolbar pane, we pass the handle of the main window (the toolbar&rsquo;s parent window) in <name>R3</name>. We will also need to let the Wimp know how the two windows are joined together, and the nesting flags in <name>R4</name> do that.</p>
+
+<!-- Nesting Flags -->
+
+
+
+<p>Putting it all together, we can delete <function>PROChandle_pane_windows()</function>; all of the functionality is now in the new <function>PROCopen_main_window</function>, in <reference id="list-nest-wimp-open"/>.</p>
+
+<code id="list-nest-wimp-open" lang="bbcbasic" title="Opening the nested windows">DEF PROCopen_main_window
+LOCAL screen_width%, screen_height%, window_width%, window_height%, main%, toolbar%, bar_height%
+
+REM Set up the memory blocks.
+
+main% = q%
+toolbar% = q% + 64
+
+REM Get the main window details.
+
+!main% = MainWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,main%
+
+REM If the window isn't open, resize and centre it on the screen.
+
+IF (main%!32 AND &amp;10000) = 0 THEN
+  window_width% = WindowWidth%
+  window_height% = WindowHeight%
+
+  REM Read the screen dimensions.
+
+  screen_width% = FNread_mode_dimension(11, 4)
+  screen_height% = FNread_mode_dimension(12, 5)
+
+  REM Ensure that the window fills no more than 75% of either dimension.
+
+  IF window_width% &gt; (screen_width% * 0.75) THEN window_width% = screen_width% * 0.75
+  IF window_height% &gt; (screen_height% * 0.75) THEN window_height% = screen_height% * 0.75
+
+  REM Update the window dimensions.
+
+  main%!4 = (screen_width% - window_width%) / 2   : REM Visible Area X0
+  main%!8 = (screen_height% - window_height%) / 2 : REM Visible Area Y0
+
+  main%!12 = main%!4 + window_width%              : REM Visible Area X1
+  main%!16 = main%!8 + window_height%             : REM Visible Area Y1
+
+  REM Reset the scroll offsets.
+
+  main%!20 = 0                                    : REM X Scroll Offset
+  main%!24 = 0                                    : REM Y Scroll Offset
+ENDIF
+
+REM Open the window at the top of the window stack.
+
+main%!28 = -1 : REM Window to open behind (-1 is top of stack)
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0
+
+REM Get the toolbar details
+
+!toolbar% = ToolBarWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
+
+REM Find the height of the toolbar pane's visible area.
+
+bar_height% = toolbar%!16 - toolbar%!8            : REM Visible Area Y1 - Y0
+
+REM Move the toolbar pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+toolbar%!4 = main%!4                              : REM Visible Area X0
+toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
+toolbar%!12 = main%!12                            : REM Visible Area X1
+toolbar%!16 = main%!16                            : REM Visible Area Y1
+
+REM Align the toolbar pane's scroll offset with the main window.
+
+toolbar%!20 = main%!20                            : REM X Scroll Offset
+
+REM Open the toolbox pane at the top of the stack, nested into the main window.
+
+toolbar%!28 = -1
+
+SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;08A90000
+ENDPROC</code>
+
+
+
 
 
 
