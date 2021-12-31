@@ -145,7 +145,7 @@ ENDPROC</code>
 </section>
 
 
-<section>
+<section id="sect-col-head-align">
 <title>Out of alignment</title>
 
 <p>Unfortunately, any satisfaction with our new example is likely to be short-lived. If the width of the main window is reduced, and then the horizontal scroll bar used to shift the work area, we can quickly see that things go out of alignment as shown in <reference id="fig-col-head-alignment"/>. The main window&rsquo;s work area moves with the scroll bars as expected, but the toolbar&rsquo;s content remains where it was.</p>
