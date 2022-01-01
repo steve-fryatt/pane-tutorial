@@ -46,7 +46,7 @@
 <section>
 <p>Over the past few chapters, we have explored how to use pane windows to add toolboxes and toolbars to our small application. It has been a fairly manual process: setting the windows up and then keeping everything in step whenever things move on screen.</p>
 
-<p>If we&rsquo;re willing to forego compatibility back to RISC&nbsp;OS&nbsp;2, then there is another way. The <intro>Nested Window Manager</intro> (or Nested Wimp, as we&rsquo;ll call it from now on) was introduced by Acorn back in the late 1990s, as an add-on for the RiscPC-era systems. Intended to support things like web browsers with complex framesets and embedded objects, it is included as a standard part of the OS in RISC&nbsp;OS&nbsp;4, 5 and Six.</p>
+<p>If we&rsquo;re willing to forego compatibility back to RISC&nbsp;OS&nbsp;2, then there is another way. The <intro>Nested Window Manager</intro> (or Nested Wimp, as we&rsquo;ll call it from now on) was introduced by Acorn back in the late 1990s, as an add-on for the RiscPC-era systems. Intended to support things like web browsers with complex framesets and embedded objects, it is included as a standard part of the OS in RISC&nbsp;OS&nbsp;4, 5 and Six. Documentation was initially provided in the <cite><link href="http://www.vigay.com/inet/acorn/nested.html">Nested Window Manager Functional Specification</link></cite>, although these days many of the details can be found in the standard documentation.</p>
 
 <image id="fig-nest-wimp-paint" file="nest-wimp-paint.png" title="Amongst other things, the Nested Wimp can embed tools into scroll bars"/>
 
@@ -59,15 +59,17 @@
 <section id="sect-nest-wimp-recreate">
 <title>Re-creating our toolbar</title>
 
-<p>To see how the Nested Wimp works, we&rsquo;ll re-create our column-heading toolbar from <reference id="chap-col-head">the last chapter</reference> using its functionality &ndash; it looked as seen in <reference id="fig-nest-wimp-reminder"/>. We will take <reference id="dl-col-head-2"/> as our base.</p>
+<p>To see how the Nested Wimp works, we will re-create our column-heading toolbar from <reference id="chap-col-head">the last chapter</reference> using parent and child windows instead of panes. In its previous incarnation of <reference id="dl-col-head-2"/>, which we will use as our base, it looked as seen in <reference id="fig-nest-wimp-reminder"/>.</p>
 
 <image id="fig-nest-wimp-reminder" file="nest-wimp-reminder.png" title="The toolbar that we&rsquo;ll be re-creating"/>
 
-<p>Starting with the <file>Templates</file> file, we will need to make a small change to the toolbar window: it is not necessary to set the &lsquo;window is a pane&rsquo; flag for nested windows, as the behaviour is implicit in the nesting, so we will untick <icon>Pane</icon> in the Toolbar window&rsquo;s flags as seen in <reference id="fig-nest-wimp-template"/>. The <icon>Moveable</icon> flag remains unset; there are no other changes.</p>
+<p>Starting with the <file>Templates</file> file, we will need to make a small change to the toolbar window. Moving to the Nested Wimp sees a change in terminology and approach: the toolbar is no longer a pane, but a <intro>child window</intro>, nested into the main or <intro>parent window</intro>. In practical terms, this means that we should no longer set the &lsquo;window is a pane&rsquo; flag for the toolbar, as the reqired effects will instead be obtained when we nest it into the main window. In fact, leaving the &lsquo;window is a pane&rsquo; flag set for child windows can cause the two approaches to clash &ndash; with some undesirable effects on the Wimp&rsquo;s stability.</p>
+
+<p>For this reason, we will untick <icon>Pane</icon> in the Toolbar window&rsquo;s flags as seen in <reference id="fig-nest-wimp-template"/>. The <icon>Moveable</icon> flag remains unset, and  there are no other changes to make.</p>
 
 <image id="fig-nest-wimp-template" file="nest-wimp-template.png" title="The toolbar no longer needs the pane flag set"/>
 
-<p>The next thing that we will need to change is our application&rsquo;s <file>!Run</file> file. Since we will be using the Nested Wimp, we need to check that it is actually present on the system &ndash; which we do as seen in <reference id="list-nest-wimp-run"/>.</p>
+<p>The next thing that we will need to change is our application&rsquo;s <file>!Run</file> file. Since we will be using the Nested Wimp, we need to check that it is actually present on the system before our application tries to start &ndash; which we do as seen in <reference id="list-nest-wimp-run"/>.</p>
 
 <code id="list-nest-wimp-run" lang="obey" title="The !Run file must test for the Nested Wimp">Set PaneDemo$Dir &lt;Obey$Dir&gt;
 
@@ -76,7 +78,7 @@ RMEnsure WindowManager 3.80 Error PaneDemo requires the Nested Window Manager.
 WimpSlot -min 96K -max 96K
 Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
 
-<p>Since the Window Manager can&rsquo;t be replaced whilst the system is running, all that we can do is test for it and refuse to start up if it isn&rsquo;t present. If this happens, the user will need to install an update in <cite>!Boot</cite> &ndash; although as already noted, a suitable version of the Window Manager is present in ROM with RISC&nbsp;OS&nbsp;4, 5 and Six.</p>
+<p>Since the Window Manager can&rsquo;t be replaced whilst the system is running, all that we can do is test for it and refuse to start if it isn&rsquo;t present. If this happens, the user will need to install an update in <cite>!Boot</cite> &ndash; although as already noted, a suitable version of the Window Manager is present in ROM with RISC&nbsp;OS&nbsp;4, 5 and Six.</p>
 
 <p>We will also need to update our call to <swi>Wimp_Initialise</swi> in <function>PROCinitialise</function>. Instead of passing 310 in <name>R0</name> to indicate that we wish to use the features of RISC&nbsp;OS&nbsp;3.1, we must now pass 380 as shown in <reference id="list-nest-wimp-init"/>, to tell the Wimp that we want its nested functionality to be available to us.</p>
 
@@ -153,11 +155,11 @@ REM Open the window at the top of the window stack.
 
 main%!28 = -1 : REM Window to open behind (-1 is top of stack)</code>
 
-<p>The first difference from our previous examples comes with the call to <swi>Wimp_OpenWindow</swi> &ndash; instead of simply passing a pointer to the main window&rsquo;s state block in <name>R1</name>, we&rsquo;re using the so-called &ldquo;extended syntax&rdquo; of the SWI.</p>
+<p>The first difference from our previous examples comes with the call to <swi>Wimp_OpenWindow</swi> &ndash; instead of simply passing a pointer to the main window&rsquo;s state block in <name>R1</name>, we will use the so-called &ldquo;extended syntax&rdquo; of the SWI.</p>
 
 <code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0</code>
 
-<p>It still takes a pointer to the window state block, but now <name>R2</name> contains the familiar Wimp magic constant of &amp;4B534154 &ndash; or &lsquo;TASK&rsquo; in ASCII. If present, this unlocks more functionality from the call: <name>R3</name> will then take the handle of this window&rsquo;s <intro>parent window</intro>, while <name>R4</name> takes the <intro>nesting flags</intro>.</p>
+<p>This extended form still takes a pointer to the window state block, but now <name>R2</name> contains the familiar Wimp magic constant of &amp;4B534154 &ndash; or &lsquo;TASK&rsquo; in ASCII. If present, this unlocks more functionality from the call: <name>R3</name> will then take the handle of this window&rsquo;s <intro>parent window</intro>, while <name>R4</name> takes the <intro>nesting flags</intro>.</p>
 
 <p>For the main window, we supply a parent window handle of &minus;1 to indicate that it will be a <intro>top level window</intro> &ndash; that it is not to be treated as being nested within any other window. This makes it exactly the same as a window opened using the conventional version of the SWI. None of the nesting flags apply, so they are set to &amp;0.</p>
 
@@ -254,9 +256,9 @@ toolbar%!16 = main%!16              : REM Visible Area Y1</code>
 
 <p>As can be seen from the first two columns, the anchor points in the nesting flags directly correspond to the four visible area coordinates stored at offsets 4 to 16 of the pane&rsquo;s window state block. In each case, when setting up the pane&rsquo;s visible area, we assign a value based on one of the visible area coordinates in the main window&rsquo;s state block, as shown in column three. This is the key to working out the anchoring: if we look at the value which we assign in each case, it will tell us where we have anchored that side of the pane window.</p>
 
-<p>Take the visible area <maths>X0</maths> value at <code>toolbox%!4</code>, for example: we assign this from <code>main%!4</code>, which is the visible area <maths>X0</maths> of the main window. This tells us that the visible area <maths>X0</maths> of the pane (the left edge of the child window) is attached to the visible area <maths>X0</maths> of the main window. If we look at the options in <reference id="table-nest-wimp-nest-values"/>, we can see this gives us a flag value of %01 &ndash; &ldquo;Link to the left or bottom (<maths>X0</maths> or <maths>Y0</maths>) of the parent&rsquo;s visible area&rdquo;.</p>
+<p>Take the visible area <maths>X0</maths> value at <code>toolbox%!4</code>, for example: we copy this from <code>main%!4</code>, which is the visible area <maths>X0</maths> of the main window. This tells us that the visible area <maths>X0</maths> of the pane (the left edge of the child window) is attached to the visible area <maths>X0</maths> of the main window. If we look at the options in <reference id="table-nest-wimp-nest-values"/>, we can see this gives us a flag value of %01 &ndash; &ldquo;Link to the left or bottom (<maths>X0</maths> or <maths>Y0</maths>) of the parent&rsquo;s visible area&rdquo;.</p>
 
-<p>Similarly, the visible area <maths>X1</maths> value at <code>toolbox%!12</code> is being assigned from <code>main%!12</code>, which is the visible area <maths>X1</maths> of the main window. From this, we can tell that the right edge of the pane will be attached to the visible area <maths>X1</maths> of the main window, giving us a value of %10 &ndash; &ldquo;Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area&rdquo; &ndash; from <reference id="table-nest-wimp-nest-values"/>.</p>
+<p>Similarly, the visible area <maths>X1</maths> value at <code>toolbox%!12</code> is being copied from <code>main%!12</code>, which is the visible area <maths>X1</maths> of the main window. From this, we can tell that the right edge of the pane will be attached to the visible area <maths>X1</maths> of the main window, giving us a value of %10 &ndash; &ldquo;Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area&rdquo; &ndash; from <reference id="table-nest-wimp-nest-values"/>.</p>
 
 <p>For the visible area <maths>Y0</maths> value at <code>toolbox%!8</code>, we assign <code>main%!16 - bar_height%</code>; this is referencing <code>main!%16</code>, or the visible area <maths>Y1</maths> of the main window. The visible area <maths>Y1</maths> at <code>toolbar%!16</code> is assigned <code>main%!16</code>, which is again the visible area <maths>Y1</maths> of the main window. Consequently, we can tell that both the bottom and top edges of the pane will use values of %10 &ndash; &ldquo;Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area&rdquo; &ndash; from <reference id="table-nest-wimp-nest-values"/>.</p>
 
