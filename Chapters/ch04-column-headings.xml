@@ -126,13 +126,20 @@ toolbar%!8 = main%!16 - bar_height%       : REM Visible Area Y0
 toolbar%!12 = main%!12                    : REM Visible Area X1
 toolbar%!16 = main%!16                    : REM Visible Area Y1
 
-REM Open the toolbar pane behind the same window that the main window
-REM was opened behind. This will place it directly in front of the
-REM main window.
+REM Unless the main window is to be opened behind the toolbar pane, and the
+REM toolbar pane is already behind the toolbox pane, meaning that all three
+REM windows must already be in the correct place in the stack, set the toolbox's
+REM Open Behind so that it appears in the stack where the main window is to go.
 
-toolbar%!28 = main%!28
+IF main%!28 &lt;&gt; ToolBarWindow% THEN toolbar%!28 = main%!28
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
+
+REM Set the main window's Open Behind so that it opens behind the toolbar.
+
+main%!28 = ToolBarWindow%
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
 
 <p>The code here should be comparable to that found in <reference id="dl-side-box-1"/> &ndash; a single pane, but attached in a toolbar style instead of a toolbox. When run, the window should appear as seen in <reference id="fig-col-head-initial"/>, with the new column headings lining up with the coloured grid squares below.</p>
@@ -194,13 +201,20 @@ REM Align the toolbar pane's scroll offset with the main window.
 
 toolbar%!20 = main%!20                    : REM X Scroll Offset
 
-REM Open the toolbar pane behind the same window that the main window
-REM was opened behind. This will place it directly in front of the
-REM main window.
+REM Unless the main window is to be opened behind the toolbar pane, and the
+REM toolbar pane is already behind the toolbox pane, meaning that all three
+REM windows must already be in the correct place in the stack, set the toolbox's
+REM Open Behind so that it appears in the stack where the main window is to go.
 
-toolbar%!28 = main%!28
+IF main%!28 &lt;&gt; ToolBarWindow% THEN toolbar%!28 = main%!28
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
+
+REM Set the main window's Open Behind so that it opens behind the toolbar.
+
+main%!28 = ToolBarWindow%
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
 
 <p>Loading this version of the application, we can now scroll around the main window&rsquo;s work area with the column headings in the toolbar remaining in step as seen in <reference id="fig-col-head-align-fixed"/>.</p>

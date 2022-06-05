@@ -129,17 +129,25 @@ toolbar%!12 = main%!12                    : REM Visible Area X1</code>
 
 <p>Just as with our previous example, the two panes must appear directly in front of the main window in the window stack. The exact order doesn&rsquo;t matter to the Wimp, so we will choose to put the toolbar in front of the main window, and the toolbox in front of the toolbar. When deciding, it pays to look at positions where the different panes might overlap, and consider which will look best to the user.</p>
 
-<p>We will start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox directly behind the window that&rsquo;s in front of the main window &ndash; inserting it in front of the main window, exactly <reference id="sect-side-box-stack">as we did before</reference>.</p>
+<p>We will start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox directly behind the window that&rsquo;s supposed to be in front of the main window, exactly <reference id="sect-side-box-stack">as we did before</reference>.</p>
 
-<code lang="bbcbasic">toolbox%!28 = main%!28
+<code lang="bbcbasic">IF (main%!28 &lt;&gt; ToolBarWindow%) OR (toolbar%!28 &lt;&gt; ToolBoxWindow%) THEN toolbox%!28 = main%!28
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbox%</code>
 
-<p>With the toolbox open in the correct place, we can open the toolbar behind it, which will mean that it will end up inserted directly in front of the main window in a similar way.</p>
+<p>We still need to check to see if the windows are already in their correct places in the stack, but with two panes to consider we must now check <em>both</em> whether the main window is behind the toolbar, <em>and</em> whether the toolbar is behind the toolbox. If either isn&rsquo;t in the correct place, then we will need to re-position the toolbox &ndash; as the top window of the pile &ndash; and work down from that.</p>
+
+<p>With the toolbox open, we can open the toolbar behind it...</p>
 
 <code lang="bbcbasic">toolbar%!28 = ToolBoxWindow%
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%</code>
+
+<p>...and then, at the bottom of our little pile of windows, comes the main window itself.</p>
+
+<code lang="bbcbasic">main%!28 = ToolBarWindow%
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
 
 <p>Putting all of the new code together with the old, <function>PROChandle_pane_windows()</function> now looks as shown in <reference id="list-top-bar-panes"/>.</p>
 
@@ -200,11 +208,12 @@ ENDCASE
 toolbox%!8 = main%!16 - box_height%       : REM Visible Area Y0
 toolbox%!16 = main%!16                    : REM Visible Area Y1
 
-REM Open the toolbox pane behind the same window that the main window
-REM was opened behind. This will place it directly in front of the
-REM main window.
+REM Unless the main window is to be opened behind the toolbar pane, and the
+REM toolbar pane is already behind the toolbox pane, meaning that all three
+REM windows must already be in the correct place in the stack, set the toolbox's
+REM Open Behind so that it appears in the stack where the main window is to go.
 
-toolbox%!28 = main%!28
+IF (main%!28 &lt;&gt; ToolBarWindow%) OR (toolbar%!28 &lt;&gt; ToolBoxWindow%) THEN toolbox%!28 = main%!28
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
 
@@ -213,6 +222,12 @@ REM Set the toolbar window's Open Behind so that it opens behind the toolbox.
 toolbar%!28 = ToolBoxWindow%
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
+
+REM Set the main window's Open Behind so that it opens behind the toolbar.
+
+main%!28 = ToolBarWindow%
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
 
 <p>Running the updated application should reveal a new toolbar attached to the top of the main window, as shown in <reference id="fig-top-bar-complete"/>. If resized or moved around the screen, both the toolbar and the original toolbox should move and adjust their sizes together. Note that if the caret is placed in the toolbar&rsquo;s writeable icon, the main window is shown as having input focus: this is a result of the panes having their &lsquo;window is a pane&rsquo; flags set.</p>
