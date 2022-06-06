@@ -189,7 +189,7 @@ ENDPROC</code>
 
 <image id="fig-example-app-templates" file="example-app-templates.png" title="The two windows contained in our Templates file"/>
 
-<p>The main window is a window with scroll bars, and some colourful icons in it so that any scroll offsets can be clearly seen. The program information window follows the standard RISC OS conventions. Both window&rsquo;s templates will fit comfortably into the 1024 bytes that we allocated to the load buffer in <function>PROCinitialise</function>. With the file saved as <file>Templates</file> inside <file>!PaneDemo</file>, our application folder should now look as seen in <reference id="fig-example-app-folder-templates" />.</p>
+<p>The main window is a window with scroll bars, and some colourful icons in it so that any scroll offsets can be clearly seen. The program information window follows the standard RISC OS conventions. Both windows&rsquo; templates will fit comfortably into the 1024 bytes that we allocated to the load buffer in <function>PROCinitialise</function>. With the file saved as <file>Templates</file> inside <file>!PaneDemo</file>, our application folder should now look as seen in <reference id="fig-example-app-folder-templates" />.</p>
 
 <image id="fig-example-app-folder-templates" file="example-app-folder-templates.png" title="Our example application&rsquo;s folder with templates added"/>
 
@@ -211,7 +211,7 @@ SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%
 
 SYS &quot;Wimp_CloseTemplate&quot;</code>
 
-<p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively. We also take the opportunity to calculate the width and height in OS&nbsp;Units, and store the values in the <variable>WindowWidth%</variable> and <variable>WindowHeight%</variable> variables for future reference.</p>
+<p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively. We also take the opportunity to calculate the width and height of the main window in OS&nbsp;Units, and store the values in the <variable>WindowWidth%</variable> and <variable>WindowHeight%</variable> variables for future reference.</p>
 
 <p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI and expects there to be a global <variable>TemplateName%</variable> variable pointing to a 12 character plus terminator, word-aligned buffer for holding the template names. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
 
