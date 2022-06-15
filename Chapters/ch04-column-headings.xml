@@ -98,10 +98,10 @@ ENDIF
 SYS &quot;Wimp_CloseWindow&quot;,,b%
 ENDPROC</code>
 
-<p>Finally, <function>PROChandle_pane_windows()</function> can be simplified again; it is now as shown in <reference id="list-col-head-handle"/>.</p>
+<p>Finally, <function>PROChandle_pane_windows()</function> can be simplified again; it is now as shown in <reference id="list-col-head-handle"/>. There&rsquo;s no longer any need to know the height of the toolbar, so <function>PROCposition_toolbar()</function> has returned to the procedure originally seen in <reference id="list-top-bar-tbar" />.</p>
 
 <code id="list-col-head-handle" lang="bbcbasic" title="Opening the toolbar in the correct place">DEF PROChandle_pane_windows(main%)
-LOCAL toolbar%, bar_height%
+LOCAL toolbar%, top%, left%, right%
 
 REM Get the Window State block for the toolbar pane, using some of the
 REM spare space above the data for the state of the main window.
@@ -114,22 +114,15 @@ toolbar% = main% + 64
 !toolbar% = ToolBarWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
 
-REM Find the height of the toolbar pane's visible area.
-
-bar_height% = toolbar%!16 - toolbar%!8    : REM Visible Area Y1 - Y0
-
 REM Move the toolbar pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-toolbar%!4 = main%!4                      : REM Visible Area X0
-toolbar%!8 = main%!16 - bar_height%       : REM Visible Area Y0
-toolbar%!12 = main%!12                    : REM Visible Area X1
-toolbar%!16 = main%!16                    : REM Visible Area Y1
+PROCposition_toolbar(main%, toolbar%)
 
-REM Unless the main window is to be opened behind the toolbar pane, and the
-REM toolbar pane is already behind the toolbox pane, meaning that all three
-REM windows must already be in the correct place in the stack, set the toolbox's
-REM Open Behind so that it appears in the stack where the main window is to go.
+REM Unless the main window is to be opened behind the toolbar pane, meaning
+REM that the pane must already be in the correct place in the stack, set the
+REM pane's Open Behind so that it appears in the stack where the main window
+REM is required to go. Then (re-)open the toolbar.
 
 IF main%!28 &lt;&gt; ToolBarWindow% THEN toolbar%!28 = main%!28
 
@@ -139,8 +132,23 @@ REM Set the main window's Open Behind so that it opens behind the toolbar.
 
 main%!28 = ToolBarWindow%
 
+REM (Re-)open the main window.
+
+left% = main%!4
+right% = main%!12
+top% = main%!16
+
 SYS &quot;Wimp_OpenWindow&quot;,,main%
-ENDPROC</code>
+
+REM If the main window was moved on opening (perhaps if it opened off-screen),
+REM re-position the toolbar against the new position and re-open it.
+
+IF (main%!4 &lt;&gt; left%) OR (main%!12 &lt;&gt; right%) OR (main%!16 &lt;&gt; top%) THEN
+  PROCposition_toolbar(main%, toolbar%)
+  SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
+ENDIF
+ENDPROC
+</code>
 
 <p>The code here should be comparable to that found in <reference id="dl-side-box-1"/> &ndash; a single pane, but attached in a toolbar style instead of a toolbox. When run, the window should appear as seen in <reference id="fig-col-head-initial"/>, with the new column headings lining up with the coloured grid squares below.</p>
 
@@ -161,7 +169,7 @@ ENDPROC</code>
 
 <p>The problem that we have is that moving the scroll bars alters the scroll offsets for the main window&rsquo;s work area, but &ndash; as we noted above &ndash; the the scroll offsets for the work areas of our panes have always been left at zero. Up to now this has been the required behaviour, but this new example is calling for something different.</p>
 
-<p>To keep the pane&rsquo;s contents in alignment with that of the main window, we will need to ensure that its scroll offsets are updated correctly whenever we change its position in <function>PROChandle_pane_windows()</function>. We only want the pane to track the main window&rsquo;s horizontal scrolling, so we can simply copy the X scroll offset from the main window block to the pane.</p>
+<p>To keep the pane&rsquo;s contents in alignment with that of the main window, we will need to ensure that its scroll offsets are updated correctly whenever we change its position in <function>PROCposition_toolbar()</function>. We only want the pane to track the main window&rsquo;s horizontal scrolling, so we can simply copy the X scroll offset from the main window block to the pane.</p>
 
 <code lang="bbcbasic">toolbar%!20 = main%!20                  : REM X Scroll Offset</code>
 
@@ -169,52 +177,26 @@ ENDPROC</code>
 
 <p>If the pane were up the side of the window instead of across the top, and the vertical extents were the same, it would be possible to copy the vertical scroll offset (at offset 24 into the window state block) across to the pane instead. This might be useful for a pane containing row numbers, as seen in the <reference id="fig-col-head-fireworkz"><cite>Fireworkz</cite> window above</reference>, for example.</p>
 
-<p>Putting the code together for the last time gives us <reference id="list-col-head-align"/>, showing <function>PROChandle_pane_windows()</function> copying the horizontal scroll offset over to the pane.</p>
+<p>Putting the code together for the last time gives us <reference id="list-col-head-align"/>, showing <function>PROCposition_toolbar()</function> copying the horizontal scroll offset over to the pane.</p>
 
-<code id="list-col-head-align" lang="bbcbasic" title="Opening the toolbar in the correct place">DEF PROChandle_pane_windows(main%)
-LOCAL toolbar%, bar_height%
-
-REM Get the Window State block for the toolbar pane, using some of the
-REM spare space above the data for the state of the main window.
-REM
-REM Note: ON RISC OS 5, we could more clearly use DIM toolbox% LOCAL 64
-REM here to allocate the required memory from the stack.
-
-toolbar% = main% + 64
-
-!toolbar% = ToolBarWindow%
-SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
+<code id="list-col-head-align" lang="bbcbasic" title="Opening the toolbar in the correct place">DEF PROCposition_toolbar(parent%, toolbar%)
+LOCAL height%
 
 REM Find the height of the toolbar pane's visible area.
 
-bar_height% = toolbar%!16 - toolbar%!8    : REM Visible Area Y1 - Y0
+height% = toolbar%!16 - toolbar%!8        : REM Visible Area Y1 - Y0
 
 REM Move the toolbar pane so that it's in the correct X and Y position
-REM relative to where the main window is to go.
+REM relative to where the parent window is to go.
 
-toolbar%!4 = main%!4                      : REM Visible Area X0
-toolbar%!8 = main%!16 - bar_height%       : REM Visible Area Y0
-toolbar%!12 = main%!12                    : REM Visible Area X1
-toolbar%!16 = main%!16                    : REM Visible Area Y1
+toolbar%!4 = parent%!4                    : REM Visible Area X0
+toolbar%!8 = parent%!16 - height%         : REM Visible Area Y0
+toolbar%!12 = parent%!12                  : REM Visible Area X1
+toolbar%!16 = parent%!16                  : REM Visible Area Y1
 
 REM Align the toolbar pane's scroll offset with the main window.
 
-toolbar%!20 = main%!20                    : REM X Scroll Offset
-
-REM Unless the main window is to be opened behind the toolbar pane, and the
-REM toolbar pane is already behind the toolbox pane, meaning that all three
-REM windows must already be in the correct place in the stack, set the toolbox's
-REM Open Behind so that it appears in the stack where the main window is to go.
-
-IF main%!28 &lt;&gt; ToolBarWindow% THEN toolbar%!28 = main%!28
-
-SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
-
-REM Set the main window's Open Behind so that it opens behind the toolbar.
-
-main%!28 = ToolBarWindow%
-
-SYS &quot;Wimp_OpenWindow&quot;,,main%
+toolbar%!20 = parent%!20                  : REM X Scroll Offset
 ENDPROC</code>
 
 <p>Loading this version of the application, we can now scroll around the main window&rsquo;s work area with the column headings in the toolbar remaining in step as seen in <reference id="fig-col-head-align-fixed"/>.</p>

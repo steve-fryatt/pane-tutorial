@@ -102,9 +102,15 @@ ENDPROC</code>
 !toolbar% = ToolBarWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbar%</code>
 
+<p>We can then call a new procedure, <function>PROCposition_toolbar()</function>, to do the work of adjusting the toolbar&rsquo;s visible area to suit the position of the main window.</p>
+
+<code lang="bbcbasic">PROCposition_toolbar(main%, toolbar%)</code>
+
+<p>This will work in a similar way to the <function>PROCposition_side_toolbox()</function> procedure that we <reference id="list-side-box-tbox">defined in the last chapter</reference> and takes two parameters: a pointer to the main window state block as <variable>parent%</variable>, and a pointer to the toolbar pane&rsquo;s window state block as <variable>toolbox%</variable>. We will pass <variable>main%</variable> and <variable>toolbar%</variable> to these respectively.</p>
+
 <p>The calculations for the position of the toolbox will remain as they are, before which we will insert in a similar set of calculations for the new toolbar. To be able to do this, we&rsquo;ll need to know the height of the bar &ndash; which we can get from its visible area as before.</p>
 
-<code lang="bbcbasic">bar_height% = toolbar%!16 - toolbar%!8    : REM Visible Area Y1 - Y0</code>
+<code lang="bbcbasic">height% = toolbar%!16 - toolbar%!8        : REM Visible Area Y1 - Y0</code>
 
 <p>We don&rsquo;t need the width of the bar, because that will be tied to the width of the main window&rsquo;s visible area as shown in <reference id="fig-top-bar-pos-plane"/>.</p>
 
@@ -112,15 +118,33 @@ SYS &quot;Wimp_GetWindowState&quot;,,toolbar%</code>
 
 <p>The tops of the two windows (<maths>Y1</maths> for the two visible areas) are once again level, whilst the bottom of the pane (its <maths>Y0</maths>) is the height of the pane below the top (<maths>Y1</maths>) of the main window. This means that the vertical dimensions for the toolbar&rsquo;s visible area are calculated in exactly the same way as for the toolbox.</p>
 
-<code lang="bbcbasic">toolbar%!8 = main%!16 - bar_height%       : REM Visible Area Y0
-toolbar%!16 = main%!16                    : REM Visible Area Y1</code>
+<code lang="bbcbasic">toolbar%!8 = parent%!16 - height%         : REM Visible Area Y0
+toolbar%!16 = parent%!16                  : REM Visible Area Y1</code>
 
 <p>The horizontal positioning of the toolbar is, if anything, easier than for the toolbox: it aligns completely with the visible area of the main window, so <maths>X0</maths> and <maths>X1</maths> can be copied directly from the main window&rsquo;s data block.</p>
 
-<code lang="bbcbasic">toolbar%!4 = main%!4                      : REM Visible Area X0
-toolbar%!12 = main%!12                    : REM Visible Area X1</code>
+<code lang="bbcbasic">toolbar%!4 = parent%!4                    : REM Visible Area X0
+toolbar%!12 = parent%!12                  : REM Visible Area X1</code>
 
 <p>This is why the horizontal extent of the pane has to match that of the main window: if the main window is fully extended, the pane has to be able to follow suit.</p>
+
+<p>Putting the code together results in <reference id="list-top-bar-tbar" />.</p>
+
+<code id="list-top-bar-tbar" lang="bbcbasic" title="The code to position the toolbar horizontally and vertically">DEF PROCposition_toolbar(parent%, toolbar%)
+LOCAL height%
+
+REM Find the height of the toolbar pane's visible area.
+
+height% = toolbar%!16 - toolbar%!8        : REM Visible Area Y1 - Y0
+
+REM Move the toolbar pane so that it's in the correct X and Y position
+REM relative to where the parent window is to go.
+
+toolbar%!4 = parent%!4                    : REM Visible Area X0
+toolbar%!8 = parent%!16 - height%         : REM Visible Area Y0
+toolbar%!12 = parent%!12                  : REM Visible Area X1
+toolbar%!16 = parent%!16                  : REM Visible Area Y1
+ENDPROC</code>
 </section>
 
 
@@ -129,7 +153,7 @@ toolbar%!12 = main%!12                    : REM Visible Area X1</code>
 
 <p>Just as with our previous example, the two panes must appear directly in front of the main window in the window stack. The exact order doesn&rsquo;t matter to the Wimp, so we will choose to put the toolbar in front of the main window, and the toolbox in front of the toolbar. When deciding, it pays to look at positions where the different panes might overlap, and consider which will look best to the user.</p>
 
-<p>We will start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox directly behind the window that&rsquo;s supposed to be in front of the main window, exactly <reference id="sect-side-box-stack">as we did before</reference>.</p>
+<p>Returning to <function>PROChandle_pane_windows()</function>, we will start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox directly behind the window that&rsquo;s supposed to be in front of the main window, exactly <reference id="sect-side-box-stack">as we did before</reference>.</p>
 
 <code lang="bbcbasic">IF (main%!28 &lt;&gt; ToolBarWindow%) OR (toolbar%!28 &lt;&gt; ToolBoxWindow%) THEN toolbox%!28 = main%!28
 
@@ -147,12 +171,23 @@ SYS &quot;Wimp_OpenWindow&quot;,,toolbar%</code>
 
 <code lang="bbcbasic">main%!28 = ToolBarWindow%
 
+left% = main%!4
+right% = main%!12
+top% = main%!16
+
 SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
+
+<p>After opening the main window, we will need to check whether it was placed in the requested location and, if not, re-open the toolbar pane in addition to the toolbox. The toolbar is anchored to the top, left <em>and</em> right edges of the main window&rsquo;s visible area, so the code will look as follows:</p>
+
+<code lang="bbcbasic">IF (main%!4 &lt;&gt; left%) OR (main%!12 &lt;&gt; right%) OR (main%!16 &lt;&gt; top%) THEN
+  PROCposition_toolbar(main%, toolbar%)
+  SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
+ENDIF</code>
 
 <p>Putting all of the new code together with the old, <function>PROChandle_pane_windows()</function> now looks as shown in <reference id="list-top-bar-panes"/>.</p>
 
 <code id="list-top-bar-panes" lang="bbcbasic" title="The code to position both of the panes and the main window">DEF PROChandle_pane_windows(main%)
-LOCAL toolbox%, toolbar%, box_width%, box_height%, bar_height%
+LOCAL toolbox%, toolbar%, top%, left%, right%
 
 REM Get the Window State block for the toolbox pane, using some of the
 REM spare space above the data for the state of the main window.
@@ -173,51 +208,28 @@ toolbar% = main% + 128
 !toolbar% = ToolBarWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
 
-REM Find the height of the toolbar pane's visible area.
-
-bar_height% = toolbar%!16 - toolbar%!8    : REM Visible Area Y1 - Y0
-
 REM Move the toolbar pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-toolbar%!4 = main%!4                      : REM Visible Area X0
-toolbar%!8 = main%!16 - bar_height%       : REM Visible Area Y0
-toolbar%!12 = main%!12                    : REM Visible Area X1
-toolbar%!16 = main%!16                    : REM Visible Area Y1
-
-REM Find the width and height of the toolbox pane's visible area.
-
-box_width% = toolbox%!12 - toolbox%!4     : REM Visible Area X1 - X0
-box_height% = toolbox%!16 - toolbox%!8    : REM Visible Area Y1 - Y0
+PROCposition_toolbar(main%, toolbar%)
 
 REM Move the toolbox pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-CASE TRUE OF
-WHEN main%!4 &gt; box_width%
-	toolbox%!4 = main%!4 - box_width%       : REM Visible Area X0
-	toolbox%!12 = main%!4                   : REM Visible Area X1
-WHEN main%!4 &gt; 0
-	toolbox%!4 = 0                          : REM Visible Area X0
-	toolbox%!12 = box_width%                : REM Visible Area X1
-OTHERWISE
-	toolbox%!4 = main%!4                    : REM Visible Area X0
-	toolbox%!12 = main%!4 + box_width%      : REM Visible Area X1
-ENDCASE
-
-toolbox%!8 = main%!16 - box_height%       : REM Visible Area Y0
-toolbox%!16 = main%!16                    : REM Visible Area Y1
+PROCposition_side_toolbox(main%, toolbox%)
 
 REM Unless the main window is to be opened behind the toolbar pane, and the
 REM toolbar pane is already behind the toolbox pane, meaning that all three
 REM windows must already be in the correct place in the stack, set the toolbox's
-REM Open Behind so that it appears in the stack where the main window is to go.
+REM Open Behind so that it appears in the stack where the main window is
+REM required to go. Then (re-)open the toolbox.
 
 IF (main%!28 &lt;&gt; ToolBarWindow%) OR (toolbar%!28 &lt;&gt; ToolBoxWindow%) THEN toolbox%!28 = main%!28
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
 
 REM Set the toolbar window's Open Behind so that it opens behind the toolbox.
+REM The (re-)open the toolbar
 
 toolbar%!28 = ToolBoxWindow%
 
@@ -227,7 +239,26 @@ REM Set the main window's Open Behind so that it opens behind the toolbar.
 
 main%!28 = ToolBarWindow%
 
+REM (Re-)open the main window.
+
+left% = main%!4
+right% = main%!12
+top% = main%!16
+
 SYS &quot;Wimp_OpenWindow&quot;,,main%
+
+REM If the main window was moved on opening (perhaps if it opened off-screen),
+REM re-position the toolbox and toolbar against the new position and re-open them.
+
+IF (main%!4 &lt;&gt; left%) OR (main%!12 &lt;&gt; right%) OR (main%!16 &lt;&gt; top%) THEN
+  PROCposition_toolbar(main%, toolbar%)
+  SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
+ENDIF
+
+IF (main%!4 &lt;&gt; left%) OR (main%!16 &lt;&gt; top%) THEN
+  PROCposition_side_toolbox(main%, toolbox%)
+  SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
+ENDIF
 ENDPROC</code>
 
 <p>Running the updated application should reveal a new toolbar attached to the top of the main window, as shown in <reference id="fig-top-bar-complete"/>. If resized or moved around the screen, both the toolbar and the original toolbox should move and adjust their sizes together. Note that if the caret is placed in the toolbar&rsquo;s writeable icon, the main window is shown as having input focus: this is a result of the panes having their &lsquo;window is a pane&rsquo; flags set.</p>
@@ -269,10 +300,59 @@ ENDPROC</code>
 
 <p>As it is, this isn&rsquo;t an enormous problem, and a simple solution might just be to have the toolbox fixed so that it doesn&rsquo;t push back over the main window.</p>
 
-<p>An alternative approach would be to push the toolbox down the side of the main window, so that it sits below the base of the toolbar. This is simple enough to do, and can be achieved by adding in the height of the toolbar to the calculation in <function>PROChandle_pane_windows()</function> which sets the vertical position of the toolbox &ndash; the changes required can be seen in <reference id="list-top-bar-offset-toolbox"/>.</p>
+<p>An alternative approach would be to push the toolbox down the side of the main window, so that it sits below the base of the toolbar. This is simple enough to do, and can be achieved by adding in a vertical offset to the calculation in <function>PROCposition_side_toolbox()</function>, which sets the vertical position of the toolbox relative to the top of the parent window&rsquo;s visible area &ndash; the changes required can be seen in <reference id="list-top-bar-offset-toolbox"/>.</p>
 
-<code id="list-top-bar-offset-toolbox" lang="bbcbasic" title="Offsetting the toolbox so that it clears the toolbar">toolbox%!8 = main%!16 - (bar_height% + box_height%) : REM Visible Area Y0
-toolbox%!16 = main%!16 - bar_height%                : REM Visible Area Y1</code>
+<code id="list-top-bar-offset-toolbox" lang="bbcbasic" title="Offsetting the toolbox so that it can clear the toolbar">DEF PROCposition_side_toolbox(parent%, toolbox%, offset%)
+LOCAL width%, height%
+
+REM Find the width and height of the toolbox pane's visible area.
+
+width% = toolbox%!12 - toolbox%!4             : REM Visible Area X1 - X0
+height% = toolbox%!16 - toolbox%!8            : REM Visible Area Y1 - Y0
+
+REM Move the toolbox pane so that it's in the correct X and Y position
+REM relative to where the parent window is to go.
+
+CASE TRUE OF
+WHEN parent%!4 &gt; width%
+  toolbox%!4 = parent%!4 - width%             : REM Visible Area X0
+  toolbox%!12 = parent%!4                     : REM Visible Area X1
+WHEN parent%!4 &gt; 0
+  toolbox%!4 = 0                              : REM Visible Area X0
+  toolbox%!12 = width%                        : REM Visible Area X1
+OTHERWISE
+  toolbox%!4 = parent%!4                      : REM Visible Area X0
+  toolbox%!12 = parent%!4 + width%            : REM Visible Area X1
+ENDCASE
+
+toolbox%!8 = parent%!16 - (offset% + height%) : REM Visible Area Y0
+toolbox%!16 = parent%!16 - offset%            : REM Visible Area Y1
+ENDPROC
+</code>
+
+<p>To be able to supply this information, we will also need to know the height of the toolbar: to this end, we will convert the <function>PROCposition_toolbar()</function> procedure into the <function>FNposition_toolbar()</function> function, which returns this information. The change can be seen in <reference id="list-top-bar-offset-toolbar"/>.</p>
+
+<code id="list-top-bar-offset-toolbar" lang="bbcbasic" title="Calculating the required size of the offset">DEF FNposition_toolbar(parent%, toolbar%)
+LOCAL height%
+
+REM Find the height of the toolbar pane's visible area.
+
+height% = toolbar%!16 - toolbar%!8        : REM Visible Area Y1 - Y0
+
+REM Move the toolbar pane so that it's in the correct X and Y position
+REM relative to where the parent window is to go.
+
+toolbar%!4 = parent%!4                    : REM Visible Area X0
+toolbar%!8 = parent%!16 - height%         : REM Visible Area Y0
+toolbar%!12 = parent%!12                  : REM Visible Area X1
+toolbar%!16 = parent%!16                  : REM Visible Area Y1
+
+=height%</code>
+
+<p>Tying these two changes together is simply a case of updating <function>PROChandle_pane_windows()</function> so that it stores the value returned by <function>FNposition_toolbar()</function> and passes it on to <function>PROCposition_side_toolbox()</function> as seen in <reference id="list-top-bar-offset-tie" />.</p>
+
+<code id="list-top-bar-offset-tie" lang="bbcbasic" title="Passing the offset between panes">toolbar_height% = FNposition_toolbar(main%, toolbar%)
+PROCposition_side_toolbox(main%, toolbox%, toolbar_height%)</code>
 
 <p>With this small modification in place, the toolbar is now anchored lower down the side of the main window and slides in below the work area of the toolbar as seen in <reference id="fig-top-bar-overlap-adjust"/>.</p>
 

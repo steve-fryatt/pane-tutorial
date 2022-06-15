@@ -82,9 +82,9 @@ SYS &quot;Wimp_CreateWindow&quot;,,b% TO ToolBoxWindow%</code>
 <section>
 <title>Handling pane events</title>
 
-<p>Handling panes is actually fairly straight-forward: it&rsquo;s just the details which can seem confusing at first sight! It boils down to this: if the Wimp won&rsquo;t do the work for us, we need to track movement of the main window and ensure that every time it moves, we also move the pane into the correct relative position. Fortunately, there are only two ways that a window can move: if we do it ourselves, or if it is done by something outside our application (such as the user, or another application). In the latter case, the request will arrive through the <name>Open_Window_Request</name> event; in the former we&rsquo;ll have initiated the action, so we&rsquo;ll know about it.</p>
+<p>Handling panes is actually fairly straight-forward, although the details can seem confusing at first sight! It boils down to this: if the Wimp won&rsquo;t do the work for us, we need to track movement of the main window and ensure that every time it moves, we move the pane into the correct relative position at the same time. Fortunately, there are only two ways that a window can move: if we do it ourselves, or if it is done by something outside our application (such as the user, or another application). In the latter case, the request will arrive through the <name>Open_Window_Request</name> event and we&rsquo;ll know about it; in the former we&rsquo;ll have initiated the action, so we&rsquo;ll also know about it.</p>
 
-<p>In our existing application, we have the following two lines in <function>PROCpoll</function>, to handle the <name>Open_Window_Request</name> and <name>Close_Window_Request</name> events:</p>
+<p>In our existing application, we have the following two lines in <function>PROCpoll</function> to handle the <name>Open_Window_Request</name> and <name>Close_Window_Request</name> events:</p>
 
 <code lang="bbcbasic">WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%
 WHEN 3      : SYS &quot;Wimp_CloseWindow&quot;,,b%</code>
@@ -107,7 +107,7 @@ ENDPROC</code>
 
 <p>Before either of these two new procedures will do anything, they will check the handle of the window to which the event applies. If it&rsquo;s the handle of the main window, then they will need to do the work required to handle the pane as well; for any other window, they can simply call the appropriate Wimp SWI as before.</p>
 
-<p>In the case of <function>PROCopen_window_request()</function>, we will change the code so that any <name>Open_Window_Request</name> events relating to the main window are passed on again to another new procedure: <function>PROChandle_pane_windows()</function>. Events for other windows will simply be passed on to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-box-poll-open"/>; We&rsquo;ll worry about what <function>PROChandle_pane_windows()</function> looks like later on.</p>
+<p>In the case of <function>PROCopen_window_request()</function>, we will change the code so that any <name>Open_Window_Request</name> events relating to the main window are passed on once again to another new procedure: <function>PROChandle_pane_windows()</function>. Events for other windows will simply be passed on to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-box-poll-open"/>; We&rsquo;ll worry about what <function>PROChandle_pane_windows()</function> looks like later on.</p>
 
 <code id="list-side-box-poll-open" lang="bbcbasic" title="Dealing with Open Window Request events">DEF PROCopen_window_request(b%)
 IF !b% = MainWindow% THEN
@@ -187,11 +187,9 @@ ENDPROC</code>
 <section>
 <title>Setting the visible area</title>
 
-<p>Now that we have ensured that our new <function>PROChandle_pane_windows()</function> procedure will be called instead of <swi>Wimp_OpenWindow</swi> for every event which applies to the main window, all that remains to be done is to work out how to adjust the toolbox pane so that the two windows appear to be joined together on screen. To do this, we will need to know where the main window ended up on screen once it was opened, and fortunately this information is already waiting for us.</p>
+<p>Now that we have ensured that our <function>PROChandle_pane_windows()</function> procedure will be called every time the positions of the main window and toolbox pane need to be updated, all that remains is to work out how to join the two windows together on screen.</p>
 
-<p>Since the arrival of the Nested Wimp with RISC&nbsp;OS&nbsp;4.02, the <swi>Wimp_OpenWindow</swi> SWI has been documented as returning with the contents of the window state block, passed to it in <name>R1</name>, updated to reflect where the window was actually opened. In the <cite><link href="http://www.vigay.com/inet/acorn/nested.html">Nested Window Manager Functional Specification</link></cite>, Acorn wrote that &ldquo;since RISC&nbsp;OS&nbsp;2 (and possibly even earlier), <swi>Wimp_OpenWindow</swi> has had undocumented return conditions: values at <name>R1</name>+4 to <name>R1</name>+24 are updated to represent the actual parameters of the opened window after valid ranges have been taken into account, and the window has been forced on-screen (if applicable).&rdquo;</p>
-
-<p>Thanks to this piece of retrospective documentation, it is safe for us to rely on this behaviour in new software. The <function>PROChandle_pane_windows()</function> procedure takes a single parameter, <variable>main%</variable>, which is a pointer to the block that was used to open the main window. Whether this arrived through <swi>Wimp_Poll</swi> into the block pointed to by <variable>b%</variable>, or was set up in the block pointed to by <variable>q%</variable> by a call to <swi>Wimp_WindowState</swi> in <function>PROCopen_main_window</function>, it has been passed to <swi>Wimp_OpenWindow</swi> and now contains details of exactly where the main window is on screen.</p>
+<p>The procedure takes a single parameter, <variable>main%</variable>, which is a pointer to the <swi>Wimp_WindowState</swi> block for the main window. Whether this arrived through <swi>Wimp_Poll</swi> into the block pointed to by <variable>b%</variable>, or was put into the block pointed to by <variable>q%</variable> using <swi>Wimp_WindowState</swi> in <function>PROCopen_main_window</function>, it contains details of where the main window is required to be opened.</p>
 
 <p>The first thing that we need to do is to create an equivalent window state block for the toolbox pane, which we can then update with the necessary values calculated from the main window&rsquo;s position. Unfortunately we can&rsquo;t use our usual scratch block of memory pointed to by <variable>q%</variable>, because that could already be holding the data for the main window if we have been called from <function>PROCopen_main_window</function>. However, we know that only 36 bytes will be in use from what is at least a 256 byte block, so we can just load the pane information into some of the unused space at the end, with an offset of 64 bytes. To make things simpler to follow, we&rsquo;ll define a local variable <variable>toolbox%</variable> which points to this offset, then access the toolbox pane&rsquo;s data through it.</p>
 
@@ -200,31 +198,56 @@ ENDPROC</code>
 !toolbox% = ToolBoxWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbox%</code>
 
-<p>Since the toolbox can&rsquo;t be resized by the user, we can be fairly confident that its width and height will still be as they were saved in the templates file. These can be used to give us the values for the pane&rsquo;s width and height, saving us from having to use constants in the code. Before making any changes to the toolbox&rsquo;s window state block&rsquo;s contents, we therefore calculate the width and height of the pane&rsquo;s visible area and store the two values for future use.</p>
+<p>We will start by positioning the toolbox in the <maths>X</maths> and <maths>Y</maths> dimensions by adjusting its visible area, so that it aligns with the main window. It will be useful later on for this code to be in a procedure of its own, so we will create one called <function>PROCposition_side_toolbox()</function> and call it as follows.</p>
 
-<code lang="bbcbasic">box_width% = toolbox%!12 - toolbox%!4     : REM Visible Area X1 - X0
-box_height% = toolbox%!16 - toolbox%!8    : REM Visible Area Y1 - Y0</code>
+<code lang="bbcbasic">PROCposition_side_toolbox(main%, toolbox%)</code>
 
-<p>As already noted, we know where the main window has ended up on screen. We also know the relationship that we want to have between the main window and its pane, as shown in <reference id="fig-side-box-pos-plane"/>. We can therefore update the pane&rsquo;s window state block so that it is in the correct position relative to the main window, update the main window&rsquo;s position if necessary, then call <swi>Wimp_OpenWindow</swi> for both windows in turn.</p>
+<p>It will take two parameters: a pointer to the main window state block as <variable>parent%</variable>, and a pointer to the toolbox pane&rsquo;s window state block as <variable>toolbox%</variable>. We will pass <variable>main%</variable> and <variable>toolbox%</variable> to these respectively.</p>
+
+<p>Since the toolbox can&rsquo;t be resized by the user, we can be fairly confident that its width and height will still be as they were saved in the templates file. These can be used to give us the values for the toolbox pane&rsquo;s width and height, saving us from having to use constants in the code. Before making any changes to the toolbox&rsquo;s window state block&rsquo;s contents, we therefore calculate the width and height of the pane&rsquo;s visible area and store the two values for future use.</p>
+
+<code lang="bbcbasic">width% = toolbox%!12 - toolbox%!4         : REM Visible Area X1 - X0
+height% = toolbox%!16 - toolbox%!8        : REM Visible Area Y1 - Y0</code>
+
+<p>As already noted, we know where the main window should be on screen from its visible area. We also know the relationship that we want to have between the visible area of the main window and that of its pane, as shown in <reference id="fig-side-box-pos-plane"/>. We can therefore update the pane&rsquo;s window state block so that its visible area is in the correct position relative to the main window, then call <swi>Wimp_OpenWindow</swi> for both windows in turn.</p>
 
 <image id="fig-side-box-pos-plane" file="side-box-pos-plane.png" title="The relationship between the main window and its toolbox" />
 
-<p><reference id="fig-side-box-pos-plane"/> shows the relationship between the main window and its pane. The tops of the two windows (<maths>Y1</maths> for the two visible areas) should be level, so we can copy the <maths>Y1</maths> value from the main window to the pane. The bottom of the pane (its <maths>Y0</maths>) is the height of the pane below the top of the main window.</p>
+<p><reference id="fig-side-box-pos-plane"/> shows the relationship between the visible areas of the main window and its pane. The tops of the two windows (<maths>Y1</maths> for the two visible areas) should be level, so we can copy the <maths>Y1</maths> value from the main window to the pane. The bottom of the pane (its <maths>Y0</maths>) is the height of the pane below the top of the main window.</p>
 
-<code lang="bbcbasic">toolbox%!16 = main%!16                    : REM Visible Area Y1
-toolbox%!8 = main%!16 - box_height%       : REM Visible Area Y0</code>
+<code lang="bbcbasic">toolbox%!16 = parent%!16                  : REM Visible Area Y1
+toolbox%!8 = parent%!16 - height%         : REM Visible Area Y0</code>
 
 <p>In a similar way, the right-hand side of the pane (its <maths>X1</maths>) is on the left-hand side of the main window, while its left-hand side is the width of the pane further to the left.</p>
 
-<code lang="bbcbasic">toolbox%!12 = main%!4                     : REM Visible Area X1
-toolbox%!4 = main%!4 - box_width%         : REM Visible Area X0</code>
+<code lang="bbcbasic">toolbox%!12 = parent%!4                   : REM Visible Area X1
+toolbox%!4 = parent%!4 - width%           : REM Visible Area X0</code>
+
+<p>Putting this all together results in <function>PROCposition_side_toolbox()</function> as seen in <reference id="list-side-box-tbox" />.</p>
+
+<code id="list-side-box-tbox" lang="bbcbasic" title="The code to position the toolbox horizontally and vertically">DEF PROCposition_side_toolbox(parent%, toolbox%)
+LOCAL width%, height%
+
+REM Find the width and height of the toolbox pane's visible area.
+
+width% = toolbox%!12 - toolbox%!4         : REM Visible Area X1 - X0
+height% = toolbox%!16 - toolbox%!8        : REM Visible Area Y1 - Y0
+
+REM Move the toolbox pane so that it's in the correct X and Y position
+REM relative to where the parent window is to go.
+
+toolbox%!4 = parent%!4 - width%           : REM Visible Area X0
+toolbox%!8 = parent%!16 - height%         : REM Visible Area Y0
+toolbox%!12 = parent%!4                   : REM Visible Area X1
+toolbox%!16 = parent%!16                  : REM Visible Area Y1
+ENDPROC</code>
 </section>
 
 
 <section id="sect-side-box-stack">
 <title>Lost in the stack</title>
 
-<p>The code above deals with the position of the pane in the <maths>X</maths> and <maths>Y</maths> dimensions, but what about the <maths>Z</maths> dimension &ndash; its position in the window stack? The Wimp requires that panes appear directly above their parent window; however, this is still left up to the application to manage.</p>
+<p>The code above deals with the position of the pane in the <maths>X</maths> and <maths>Y</maths> dimensions by adjusting its visible area, but what about the <maths>Z</maths> dimension &ndash; its position in the window stack? The Wimp requires that panes appear directly above their parent window; however, this is still left up to the application to manage.</p>
 
 <p>There&rsquo;s a very practical reason for this stacking requirement. If something like a toolbar pane goes behind its parent window in the stack, then it will very likely be obscured by its parent. Even if the pane is in front, if it isn&rsquo;t <em>immediately</em> in front, then it&rsquo;s possible for other windows to get in between as seen in <reference id="fig-side-box-loose"/> (the application was deliberately broken in order to allow this to occur).</p>
 
@@ -234,7 +257,7 @@ toolbox%!4 = main%!4 - box_width%         : REM Visible Area X0</code>
 
 <p>In a similar way, if a window with its pane flag set gains the caret, then the Wimp will give input focus to (and set the &lsquo;window has input focus&rsquo; flag at bit 20 of the window flags for) the first window <em>below</em> it in the stack which is not a pane. Finally, when working out which bits of a window might need redrawing following a re-size, the Wimp will treat any panes immediately above it as being transparent &ndash; on the basis that the application may be about to move them anyway.</p>
 
-<p>Keeping the <maths>Z</maths> order of the windows correct is fairly straight-forward. The window state block for the main window contains the position in the window stack at which it should be opened, in terms of the handle of the window that it is positioned beneath at offset 28. Since the toolbox pane should be in front of the main window, we can copy this value into the pane&rsquo;s block so that the pane appears at the correct position in the stack.</p>
+<p>Keeping the <maths>Z</maths> order of the windows correct is fairly straight-forward. The window state block for the main window contains the position in the window stack at which it should be opened, in terms of the handle of the window that it is positioned beneath at offset 28. Since the toolbox pane should be in front of the main window, then returning to <function>PROChandle_pane_windows()</function> following the call to <function>PROCposition_side_toolbox()</function>, we can copy this value into the pane&rsquo;s block so that the pane appears at the correct position in the stack.</p>
 
 <code lang="bbcbasic">IF main%!28 &lt;&gt; ToolBoxWindow% THEN toolbox%!28 = main%!28</code>
 
@@ -251,7 +274,7 @@ SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
 <p>Putting all of the code above together, <function>PROChandle_pane_windows()</function> will look as shown in <reference id="list-side-box-panes"/>.</p>
 
 <code id="list-side-box-panes" lang="bbcbasic" title="The code to position the pane and the main window">DEF PROChandle_pane_windows(main%)
-LOCAL toolbox%, box_width%, box_height%
+LOCAL toolbox%
 
 REM Get the Window State block for the toolbox pane, using some of the
 REM spare space above the data for the state of the main window.
@@ -264,23 +287,15 @@ toolbox% = main% + 64
 !toolbox% = ToolBoxWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbox%
 
-REM Find the width and height of the toolbox pane's visible area.
-
-box_width% = toolbox%!12 - toolbox%!4     : REM Visible Area X1 - X0
-box_height% = toolbox%!16 - toolbox%!8    : REM Visible Area Y1 - Y0
-
 REM Move the toolbox pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-toolbox%!4 = main%!4 - box_width%         : REM Visible Area X0
-toolbox%!8 = main%!16 - box_height%       : REM Visible Area Y0
-toolbox%!12 = main%!4                     : REM Visible Area X1
-toolbox%!16 = main%!16                    : REM Visible Area Y1
+PROCposition_side_toolbox(main%, toolbox%)
 
 REM Unless the main window is to be opened behind the toolbox pane, meaning
 REM that the pane must already be in the correct place in the stack, set the
 REM pane's Open Behind so that it appears in the stack where the main window
-REM is required to go.
+REM is required to go. Then (re-)open the toolbox.
 
 IF main%!28 &lt;&gt; ToolBoxWindow% THEN toolbox%!28 = main%!28
 
@@ -289,6 +304,8 @@ SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
 REM Set the main window's Open Behind so that it opens behind the pane.
 
 main%!28 = ToolBoxWindow%
+
+REM (Re-)open the main window.
 
 SYS &quot;Wimp_OpenWindow&quot;,,main%
 ENDPROC</code>
@@ -304,21 +321,102 @@ ENDPROC</code>
 
 
 <section>
+<title>Unexpected movement</title>
+
+<p>There is one small problem with our application as it stands, though. In order to get the positions in the window stack correct we open the toolbox first, based on the position that we would be requesting that the Wimp would open the main window, then open the main window itself. However, if it isn&rsquo;t possible to open the window where we request, then the Wimp may open the window in a slightly different location. If this happens, it will result in the toolbox becoming &lsquo;detached&rsquo; from the main window.</p> 
+
+<p>The solution is to check the position of the main window after the call to <swi>Wimp_OpenWindow</swi> and, if necessary, re-open the toolbox pane in the correct location. We could find this information out by calling <swi>Wimp_GetWindowState</swi> for the main window, but in practice there&rsquo;s no need because the information is already waiting for us.</p>
+
+<p>Since the arrival of the Nested Wimp with RISC&nbsp;OS&nbsp;4.02, the <swi>Wimp_OpenWindow</swi> SWI has been documented as returning with the contents of the window state block, passed to it in <name>R1</name>, updated to reflect where the window was actually opened. In the <cite><link href="http://www.vigay.com/inet/acorn/nested.html">Nested Window Manager Functional Specification</link></cite>, Acorn wrote that &ldquo;since RISC&nbsp;OS&nbsp;2 (and possibly even earlier), <swi>Wimp_OpenWindow</swi> has had undocumented return conditions: values at <name>R1</name>+4 to <name>R1</name>+24 are updated to represent the actual parameters of the opened window after valid ranges have been taken into account, and the window has been forced on-screen (if applicable).&rdquo;</p>
+
+<p>Thanks to this piece of retrospective documentation, it is safe for us to rely on this behaviour in new software. As a result, following the call to <swi>Wimp_OpenWindow</swi>, the block pointed to by <variable>main%</variable> will contain the positions at which the window was actually opened on screen. In order to make use of this, we will start by taking copies of the visible area dimensions which relate to the toolbox before the call to <swi>Wimp_OpenWindow</swi>.</p>
+
+<code lang="bbcbasic">left% = main%!4
+top% = main%!16
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
+
+<p>Using this information, we can check the visible area returned from the call to <swi>Wimp_OpenWindow</swi> and see whether any of the positions which would affect the toolbox have changed. If they have, we can re-position the toolbox in the correct place, then call <swi>Wimp_OpenWindow</swi> again to re-open it.</p>
+
+<code lang="bbcbasic">IF (main%!4 &lt;&gt; left%) OR (main%!16 &lt;&gt; top%) THEN
+  PROCposition_side_toolbox(main%, toolbox%)
+  SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
+ENDIF</code>
+
+<p>The toolbox is anchored to the top and left sides of the visible area, so there&rsquo;s no need to check the right or bottom sides. Adding these changes to <function>PROChandle_pane_windows()</function> results in the code in <reference id="list-side-box-update" />.</p>
+
+<code id="list-side-box-update" lang="bbcbasic" title="Spotting and handling changes to the main window position">DEF PROChandle_pane_windows(main%)
+LOCAL toolbox%, top%, left%
+
+REM Get the Window State block for the toolbox pane, using some of the
+REM spare space above the data for the state of the main window.
+REM
+REM Note: ON RISC OS 5, we could more clearly use DIM toolbox% LOCAL 64
+REM here to allocate the required memory from the stack.
+
+toolbox% = main% + 64
+
+!toolbox% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,toolbox%
+
+REM Move the toolbox pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+PROCposition_side_toolbox(main%, toolbox%)
+
+REM Unless the main window is to be opened behind the toolbox pane, meaning
+REM that the pane must already be in the correct place in the stack, set the
+REM pane's Open Behind so that it appears in the stack where the main window
+REM is required to go. Then (re-)open the toolbox.
+
+IF main%!28 &lt;&gt; ToolBoxWindow% THEN toolbox%!28 = main%!28
+
+SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
+
+REM Set the main window's Open Behind so that it opens behind the pane.
+
+main%!28 = ToolBoxWindow%
+
+REM (Re-)open the main window.
+
+left% = main%!4
+top% = main%!16
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%
+
+REM If the main window was moved on opening (perhaps if it opened off-screen),
+REM re-position the toolbox against the new position and re-open it.
+
+IF (main%!4 &lt;&gt; left%) OR (main%!16 &lt;&gt; top%) THEN
+  PROCposition_side_toolbox(main%, toolbox%)
+  SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
+ENDIF
+ENDPROC</code>
+
+<p>The full code can be found in <reference id="dl-side-box-2"/>.</p>
+
+<download id="dl-side-box-2" file="SideBox2" title="Preventing the pane being detatched" compatibility="armv7"/>
+
+<p>If you&rsquo;re looking at this code and wondering if we could avoid having to open the toolbox pane twice by doing things in a different order, the answer is that we can &ndash; but not in all situations. We&rsquo;ll stick to this universal approach for now, but return to the subject in a later chapter to investigate a possible optimisation and examine why it can&rsquo;t always be used!</p>
+</section>
+
+
+<section>
 <title>A small improvement</title>
 
 <p>If you&rsquo;re familiar with <cite>Draw</cite>, then there&rsquo;s one small difference which you might notice in the behaviour of the toolbox in our example application compared to the toolbox in <cite>Draw</cite>. If a <cite>Draw</cite> window is moved off the left-hand edge of the screen, then the toolbox pane stops moving when it hits the edge and begins to retract over the parent window as seen in <reference id="fig-side-box-draw-offscreen"/>. Only when the pane is flush with the side of the main window does it begin to move off the screen again.</p>
 
 <image id="fig-side-box-draw-offscreen" file="side-box-draw-offscreen.png" title="Draw&rsquo;s toolbox stays on screen as long as possible"/>
 
-<p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROChandle_pane_windows()</function>, where we set the coordinates of the pane&rsquo;s visible area. In the code above, we used the following fixed calculations:</p>
+<p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROCposition_side_toolbox()</function>, where we set the coordinates of the pane&rsquo;s visible area. In the code above, we used the following fixed calculations:</p>
 
 <code lang="bbcbasic">REM Move the pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-toolbox%!4 = main%!4 - box_width%         : REM Visible Area X0
-toolbox%!8 = main%!16 - box_height%       : REM Visible Area Y0
-toolbox%!12 = main%!4                     : REM Visible Area X1
-toolbox%!16 = main%!16                    : REM Visible Area Y1</code>
+toolbox%!4 = parent%!4 - width%           : REM Visible Area X0
+toolbox%!8 = parent%!16 - height%         : REM Visible Area Y0
+toolbox%!12 = parent%!4                   : REM Visible Area X1
+toolbox%!16 = parent%!16                  : REM Visible Area Y1</code>
 
 <p>We can replace this by testing the minimum <maths>X0</maths> coordinate of the main window&rsquo;s visible area, then applying different calculations for the pane&rsquo;s <maths>X</maths> coordinates as follows:</p>
 
@@ -334,27 +432,27 @@ toolbox%!16 = main%!16                    : REM Visible Area Y1</code>
 REM relative to where the main window is to go.
 
 CASE TRUE OF
-WHEN main%!4 &gt; box_width%
-  toolbox%!4 = main%!4 - box_width%       : REM Visible Area X0
-  toolbox%!12 = main%!4                   : REM Visible Area X1
-WHEN main%!4 &gt; 0
-  toolbox%!4 = 0                          : REM Visible Area X0
-  toolbox%!12 = box_width%                : REM Visible Area X1
+WHEN parent%!4 &gt; width%
+	toolbox%!4 = parent%!4 - width%         : REM Visible Area X0
+	toolbox%!12 = parent%!4                 : REM Visible Area X1
+WHEN parent%!4 &gt; 0
+	toolbox%!4 = 0                          : REM Visible Area X0
+	toolbox%!12 = width%                    : REM Visible Area X1
 OTHERWISE
-  toolbox%!4 = main%!4                    : REM Visible Area X0
-  toolbox%!12 = main%!4 + box_width%      : REM Visible Area X1
+	toolbox%!4 = parent%!4                  : REM Visible Area X0
+	toolbox%!12 = parent%!4 + width%        : REM Visible Area X1
 ENDCASE
 
-toolbox%!8 = main%!16 - box_height%       : REM Visible Area Y0
-toolbox%!16 = main%!16                    : REM Visible Area Y1</code>
+toolbox%!8 = parent%!16 - height%         : REM Visible Area Y0
+toolbox%!16 = parent%!16                  : REM Visible Area Y1</code>
 
 <p>With this in place, our own pane begins to behave in a more <cite>Draw</cite>-like way when it reaches the edge of the screen, as seen in <reference id="fig-side-box-offscreen"/>.</p>
 
 <image id="fig-side-box-offscreen" file="side-box-offscreen.png" title="Our own toolbox can now behave more dynamically, too"/>
 
-<p>The full code can be found in <reference id="dl-side-box-2"/>.</p>
+<p>The full code can be found in <reference id="dl-side-box-3"/>.</p>
 
-<download id="dl-side-box-2" file="SideBox2" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
+<download id="dl-side-box-3" file="SideBox3" title="A more dynamic vertical toolbox pane" compatibility="armv7"/>
 
 <p>We&rsquo;ve now seen all of the building blocks required to attach a pane to our window, but there&rsquo;s no need to have it on the left-hand side of the work area &ndash; or even limit ourselves to a single pane! In <reference id="chap-top-bar">the next chapter</reference>, we&rsquo;ll take a look at adding a second pane in an alternative toolbar configuration.</p>
 </section>
