@@ -27,21 +27,21 @@
 
 <manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
 
-<!-- Chapter 5
+<!-- Chapter 6
    -
    - The Nested Wimp
   -->
 
 <chapter id="chap-nest-wimp">
 <resources>
-<images>Chapter05</images>
-<downloads>Chapter05</downloads>
+<images>Chapter06</images>
+<downloads>Chapter06</downloads>
 </resources>
 <filename>the-nested-wimp.php</filename>
 <uri>the-nested-wimp</uri>
 <title>The Nested Wimp</title>
 
-<summary>It isn&rsquo;t necessary to do everything with panes by hand, so let&rsquo;s see how the Wimp can help us out. </summary>
+<summary>It isn&rsquo;t necessary to do everything with panes by hand, so let&rsquo;s see how the Wimp can help us out.</summary>
 
 <section>
 <p>Over the past few chapters, we have explored how to use pane windows to add toolboxes and toolbars to our small application. It has been a fairly manual process: setting the windows up and then keeping everything in step whenever things move on screen.</p>

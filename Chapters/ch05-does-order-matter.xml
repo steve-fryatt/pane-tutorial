@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
+
+<!-- Copyright 2021-2022, Stephen Fryatt (info@stevefryatt.org.uk)
+   -
+   - This file is part of Pane Tutorial:
+   -
+   -   http://www.stevefryatt.org.uk/software/
+   -
+   - Licensed under the EUPL, Version 1.2 only (the "Licence");
+   - You may not use this work except in compliance with the
+   - Licence.
+   -
+   - You may obtain a copy of the Licence at:
+   -
+   -   http://joinup.ec.europa.eu/software/page/eupl
+   -
+   - Unless required by applicable law or agreed to in
+   - writing, software distributed under the Licence is
+   - distributed on an "AS IS" basis, WITHOUT WARRANTIES
+   - OR CONDITIONS OF ANY KIND, either express or implied.
+   -
+   - See the Licence for the specific language governing
+   - permissions and limitations under the Licence.
+  -->
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+
+<!-- Chapter 5
+   -
+   - Does Order Matter?
+  -->
+
+<chapter id="chap-order">
+<resources>
+<images>Chapter05</images>
+<downloads>Chapter05</downloads>
+</resources>
+<filename>does-order-matter.php</filename>
+<uri>does-order-matter</uri>
+<title>Does Order Matter?</title>
+
+<summary>The order in which we open our windows can have some surprising effects &ndash; at least on some systems.</summary>
+
+<section>
+<p>So far, we&rsquo;ve seen how we can manually create one or more panes on our window, and have then behave in a number of distinct ways. Throughout the examples, however, the <function>PROChandle_pane_windows()</function> procedure has always called <swi>Wimp_OpenWindow</swi> for the different windows in a very specific order.</p>
+
+<p>Back in <reference id="sect-side-box-unex"/> we stated that this order was necessary, but hinted that we might be able to simplify things in some circumstances. Now, with all of the main details covered, it seems like a good time to go back and fill in this missing information!</p>
+</section>
+
+
+<section>
+<title>Re-creating our toolbar</title>
+
+
+</section>
+</chapter>
+</manual>

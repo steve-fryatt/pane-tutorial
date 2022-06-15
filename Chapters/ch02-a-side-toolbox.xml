@@ -320,7 +320,7 @@ ENDPROC</code>
 </section>
 
 
-<section>
+<section id="sect-side-box-unex">
 <title>Unexpected movement</title>
 
 <p>There is one small problem with our application as it stands, though. In order to get the positions in the window stack correct we open the toolbox first, based on the position that we would be requesting that the Wimp would open the main window, then open the main window itself. However, if it isn&rsquo;t possible to open the window where we request, then the Wimp may open the window in a slightly different location. If this happens, it will result in the toolbox becoming &lsquo;detached&rsquo; from the main window.</p> 
@@ -397,7 +397,7 @@ ENDPROC</code>
 
 <download id="dl-side-box-2" file="SideBox2" title="Preventing the pane being detatched" compatibility="armv7"/>
 
-<p>If you&rsquo;re looking at this code and wondering if we could avoid having to open the toolbox pane twice by doing things in a different order, the answer is that we can &ndash; but not in all situations. We&rsquo;ll stick to this universal approach for now, but return to the subject in a later chapter to investigate a possible optimisation and examine why it can&rsquo;t always be used!</p>
+<p>If you&rsquo;re looking at this code and wondering if we could avoid having to open the toolbox pane twice by doing things in a different order, the answer is that we can &ndash; but not in all situations. We&rsquo;ll stick to this universal approach for now, but will return to the subject in <reference id="chap-order"/> in order to investigate a possible optimisation and examine why it can&rsquo;t always be used!</p>
 </section>
 
 
