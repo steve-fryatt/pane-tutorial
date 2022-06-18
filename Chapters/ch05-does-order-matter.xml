@@ -52,7 +52,7 @@
 <section>
 <title>An optimisation?</title>
 
-<p>If we go back to look at the code in <reference id="dl-col-head-2"/> again, we can see that when an <name>Open_Window_Request</name> event arrives for the main window, it is treated as special case by <function>PROCopen_window_request()</function>.</p>
+<p>If we go back to look at the code in <reference id="dl-col-head-2"/> again, we can see that when an <name>Open_Window_Request</name> event arrives for the main window, it is treated as a special case by <function>PROCopen_window_request()</function>.</p>
 
 <code lang="bbcbasic">DEF PROCopen_window_request(b%)
 IF !b% = MainWindow% THEN
