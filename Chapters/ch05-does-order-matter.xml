@@ -46,7 +46,7 @@
 <section>
 <p>So far, we&rsquo;ve seen how we can manually create one or more panes on our window, and have them behave in a number of distinct ways. Throughout the examples, however, the <function>PROChandle_pane_windows()</function> procedure has always called <swi>Wimp_OpenWindow</swi> for the different windows in a very specific order: first the pane, then the main window, and finally the pane again.</p>
 
-<p>Back in <reference id="sect-side-box-unex"/> we stated that this order was necessary, but hinted that we might be able to simplify things in some circumstances. Now, with all of the main details covered, it seems like a good time to go back and fill in this missing information!</p>
+<p>Back in <reference id="sect-side-box-unex"/> we stated that this order was necessary, but hinted that we might be able to simplify things in certain circumstances. Now, with all of the main details covered, it seems like a good time to go back and fill in this missing information!</p>
 </section>
 
 <section>
@@ -111,29 +111,29 @@ toolbar%!28 = main%!28
 SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
 ENDPROC</code>
 
-<p>Now that <function>PROChandle_pane_windows()</function> doesn&rsquo;t open the main window, we will also need to make a small change to <function>PROCopen_main_window</function> so that it does that task for itself. The change is simply adding a call to <swi>Wimp_OpenWindow</swi> before the call to <function>PROChandle_pane_windows()</function>, at the end of the procedure.</p>
+<p>Now that <function>PROChandle_pane_windows()</function> doesn&rsquo;t open the main window, we will also need to make a small change to <function>PROCopen_main_window</function> so that it also does that task for itself. The change is simply adding a call to <swi>Wimp_OpenWindow</swi> before the call to <function>PROChandle_pane_windows()</function>, at the end of the procedure.</p>
 
 <code lang="bbcbasic">q%!28 = -1 : REM Window to open behind (-1 is top of stack)
 
 SYS &quot;Wimp_OpenWindow&quot;,,q%
 PROChandle_pane_windows(q%)</code>
 
-<p>With all of these changes in place, a complete copy of the new application can be found in <reference id="dl-order-single-pane"/>. When run, it might perform in a very similar way to <reference id="dl-col-head-2"/> from the previous chapter... or it might not.</p>
+<p>With all of these changes in place, a complete copy of the new application can be found in <reference id="dl-order-single-pane-1"/>. When run, it might perform in a very similar way to <reference id="dl-col-head-2"/> from the previous chapter... or it might not.</p>
 
-<download id="dl-order-single-pane" file="ColHead3" title="Simplifying the pane handling" compatibility="armv7"/>
+<download id="dl-order-single-pane-1" file="ColHead3" title="Simplifying the pane handling" compatibility="armv7"/>
 </section>
 
 
 <section>
 <title>Order does matter... sometimes</title>
 
-<p>If you download and run <reference id="dl-order-single-pane"/>, you will either find that it behaves identically to <reference id="dl-col-head-2"/>, or that it exhibits a very obvious flicker from the toolbar whenever the window is dragged around with <mouse>Select</mouse> on the title bar. Which it does will depend on the version of the Window Manager you have on your system.</p>
+<p>If you download and run <reference id="dl-order-single-pane-1"/>, you will either find that it behaves identically to <reference id="dl-col-head-2"/>, or that it exhibits a very obvious flicker from the toolbar whenever the window is dragged around with <mouse>Select</mouse> on the title bar. Which it does will depend on the version of the Window Manager that you have present on your system.</p>
 
 <p>To understand the differences, we&rsquo;ll consider what happens to the main window and its toolbar pane when they&rsquo;re dragged with <mouse>Select</mouse> at the top of the window stack. <reference id="fig-order-new-1"/> shows the initial positions of the two windows in the stack, at the point just before an <name>Open_Window_Request</name> event arrives to ask our application to open the main window at the top of the stack.</p>
 
 <image id="fig-order-new-1" file="order-new-1.png" title="The initial window stack order"/>
 
-<p>If we follow the new approach outlined in this chapter with <reference id="dl-order-single-pane"/>, the first thing that our application does is to call the <function>PROCopen_window_request()</function> procedure, which in turn calls <swi>Wimp_OpenWindow</swi> for the main window using all of the values supplied by the Wimp. This will result in the main window being inserted at the top of the window stack as shown in <reference id="fig-order-new-2"/> &ndash; pushing the toolbar pane down below it.</p>
+<p>If we follow the new approach outlined in this chapter with <reference id="dl-order-single-pane-1"/>, then the first thing that our application does is to call the <function>PROCopen_window_request()</function> procedure, which in turn calls <swi>Wimp_OpenWindow</swi> for the main window using all of the values supplied by the Wimp. This will result in the main window being inserted at the top of the window stack as shown in <reference id="fig-order-new-2"/> &ndash; pushing the toolbar pane down below it.</p>
 
 <image id="fig-order-new-2" file="order-new-2.png" title="Opening the main window in the new approach"/>
 
@@ -153,22 +153,22 @@ PROChandle_pane_windows(q%)</code>
 
 <p>If the main window moved during opening, then the last thing that <function>PROChandle_pane_windows()</function> will do is to re-position and re-open the toolbar pane &ndash; exactly as shown in <reference id="fig-order-old-2"/>.</p>
 
-<p>The difference between the two approaches can be seen in <reference id="fig-order-new-2"/> and <reference id="fig-order-old-2"/>: in our new approach, the main window and its toolbar pane are briefly swapped over during the opening sequence, while in our original code, they are not.</p>
+<p>The difference between the two approaches can be seen in <reference id="fig-order-new-2"/> and <reference id="fig-order-old-2"/>: in our new approach, the main window and its toolbar pane are very briefly swapped over during the opening sequence, whilst in our original code they are not.</p>
 </section>
 
 
 <section>
 <title>A question of efficiency</title>
 
-<p>The difference described in the previous section matters, because of a small improvement introduced as part of the Nested Wimp. A couple of the changes documented in the <cite><link href="http://www.vigay.com/inet/acorn/nested.html">Nested Window Manager Functional Specification</link></cite> are &ldquo;Redraw Optimisation&rdquo; and improvements to the &ldquo;Invalid Rectangle Handling&rdquo;. Between them, these have a big impact on the handling of panes.</p>
+<p>The difference described in the previous section can matter a lot but, because of a small improvement introduced as part of the Nested Wimp, only with older versions of the Window Manager. A couple of the changes documented in the <cite><link href="http://www.vigay.com/inet/acorn/nested.html">Nested Window Manager Functional Specification</link></cite> are &ldquo;Redraw Optimisation&rdquo; and improvements to the &ldquo;Invalid Rectangle Handling&rdquo;. Between them, these have a big impact on the handling of panes.</p>
 
-<p>When an application calls <swi>Wimp_OpenWindow</swi>, the window in question isn&rsquo;t immediately opened. Instead, the details are logged in a list of pending updates along with any other windows to be opened or closed &ndash; which are all actioned after the application next calls <swi>Wimp_Poll</swi>. This means that when our application opens its main window and toolbar pane, both windows will be updated together after control has returned to the Wimp.</p>
+<p>When an application calls <swi>Wimp_OpenWindow</swi>, the window in question isn&rsquo;t immediately opened. Instead, the details are logged in a list of pending updates along with any other windows to be opened or closed &ndash; all of which are actioned after the application next calls <swi>Wimp_Poll</swi>. This means that when our application opens its main window and toolbar pane, both windows will be updated together after control has returned to the Wimp.</p>
 
-<p>Prior to the Nested Wimp, all of these pending actions would be carried out in full, in the order that they were specified. In contrast, the Nested Wimp scans the whole list and optimises out any inefficiencies, before carrying out the minimum number of actions required to achieve the end result.</p>
+<p>Prior to the Nested Wimp, all of these pending actions would be carried out in full, in the order that they were specified. In contrast, the Nested Wimp scans the whole list of requests and optimises out any inefficiencies, before carrying out the minimum number of actions actually required to achieve the end result.</p>
 
-<p>What this means in practice is that the Nested Wimp will notice that despite the toolbar pane ending up behind the main window in <reference id="fig-order-new-2"/>, it ends up back in from in <reference id="fig-order-new-3"/> &ndash; and so there&rsquo;s no point redrawing the main window during the short period that it is on top.</p>
+<p>What this means in practice is that the Nested Wimp will notice that, despite the toolbar pane ending up behind the main window in <reference id="fig-order-new-2"/>, it ultimately ends up back in front in <reference id="fig-order-new-3"/>. As a result, the Wimp will conclude that there&rsquo;s no point redrawing the area of the main window which will be ending up behind the pane, even during the short period that it is on top &ndash; and so won&rsquo;t ask for it to be done.</p>
 
-<p>On earlier versions of the Wimp, however, our new optimised approach will result in the main window and its toolbar pane following the sequence shown in <reference id="fig-order-pane-switch"/> on <em>every</em> <name>Open_Window_Request</name> event. This produces a very visible flickering effect.</p>
+<p>On earlier versions of the Wimp, however, our new optimised approach will result in the main window and its toolbar pane following the sequence shown in <reference id="fig-order-pane-switch"/> on <em>every</em> <name>Open_Window_Request</name> event. This produces a very visible flickering effect as each is redrawn in turn.</p>
 
 <image id="fig-order-pane-switch" file="order-pane-switch.png" title="The main window and toolbar pane swapping over"/>
 </section>
@@ -177,18 +177,19 @@ PROChandle_pane_windows(q%)</code>
 <section>
 <title>Is it any use?</title>
 
-<p>Given all of this, is the optimisation described in this chapter of any use? The answer is &ldquo;yes,&rdquo; but probably not in all circumstances.</p>
+<p>Given all of this, is the optimisation described in this chapter of any use? The answer is &ldquo;yes,&rdquo; but not in all circumstances.</p>
 
-<p>If an application needs the Nested Wimp for some other reason, and will not run without it, then there&rsquo;s no harm in relying on the redraw optimisation in order to simplify the pane handling code. However, it&rsquo;s also worth remembering that the Nested Wimp will deal with many pane requirements &ndash; including those in this chapter &ndash; directly, with no need for any custom event handling; we&rsquo;ll see how this works in <reference id="chap-nest-wimp">the next chapter</reference>. The main omission is for panes which fall outside the outline of the parent window, such as the side toolbox that we created in <reference id="chap-side-box"/>.</p>
+<p>If an application needs the Nested Wimp for some other reason, and will therefore not be able to run without it, then there&rsquo;s no harm in relying on the redraw optimisation in order to simplify the pane handling code. However, it&rsquo;s also worth remembering that the Nested Wimp will deal with many pane requirements &ndash; including those in this chapter &ndash; directly, with no need for any custom event handling; we&rsquo;ll see how this works in <reference id="chap-nest-wimp">the next chapter</reference>. The main thing that the Nested Wimp does not support is panes which fall outside the outline of the parent window, such as the side toolbox that we created in <reference id="chap-side-box"/>.</p>
 
 <p>For applications which do not need the Nested Wimp for other reasons, and would otherwise work fine back to RISC&nbsp;OS&nbsp;3 or earlier, it seems a shame to restrict their compatibility for no good reason. Save for the situation when the window first opens, the more compatible solution is no less efficient than this optimised one: they both call <swi>Wimp_OpenWindow</swi> once for the main window and once for each pane.</p> 
 
-<p>If you do use the optimisation, though, it&rsquo;s a good idea to check for its presence in the <file>!Run</file> of the application using an <command>*RMEnsure</command>.</p>
+<p>Which approach to use will be a decision for individual developers, based on their applications&rsquo;s requirements. If you do use the optimisation, though, it&rsquo;s a good idea to check for its presence in the <file>!Run</file> of the application using an <command>*RMEnsure</command>.</p>
 
 <code lang="obey">RMEnsure WindowManager 3.80 Error PaneDemo requires the Nested Window Manager.</code>
 
-<!-- Add a full download here. -->
+<p>A version of the code with this change can be found in <reference id="dl-order-single-pane-2"/>, and is the recommended way to approach this optimisation. There are no changes from <reference id="dl-order-single-pane-1"/> aside from the fact that it will politely refuse to start on a system without the Nested Wimp &ndash; preventing any unwanted behaviour from affecting the user.</p>
 
+<download id="dl-order-single-pane-2" file="ColHead4" title="Simplified handling on the Nested Wimp" compatibility="armv7"/>
 </section>
 </chapter>
 </manual>
