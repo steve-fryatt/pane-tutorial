@@ -190,6 +190,8 @@ PROChandle_pane_windows(q%)</code>
 <p>A version of the code with this change can be found in <reference id="dl-order-single-pane-2"/>, and is the recommended way to approach this optimisation. There are no changes from <reference id="dl-order-single-pane-1"/> aside from the fact that it will politely refuse to start on a system without the Nested Wimp &ndash; preventing any unwanted behaviour from affecting the user.</p>
 
 <download id="dl-order-single-pane-2" file="ColHead4" title="Simplified handling on the Nested Wimp" compatibility="armv7"/>
+
+<p>Armed with the building blocks that we&rsquo;ve met up to now, it should be possible to implement most panes in a way that will work on all versions of RISC&nbsp;OS. However, as hinted at above, if we&rsquo;re happy to use the Nested Wimp &ndash; which isn&rsquo;t unreasonable, given that it has been around for over twenty years now &ndash; then it can do a lot of the work for us... and more besides. In the <reference id="chap-nest-wimp">next chapter</reference>, we&rsquo;ll start to look at what is on offer.</p>
 </section>
 </chapter>
 </manual>
