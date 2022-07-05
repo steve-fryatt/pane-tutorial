@@ -166,7 +166,7 @@ PROChandle_pane_windows(q%)</code>
 
 <p>Prior to the Nested Wimp, all of these pending actions would be carried out in full, in the order that they were specified. In contrast, the Nested Wimp scans the whole list of requests and optimises out any inefficiencies, before carrying out the minimum number of actions actually required to achieve the end result.</p>
 
-<p>What this means in practice is that the Nested Wimp will notice that, despite the toolbar pane ending up behind the main window in <reference id="fig-order-new-2"/>, it ultimately ends up back in front in <reference id="fig-order-new-3"/>. As a result, the Wimp will conclude that there&rsquo;s no point redrawing the area of the main window which will be ending up behind the pane, even during the short period that it is on top &ndash; and so won&rsquo;t ask for it to be done.</p>
+<p>What this means in practice is that the Nested Wimp will notice that, despite the toolbar pane ending up behind the main window in <reference id="fig-order-new-2"/>, it ultimately ends up back in front in <reference id="fig-order-new-3"/>. As a result, the Wimp will conclude that there&rsquo;s no point redrawing the area of the main window which will be ending up behind the pane &ndash; even during the short period that it is on top &ndash; and so won&rsquo;t ask for it to be done.</p>
 
 <p>On earlier versions of the Wimp, however, our new optimised approach will result in the main window and its toolbar pane following the sequence shown in <reference id="fig-order-pane-switch"/> on <em>every</em> <name>Open_Window_Request</name> event. This produces a very visible flickering effect as each is redrawn in turn.</p>
 
