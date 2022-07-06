@@ -160,7 +160,7 @@ PROChandle_pane_windows(q%)</code>
 <section>
 <title>A question of efficiency</title>
 
-<p>The difference described in the previous section can matter a lot but, because of a small improvement introduced as part of the Nested Wimp, only with older versions of the Window Manager. A couple of the changes documented in the <cite><link href="http://www.vigay.com/inet/acorn/nested.html">Nested Window Manager Functional Specification</link></cite> are &ldquo;Redraw Optimisation&rdquo; and improvements to the &ldquo;Invalid Rectangle Handling&rdquo;. Between them, these have a big impact on the handling of panes.</p>
+<p>The difference described in the previous section can matter a lot but, because of a small improvement introduced as part of the Nested Window Manager (or Nested Wimp), only with versions of the Window Manager prior to its release. A couple of the changes documented in the <cite><link href="http://www.vigay.com/inet/acorn/nested.html">Nested Window Manager Functional Specification</link></cite> are &ldquo;Redraw Optimisation&rdquo; and improvements to the &ldquo;Invalid Rectangle Handling&rdquo;. Between them, these have a big impact on the handling of panes.</p>
 
 <p>When an application calls <swi>Wimp_OpenWindow</swi>, the window in question isn&rsquo;t immediately opened. Instead, the details are logged in a list of pending updates along with any other windows to be opened or closed &ndash; all of which are actioned after the application next calls <swi>Wimp_Poll</swi>. This means that when our application opens its main window and toolbar pane, both windows will be updated together after control has returned to the Wimp.</p>
 
