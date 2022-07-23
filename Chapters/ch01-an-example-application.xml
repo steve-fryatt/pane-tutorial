@@ -91,14 +91,12 @@ DIM b% buffer_size% - 1, q% 255
 
 REM Initialise with the Wimp.
 
-q%!0 = 0       : REM Message_Quit
-
-SYS &quot;Wimp_Initialise&quot;, 310, &amp;4B534154, TaskName$, q%
+SYS &quot;Wimp_Initialise&quot;, 310, &amp;4B534154, TaskName$, 0
 ENDPROC</code>
 
 <p>For now, we do very little in the way of initialisation. The global variable <variable>Quit%</variable> is initialised to <name>FALSE</name>, to ensure that the appliction does not exit immediately, and a couple of buffers &ndash; pointed to by the variables <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 1024 and 256 bytes respectively (remembering that in BASIC, <keyword>DIM</keyword> includes zero in its byte count). Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be used as a store for loading template definitions and be passed as the event block to <swi>Wimp_Poll</swi>; <variable>q%</variable> will mostly be used as a second parameter block when calling other Wimp SWIs.</p>
 
-<p>The program indicates that it knows about Wimp version 3.10 by passing <code>310</code> in <name>R1</name> to <swi>Wimp_Initialise</swi>: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications will usually aim for RISC&nbsp;OS&nbsp;3.1 as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. The <code>310</code> means that <swi>Wimp_Initialise</swi> will expect to be passed a list of user messages that the application requires in <name>R3</name>, so we build one up in the block pointed to by <variable>q%</variable>: the only entry is zero, for <name>Message_Quit</name>.</p>
+<p>The program indicates that it knows about Wimp version 3.10 by passing <code>310</code> in <name>R1</name> to <swi>Wimp_Initialise</swi>: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications will usually aim for RISC&nbsp;OS&nbsp;3.1 as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. The <code>310</code> means that <swi>Wimp_Initialise</swi> will expect to be passed a pointer to a zero-terminated list of user messages that the application requires in <name>R3</name>; we only care about <name>Message_Quit</name>, however, so we can simply pass <code>0</code> (a &ldquo;null&rdquo; pointer) to say &ldquo;no other messages&rdquo;.</p>
 
 <p>Error handling is looked after by <function>FNwimperror_program</function>, which can be seen in <reference id="list-example-app-error" />.</p>
 

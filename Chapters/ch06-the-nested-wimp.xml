@@ -82,9 +82,7 @@ Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
 
 <p>We will also need to update our call to <swi>Wimp_Initialise</swi> in <function>PROCinitialise</function>. Instead of passing 310 in <name>R0</name> to indicate that we wish to use the features of RISC&nbsp;OS&nbsp;3.1, we must now pass 380 as shown in <reference id="list-nest-wimp-init"/>, to tell the Wimp that we want its nested functionality to be available to us.</p>
 
-<code id="list-nest-wimp-init" lang="bbcbasic" title="Initialising for the Nested Wimp">q%!0 = 0 : REM Message_Quit
-
-SYS &quot;Wimp_Initialise&quot;, 380, &amp;4B534154, TaskName$, q%</code>
+<code id="list-nest-wimp-init" lang="bbcbasic" title="Initialising for the Nested Wimp">SYS &quot;Wimp_Initialise&quot;, 380, &amp;4B534154, TaskName$, 0</code>
 
 <p>The big change between the two examples will be in how the toolbar pane is handled. Up to now, we have had to position our panes when the main window is initially opened, and then keep them up to date on every single <name>Open_Window_Request</name> event after that; we also need to remember to close them on the <name>Close_Window_Request</name> event. With the Nested Wimp we still need to position our panes when the window is initially opened, but when we do, we also let the Wimp know that they are attached to the main window &ndash; and more crucially, <em>how</em> they are attached.</p>
 
