@@ -70,7 +70,7 @@
 
 <code id="list-col-head-load" lang="bbcbasic" title="Loading the three window templates">REM Load the window templates
 
-DIM TemplateName% 12
+DIM TemplateName% 11
 
 SYS &quot;Wimp_OpenTemplate&quot;,,&quot;&lt;PaneDemo$Dir&gt;.Templates&quot;
 

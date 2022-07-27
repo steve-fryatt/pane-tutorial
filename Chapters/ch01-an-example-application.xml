@@ -195,7 +195,7 @@ ENDPROC</code>
 
 <code id="list-example-app-init-temp" lang="bbcbasic" title="Initialising the window templates">REM Load the window templates
 
-DIM TemplateName% 12
+DIM TemplateName% 11
 
 SYS &quot;Wimp_OpenTemplate&quot;,,&quot;&lt;PaneDemo$Dir&gt;.Templates&quot;
 
@@ -211,12 +211,12 @@ SYS &quot;Wimp_CloseTemplate&quot;</code>
 
 <p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively. We also take the opportunity to calculate the width and height of the main window in OS&nbsp;Units, and store the values in the <variable>WindowWidth%</variable> and <variable>WindowHeight%</variable> variables for future reference.</p>
 
-<p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI and expects there to be a global <variable>TemplateName%</variable> variable pointing to a 12 character plus terminator, word-aligned buffer for holding the template names. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
+<p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI and expects there to be a global <variable>TemplateName%</variable> variable pointing to a 12 character, word-aligned buffer for holding the template names. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
 
 <code id="list-example-app-load-temp" lang="bbcbasic" title="Load a window template into memory">DEF PROCtemplate_load(name$, buffer%, size%, fonts%)
 LOCAL templ_size%, indir_size%, workspace%
 
-$TemplateName% = LEFT$(name$ + STRING$(12, CHR$(13)), 12)
+$TemplateName% = LEFT$(name$, 11)
 
 REM Find the size required for the template and indirected data.
 
