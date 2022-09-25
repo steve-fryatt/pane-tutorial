@@ -249,7 +249,7 @@ ENDPROC</code>
 
 <p>The code above deals with the position of the pane in the <maths>X</maths> and <maths>Y</maths> dimensions by adjusting its visible area, but what about the <maths>Z</maths> dimension &ndash; its position in the window stack? The Wimp requires that panes appear directly above their parent window; however, this is still left up to the application to manage.</p>
 
-<p>There&rsquo;s a very practical reason for this stacking requirement. If something like a toolbar pane goes behind its parent window in the stack, then it will very likely be obscured by its parent. Even if the pane is in front, if it isn&rsquo;t <em>immediately</em> in front, then it&rsquo;s possible for other windows to get in between as seen in <reference id="fig-side-box-loose"/> (the application was deliberately broken in order to allow this to occur).</p>
+<p>There&rsquo;s a very practical reason for this stacking requirement. If something like a toolbar pane goes behind its parent window in the stack, then it will very likely be obscured by its parent. Even if the pane is in front then, unless it is <em>immediately</em> in front, it&rsquo;s possible for other windows to get in between as seen in <reference id="fig-side-box-loose"/> (the application was deliberately broken in order to allow this to occur).</p>
 
 <image id="fig-side-box-loose" file="side-box-loose.png" title="If we&rsquo;re not careful, other windows can get in the way" />
 
