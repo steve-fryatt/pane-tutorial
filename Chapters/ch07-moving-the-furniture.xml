@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
+
+<!-- Copyright 2021-2022, Stephen Fryatt (info@stevefryatt.org.uk)
+   -
+   - This file is part of Pane Tutorial:
+   -
+   -   http://www.stevefryatt.org.uk/software/
+   -
+   - Licensed under the EUPL, Version 1.2 only (the "Licence");
+   - You may not use this work except in compliance with the
+   - Licence.
+   -
+   - You may obtain a copy of the Licence at:
+   -
+   -   http://joinup.ec.europa.eu/software/page/eupl
+   -
+   - Unless required by applicable law or agreed to in
+   - writing, software distributed under the Licence is
+   - distributed on an "AS IS" basis, WITHOUT WARRANTIES
+   - OR CONDITIONS OF ANY KIND, either express or implied.
+   -
+   - See the Licence for the specific language governing
+   - permissions and limitations under the Licence.
+  -->
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+
+<!-- Chapter 7
+   -
+   - Moving The Furniture
+  -->
+
+<chapter id="chap-moving-furniture">
+<resources>
+<images>Chapter07</images>
+<downloads>Chapter07</downloads>
+</resources>
+<filename>moving-the-furniture.php</filename>
+<uri>moving-the-furniture</uri>
+<title>Moving the Furniture</title>
+
+<summary>Our panes don&rsquo;t have to be over the window&rsquo;s work area &ndash; we can turn them into window furniture, too!</summary>
+
+<section>
+<p>In <reference id="chap-nest-wimp">the last chapter</reference>, we saw how the Nested Wimp can be used to look after a pane within our application&rsquo;s window. Whilst useful, however, this is no more than we can do manually &ndash; as seen in the chapters before that.</p>
+
+</section>
+</chapter>
+</manual>
