@@ -183,7 +183,7 @@ PROChandle_pane_windows(q%)</code>
 
 <p>For applications which do not need the Nested Wimp for other reasons, and would otherwise work fine back to RISC&nbsp;OS&nbsp;3 or earlier, it seems a shame to restrict their compatibility for no good reason. Save for the situation when the window first opens, the more compatible solution is no less efficient than this optimised one: they both call <swi>Wimp_OpenWindow</swi> once for the main window and once for each pane. The only real difference is in the complexity of the code itself, and how easy it is for developers to understand.</p> 
 
-<p>Which approach to use will be a decision for individual developers, based on their applications&rsquo;s requirements. If you do use the optimisation, though, it&rsquo;s a good idea to check for its presence in the <file>!Run</file> of the application using an <command>*RMEnsure</command>.</p>
+<p>Which approach to use will be a decision for individual developers, based on their applications&rsquo;s requirements. If you do use the optimisation, though, it&rsquo;s a good idea to check for the presence of the Nested Wimp in the <file>!Run</file> of the application using an <command>*RMEnsure</command>.</p>
 
 <code lang="obey">RMEnsure WindowManager 3.80 Error PaneDemo requires the Nested Window Manager.</code>
 
