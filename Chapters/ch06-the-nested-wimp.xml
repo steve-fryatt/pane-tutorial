@@ -369,54 +369,8 @@ ENDPROC</code>
 <p>The complete application can be found in <reference id="dl-nest-wimp-scroll"/>.</p>
 
 <download id="dl-nest-wimp-scroll" file="NestedScroll" title="Column headings with the Nested Wimp" compatibility="armv7"/>
-</section>
 
-
-<section>
-<title>A fixed toolbar</title>
-
-<p>If we wanted to implement the fixed &lsquo;URL bar&rsquo; from <reference id="chap-top-bar"/> with the Nested Wimp, how would we go about modifying the example above? The first thing to do is to fetch the old toolbar template from that chapter, returning to the bar with two action buttons and a writeable icon. As with the <reference id="sect-nest-wimp-recreate">column heading bar above</reference>, we will need to unset the &lsquo;window is a pane&rsquo; flag, but otherwise the template is unchanged.</p>
-
-<p>If we look back at the changes required in <reference id="sect-col-head-align"/> to make the toolbar&rsquo;s work area follow the work area of the main window, we can see that it was simply a case of adding a single line to keep the horizontal scroll offsets in step.</p>
-
-<code lang="bbcbasic">toolbar%!20 = main%!20                            : REM X Scroll Offset</code>
-
-<p>We can remove this line from <function>PROCopen_main_window</function>, but with the Nested Wimp there&rsquo;s one more change that needs to be made. In the nesting flags, we set the anchor point for the X scroll offset to %00 &ndash; for &ldquo;link to the work area of the parent&rdquo;. However, we no longer want the bar to scroll with the main window.</p>
-
-<p>Instead, we should set the horizontal scroll anchor to %01, for &ldquo;link to the left or bottom (<maths>X0</maths> or <maths>Y0</maths>) of the parent&rsquo;s visible area&rdquo;. This will ensure that the left-hand end of the bar, where the two action buttons are, will remain visible as the main window changes shape.</p>
-
-<p>The updated part of <function>PROCopen_main_window</function> to handle the opening of the toolbar pabe can be seen in <reference id="list-nest-wimp-open-fixed"/>.</p>
-
-<code id="list-nest-wimp-open-fixed" lang="bbcbasic" title="Opening the toolbar with a fixed scroll offset">REM Get the toolbar details
-
-!toolbar% = ToolBarWindow%
-SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
-
-REM Find the height of the toolbar pane's visible area.
-
-bar_height% = toolbar%!16 - toolbar%!8            : REM Visible Area Y1 - Y0
-
-REM Move the toolbar pane so that it's in the correct X and Y position
-REM relative to where the main window is to go.
-
-toolbar%!4 = main%!4                              : REM Visible Area X0
-toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
-toolbar%!12 = main%!12                            : REM Visible Area X1
-toolbar%!16 = main%!16                            : REM Visible Area Y1
-
-REM Open the toolbox pane at the top of the stack, nested into the main window.
-
-toolbar%!28 = -1
-
-SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;09A90000</code>
-
-<p>When run, the application should look as seen in <reference id="fig-nest-wimp-fixed"/> &ndash; again, indistinguishable from the one that we built in <reference id="chap-top-bar"/> from a user&rsquo;s perspective.</p>
-
-<image id="fig-nest-wimp-fixed" file="nest-wimp-fixed.png" title="The buttonbar, handled by the Nested Wimp" />
-
-<p>The complete application can be found in <reference id="dl-nest-wimp-fixed"/>.</p>
-
-<download id="dl-nest-wimp-fixed" file="NestedFixed" title="A fixed toolbar with the Nested Wimp" compatibility="armv7"/>
+<p>In addition to recreating the column headings, we can also implement the toolbar from <reference id="chap-top-bar"/> using the Nested Wimp. In <reference id="chap-resp-nest">next chapter</reference>, we will look at this in more detail.</p>
 </section>
 </chapter>
 </manual>

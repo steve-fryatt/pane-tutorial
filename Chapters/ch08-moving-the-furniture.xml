@@ -27,15 +27,15 @@
 
 <manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
 
-<!-- Chapter 7
+<!-- Chapter 8
    -
    - Moving The Furniture
   -->
 
 <chapter id="chap-moving-furniture">
 <resources>
-<images>Chapter07</images>
-<downloads>Chapter07</downloads>
+<images>Chapter08</images>
+<downloads>Chapter08</downloads>
 </resources>
 <filename>moving-the-furniture.php</filename>
 <uri>moving-the-furniture</uri>

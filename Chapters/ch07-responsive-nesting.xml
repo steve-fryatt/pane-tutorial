@@ -1,0 +1,170 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
+
+<!-- Copyright 2021-2022, Stephen Fryatt (info@stevefryatt.org.uk)
+   -
+   - This file is part of Pane Tutorial:
+   -
+   -   http://www.stevefryatt.org.uk/software/
+   -
+   - Licensed under the EUPL, Version 1.2 only (the "Licence");
+   - You may not use this work except in compliance with the
+   - Licence.
+   -
+   - You may obtain a copy of the Licence at:
+   -
+   -   http://joinup.ec.europa.eu/software/page/eupl
+   -
+   - Unless required by applicable law or agreed to in
+   - writing, software distributed under the Licence is
+   - distributed on an "AS IS" basis, WITHOUT WARRANTIES
+   - OR CONDITIONS OF ANY KIND, either express or implied.
+   -
+   - See the Licence for the specific language governing
+   - permissions and limitations under the Licence.
+  -->
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+
+<!-- Chapter 7
+   -
+   - Responsive Nesting
+  -->
+
+<chapter id="chap-resp-nest">
+<resources>
+<images>Chapter07</images>
+<downloads>Chapter07</downloads>
+</resources>
+<filename>responsive-nesting.php</filename>
+<uri>responsive-nesting</uri>
+<title>Responsive Nesting</title>
+
+<summary>We can still alter the contents of nested child windows &ndash; it just requires a slightly different approach.</summary>
+
+<section>
+<p>In the <reference id="chap-nest-wimp">previous chapter</reference> we used the Nested Wimp to re-create the column heading toolbar from <reference id="chap-col-head"/>. If we wanted to use it to implement the fixed &lsquo;URL bar&rsquo; from <reference id="chap-top-bar"/> with the Nested Wimp, how would we go about modifying the code to achieve it?</p>
+
+<p>We can see the layout that we&rsquo;re after in <reference id="fig-resp-nest-target"/>, although this time around we won&rsquo;t be including the toolbox on the left hand side because &ndash; as we&rsquo;ve previously noted &ndash; the Nested Wimp will only support child windows which are completeley within the frame of their parent. It&rsquo;s very similar to the column heading bar, so we should be able to re-use a lot of the code from <reference id="dl-nest-wimp-scroll"/>.</p>
+
+<image id="fig-resp-nest-target" file="resp-nest-target.png" title="The toolbar to be re-created." />
+</section>
+
+<section>
+<title>A fixed toolbar</title>
+
+<p>The first thing to do is to fetch the old toolbar template from <reference id="chap-col-head"/>, returning to the bar with two action buttons and a writeable icon. As with the <reference id="sect-nest-wimp-recreate">column heading bar in the previous chapter</reference>, we will need to unset the &lsquo;window is a pane&rsquo; flag, but otherwise the template is unchanged.</p>
+
+<p>The only difference between this toolbar and <reference id="sect-nest-wimp-recreate">the one from the previous chapter</reference> is that this toolbar retains a horizontal scroll offset of zero at all time, while that one tracked the work area of the parent window. If we look back at the changes required in <reference id="sect-col-head-align"/> to make the toolbar&rsquo;s work area follow the work area of the main window, we can see that it was simply a case of adding a single line to keep the horizontal scroll offsets in step.</p>
+
+<code lang="bbcbasic">toolbar%!20 = main%!20                            : REM X Scroll Offset</code>
+
+<p>When we created our new <function>PROCopen_main_window</function> <reference id="list-nest-wimp-open">in the previous chapter</reference>, we included a similar line to ensure that the horizontal scroll offsets were in step before the windows were nested together, and we can remove this to allow the toolbar to retain the offset defined in the template file.</p>
+
+<p>With the Nested Wimp there&rsquo;s one more change that needs to be made, however. In the nesting flags supplied when calling <swi>Wimp_OpenWindow</swi> for the toolbar, we had previously set the anchor point for the X scroll offset to %00 &ndash; for &ldquo;link to the work area of the parent&rdquo;. However, we no longer want the bar to scroll with the main window.</p>
+
+<p>Instead, we should set the horizontal scroll anchor to %01, for &ldquo;link to the left or bottom (<maths>X0</maths> or <maths>Y0</maths>) of the parent&rsquo;s visible area&rdquo;. This will ensure that the left-hand end of the bar, where the two action buttons are, will remain visible as the main window changes shape.</p>
+
+<p>The updated part of <function>PROCopen_main_window</function> to handle the opening of the toolbar pane can be seen in <reference id="list-nest-wimp-open-fixed"/>.</p>
+
+<code id="list-nest-wimp-open-fixed" lang="bbcbasic" title="Opening the toolbar with a fixed scroll offset">REM Get the toolbar details
+
+!toolbar% = ToolBarWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
+
+REM Find the height of the toolbar pane's visible area.
+
+bar_height% = toolbar%!16 - toolbar%!8            : REM Visible Area Y1 - Y0
+
+REM Move the toolbar pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+toolbar%!4 = main%!4                              : REM Visible Area X0
+toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
+toolbar%!12 = main%!12                            : REM Visible Area X1
+toolbar%!16 = main%!16                            : REM Visible Area Y1
+
+REM Open the toolbox pane at the top of the stack, nested into the main window.
+
+toolbar%!28 = -1
+
+SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;09A90000</code>
+
+<p>When run, the application should look as seen in <reference id="fig-resp-nest-fixed"/> &ndash; again, indistinguishable from the one that we built in <reference id="chap-top-bar"/> from a user&rsquo;s perspective.</p>
+
+<image id="fig-resp-nest-fixed" file="resp-nest-fixed.png" title="The toolbar, handled by the Nested Wimp" />
+
+<p>The complete application can be found in <reference id="dl-resp-nest-fixed"/>.</p>
+
+<download id="dl-resp-nest-fixed" file="NestedFixed1" title="A fixed toolbar with the Nested Wimp" compatibility="armv7"/>
+</section>
+
+<section>
+<title>Catching events</title>
+
+<p>There&rsquo;s one nicety missing from this version of the toolbar, however. Back in <reference id="sect-top-bar-crop"/> we had arranged for the writeable icon to be cropped to fill the width of the toolbar, which gave a better visual appearance and ensured that the text was always visible. If we could implement that again, then it would make this Nested Wimp version complete.</p>
+
+<p>Fortunately, it&rsquo;s a similar process with the Nested Wimp as it was when we were doing things manually &ndash; although there is one optimisation that we can make this time around. Last time, we checked for the presence of the <swi>Wimp_ResizeIcon</swi> SWI when the application initialised, and omitted the resizing on systems where it wasn&rsquo;t available. Since this time we know that we&rsquo;re using the Nested Wimp, because we test for it in the <file>!Run</file> file, we also <em>know</em> that the SWI we need will be present &ndash; and so we can use it without any further checks.</p>
+
+<p>The actual process of moving the icon as the toolbar grows and shrinks is very similar under the Nested Wimp to how it was when we were handling the panes manually. We simply look out for <name>Open_Window_Request</name> events for the toolbar, and adjust the icon once we know the new position of its parent window. To this end, we will start by reinstating a call to <function>PROCopen_window_request()</function> in our <swi>Wimp_Poll</swi> routine from <function>PROCpoll</function>.</p>
+
+<code lang="bbcbasic">CASE reason% OF
+  WHEN 2      : PROCopen_window_request(b%)
+  WHEN 3      : SYS &quot;Wimp_CloseWindow&quot;,,b%
+  WHEN 6      : PROCmouse_click(b%)
+  WHEN 9      : PROCmenu_selection(b%)
+  WHEN 17, 18 : IF b%!16 = 0 THEN Quit% = TRUE
+ENDCASE</code>
+
+<p>The new <function>PROCopen_window_request()</function> will be defined as shown in <reference id="list-resp-nest-poll"/>. We still call <swi>Wimp_OpenWindow</swi> to let the Wimp handle the opening of the window for us, but if the window in question is the main window, then we will call <function>PROCadjust_toolbar_content</function> to perform the toolbar icon updates.</p>
+
+<code id="list-resp-nest-poll" lang="bbcbasic" title="The new Open Window Request event handler">DEF PROCopen_window_request(b%)
+SYS &quot;Wimp_OpenWindow&quot;,,b%
+IF !b% = MainWindow% THEN PROCadjust_toolbar_content
+ENDPROC</code>
+
+<p>There are a couple of things to note here. First, we test for the window handle being equal to <variable>MainWindow%</variable> and not <variable>ToolBarWindow%</variable>. The Nested Wimp treats all child windows as being part of their parent, so we will never see any events for the toolbar itself &ndash; instead, we must look out for the main window being opened, and perform any operations on its child windows at this point. In many ways, this is similar to the way that we were handling the toolbar manually.</p>
+
+<p>The second point is that we call <function>PROCadjust_toolbar_content</function> <em>after</em> calling <swi>Wimp_OpenWindow</swi>. When the SWI has returned, the Wimp will have updated the parent window and all of its children to their new positions &ndash; at least within its data structures, if not on screen. This means that we are safe to query the position of any of the windows using the usual Wimp SWIs.</p>
+
+<p>Finally, <function>PROCadjust_toolbar_content</function> is defined as shown in <reference id="list-resp-nest-adjust"/>.</p>
+
+<code id="list-resp-nest-adjust" lang="bbcbasic" title="Adjusting the toolbar icon position">DEF PROCadjust_toolbar_content
+LOCAL icon%, bar_rhs%
+
+toolbar% = q%
+icon% = q% + 64
+
+toolbar%!0 = ToolBarWindow%
+SYS &quot;Wimp_GetWindowState&quot;,,toolbar%
+
+icon%!0 = ToolBarWindow%
+icon%!4 = 0 : REM Writeable Icon Handle
+SYS &quot;Wimp_GetIconState&quot;,,icon%
+
+bar_rhs% = (toolbar%!12 - toolbar%!4) + toolbar%!20 : REM Visible Area (X1 - X0) + X Scroll Offset
+
+SYS &quot;Wimp_ResizeIcon&quot;, icon%!0, icon%!4, icon%!8, icon%!12, bar_rhs% - 4, icon%!20
+SYS &quot;Wimp_ForceRedraw&quot;, ToolBarWindow%, icon%!8, icon%!12, bar_rhs%, icon%!20
+
+SYS &quot;Wimp_GetCaretPosition&quot;,,icon%
+IF icon%!0 = ToolBarWindow% AND icon%!4 = 0 THEN SYS &quot;Wimp_SetCaretPosition&quot;, icon%!0, icon%!4,,,icon%!16, icon%!20
+ENDPROC</code>
+
+<p>This is very similar to the code in <reference id="list-top-bar-resize-icon"/>, as described in <reference id="sect-top-bar-crop"/>. The main difference is that we need to find the new position of the toolbar window by calling <swi>Wimp_GetWindowState</swi> &ndash; which we can do, because the call to <swi>Wimp_OpenWindow</swi> has already been made.</p>
+
+<p>After we have that information, we can read the icon position as we did before using <swi>Wimp_GetIconState</swi>, calculate its new position and call <swi>Wimp_ResizeIcon</swi> to update it. A call to <swi>Wimp_ForceRedraw</swi> ensures that any affected areas of the screen are redrawn, while <swi>Wimp_SetCaretPosition</swi> is used to ensure that the caret is still in a valid place within the text. For more details of this process, see <reference id="sect-top-bar-crop"/>.</p>
+
+<p>Running the application now will produce the same window as before. If it is resized to reduce the width of the toolbar, however, then we will see that the writeable icon is cropped to fit the space available once more as seen in <reference id="fig-resp-nest-resize"/>.</p>
+
+<image id="fig-resp-nest-resize" file="resp-nest-resize.png" title="Resizing the writeable icon to fit the toolbar" />
+
+<p>The complete application can be found in <reference id="dl-resp-nest-resize"/>.</p>
+
+<download id="dl-resp-nest-resize" file="NestedFixed2" title="A fixed toolbar with a responsive writeable icon" compatibility="armv7"/>
+
+<p>So far, we have used the Nested Wimp to recreate the same toolbars that we were able to produce by hand using older versions of the Wimp. It has more interesting tricks up its sleeve, however, and we will start to look at these in <reference id="chap-moving-furniture">the next chapter</reference>.</p>
+</section>
+</chapter>
+</manual>

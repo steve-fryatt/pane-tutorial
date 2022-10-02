@@ -76,6 +76,7 @@
 <chapter file="ch04-column-headings.xml"/>
 <chapter file="ch05-does-order-matter.xml"/>
 <chapter file="ch06-the-nested-wimp.xml"/>
-<chapter file="ch07-moving-the-furniture.xml"/>
+<chapter file="ch07-responsive-nesting.xml"/>
+<chapter file="ch08-moving-the-furniture.xml"/>
 
 </manual>

@@ -364,12 +364,12 @@ PROCposition_side_toolbox(main%, toolbox%, toolbar_height%)</code>
 </section>
 
 
-<section>
+<section id="sect-top-bar-crop">
 <title>Cropping the writeable field</title>
 
 <p>There&rsquo;s one final niggle to look at before we move on, which can be seen when the width of the main window is reduced. The writeable icon in the bar appears to be truncated, with the right-hand end disappearing off out of view as seen in <reference id="fig-top-bar-icon-crop"/>. Again, this isn&rsquo;t the end of the world &ndash; we could simply left-align the text and ignore it. In fact, if we wish to support RISC&nbsp;OS&nbsp;3.1 or earlier, then that&rsquo;s the only option we have unless we wish to investigate drawing our own icons.</p>
 
-<image id="fig-top-bar-icon-crop" file="top-bar-icon-crop.png" title="When the window is shrunk down, the writable icon is truncated"/>
+<image id="fig-top-bar-icon-crop" file="top-bar-icon-crop.png" title="When the window is shrunk down, the writeable icon is truncated"/>
 
 <p>However, if we&rsquo;re happy to only support machines from the RiscPC onwards &ndash; which isn&rsquo;t an unreasonable idea in modern software &ndash; then we can improve things more easily. RISC&nbsp;OS&nbsp;3.5 introduced a new <swi>Wimp_ResizeIcon</swi> SWI, which we can use to adjust the size of the writeable icon as we re-open the panes.</p>
 
@@ -404,7 +404,7 @@ ENDIF</code>
 
 <p>Now that we have the work area coordinate for the right-hand edge of the visible toolbar, we can use <swi>Wimp_ResizeIcon</swi> to set the right-hand coordinate of the icon to be 4 OS&nbsp;Units in to the left from this. The Wimp won't refresh the display for us, however, so we also need to call <swi>Wimp_ForceRedraw</swi> for the whole area of the icon <em>and</em> the space between it and the edge of the toolbar. <reference id="fig-top-bar-redraw"/> shows the area affected with a little exageration; any area falling outside of the window will be redrawn by the Wimp.</p>
 
-<image id="fig-top-bar-redraw" file="top-bar-redraw.png" title="Redrawing the writable icon after a resize"/>
+<image id="fig-top-bar-redraw" file="top-bar-redraw.png" title="Redrawing the writeable icon after a resize"/>
 
 <p>Since this is a writeable icon, there&rsquo;s one final gotcha that we must be aware of. If the caret was in the icon, the Wimp won&rsquo;t move it to reflect any alteration to the position of the text. Instead we must use <swi>Wimp_GetCaretPosition</swi> to find out where the caret is currently located and, if it is in our icon, call <swi>Wimp_SetCaretPosition</swi> to replace it in exactly the same place within the text.</p>
 
