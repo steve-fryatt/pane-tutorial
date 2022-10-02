@@ -217,7 +217,7 @@ toolbar%!28 = -1</code>
 
 <p>Bit&nbsp;0 is interesting in itself, as for the first time it makes it possible to change the window flags of a window after it has been created. Previously, doing things like changing the window furniture (scroll bars, back icons, and so on) required a window to be deleted with <swi>Wimp_DeleteWindow</swi> and then re-created with the new flags. Now, with the Nested Wimp, an application can simply put the desired new values into the correct place within the block passed to <swi>Wimp_OpenWindow</swi>, and set this bit of the nesting flags.</p>
 
-<p>However, this is beside the point: what we&rsquo;re interested in at present are the anchor points between bit 16 and bit 27. These define how a child window is attached to its parent; in our case, how our toolbar will be attached to the main window. Each of the anchor points is given by a two-bit value, with the possible meanings listed in <reference id="table-nest-wimp-nest-values"/>.</p>
+<p>However, this is beside the point: what we&rsquo;re interested in at present are the anchor points between bit&nbsp;16 and bit&nbsp;27. These define how a child window is attached to its parent; in our case, how our toolbar will be attached to the main window. Each of the anchor points is given by a two-bit value, with the possible meanings listed in <reference id="table-nest-wimp-nest-values"/>.</p>
 
 <table id="table-nest-wimp-nest-values" title="The Nesting Values for Wimp_OpenWindow">
 <columns>

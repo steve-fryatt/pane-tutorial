@@ -128,6 +128,11 @@ ENDPROC</code>
 
 <p>The second point is that we call <function>PROCadjust_toolbar_content</function> <em>after</em> calling <swi>Wimp_OpenWindow</swi>. When the SWI has returned, the Wimp will have updated the parent window and all of its children to their new positions &ndash; at least within its data structures, if not on screen. This means that we are safe to query the position of any of the windows using the usual Wimp SWIs.</p>
 
+<p>We will also need to adjust the position of the icon when the window is first opened, so a call to <function>PROCadjust_toolbar_content</function> is added after the call to <swi>Wimp_OpenWindow</swi> in <function>PROCopen_main_window</function>.</p>
+
+<code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;09A90000
+PROCadjust_toolbar_content</code>
+
 <p>Finally, <function>PROCadjust_toolbar_content</function> is defined as shown in <reference id="list-resp-nest-adjust"/>.</p>
 
 <code id="list-resp-nest-adjust" lang="bbcbasic" title="Adjusting the toolbar icon position">DEF PROCadjust_toolbar_content
@@ -164,7 +169,7 @@ ENDPROC</code>
 
 <download id="dl-resp-nest-resize" file="NestedFixed2" title="A fixed toolbar with a responsive writeable icon" compatibility="armv7"/>
 
-<p>So far, we have used the Nested Wimp to recreate the same toolbars that we were able to produce by hand using older versions of the Wimp. It has more interesting tricks up its sleeve, however, and we will start to look at these in <reference id="chap-moving-furniture">the next chapter</reference>.</p>
+<p>So far, we have used the Nested Wimp to recreate the same toolbars that we were able to produce by hand using older versions of the Wimp. It has more interesting tricks up its sleeve, however, and we will start to look at these in <reference id="chap-move-furniture">the next chapter</reference>.</p>
 </section>
 </chapter>
 </manual>

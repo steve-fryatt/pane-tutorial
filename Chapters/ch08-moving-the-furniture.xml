@@ -32,7 +32,7 @@
    - Moving The Furniture
   -->
 
-<chapter id="chap-moving-furniture">
+<chapter id="chap-move-furniture">
 <resources>
 <images>Chapter08</images>
 <downloads>Chapter08</downloads>
@@ -44,7 +44,188 @@
 <summary>Our panes don&rsquo;t have to be over the window&rsquo;s work area &ndash; we can turn them into window furniture, too!</summary>
 
 <section>
-<p>In <reference id="chap-nest-wimp">the last chapter</reference>, we saw how the Nested Wimp can be used to look after a pane within our application&rsquo;s window. Whilst useful, however, this is no more than we can do manually &ndash; as seen in the chapters before that.</p>
+<p>In <reference id="chap-nest-wimp">the last chapter</reference>, we saw how the Nested Wimp can be used to look after a pane within our application&rsquo;s window. Whilst useful, however, this is no more than we can do easily by hand &ndash; as seen in the chapters before it.</p>
+
+<p>Those familiar with RISC&nbsp;OS will know that some applications handle their toolbars slightly differently, however. NetSurf is one such application, as seen in <reference id="fig-move-furniture-netsurf"/>, and we saw a much more elaborate example with Fireworkz back in <reference id="fig-col-head-fireworkz"/>.</p>
+
+<image id="fig-move-furniture-netsurf" file="move-furniture-netsurf.png" title="NetSurf&rsquo;s toolbar spans the whole width of the window frame"/>
+
+<p>Look closely at NetSurf&rsquo;s main browser window, and we can see that the toolbar extends across the full width of the window outline: on the right hand side, it even pushes the scroll bar down to make space for it. This <em>can</em> be done manually as well, by building a composite window consisting of many different panes in the way that Fireworkz does. If you have access to a copy of <link href="https://croftnuisk.co.uk/coltsoft/fireworkz">Fireworkz</link> and a tool like <link href="http://quantumsoft.riscository.com/#wimpinfo">WimpInfo</link> which will show the handles of windows on the desktop (both of which are free to download), it may be interesting to  count how many different panes are required to display a single Fireworkz document!</p>
+
+<p>NetSurf, on the other hand, uses the easy option and takes advantage of what the Nested Wimp calls <intro>Furniture Windows</intro>. When writing new software which isn&rsquo;t targetted at the &lsquo;retro&rsquo; scene, the simplicity of the Nested Wimp for this task almost certainly makes it the way to go.</p>
+</section>
+
+<section>
+<title>A full-width toolbar</title>
+
+<p>To show how this works, we will take the responsive toolbar that we created in the <reference id="chap-resp-nest">previous chapter</reference> and make it span the full width of the window &ndash; just like NetSurf&rsquo;s URL bar in <reference id="fig-move-furniture-netsurf"/>.</p>
+
+<p>The first thing that we will need to do is make a couple of small changes to the window templates. The toolbar will need to be wide enough to span the full width of the main window <em>and</em> its furniture (the vertical scroll bar on the right), so we will need to increase the toolbar&rsquo;s work area by the width of that furniture. However, the Nested Wimp constrains child windows to the work area of their parent by default, so even if we did this, the toolbar would still be clipped such that it didn&rsquo;s obscure the main window&rsquo;s scroll bar.</p>
+
+<p>To get around this, we need to designate the toolbar as being a <intro>Furniture Window</intro> so that the Nested Wimp knows to integrate it with the main window&rsquo;s furniture. This is done by setting the &lsquo;furniture&rsquo; flag at bit&nbsp;23 of the window flags; in <cite>WinEd</cite>, this is done by ticking <icon>Furniture / Foreground</icon> in the <icon>Window Behaviour</icon> section of the <window>Edit window</window> dialogue as seen in <reference id="fig-move-furniture-flags"/>.</p>
+
+<image id="fig-move-furniture-flags" file="move-furniture-flags.png" title="Setting the furniture flag in WinEd"/>
+
+<p>The documentation notes that this flag &ldquo;has no meaning for top-level windows, so the bit should always be cleared in such cases to allow for future expansion&rdquo;.</p>
+
+<p>The width of the toolbar work area is currently set to be the same as that of the main window work area, so this will need to be increased to allow the toolbar to extend over the space taken up by the vertical scroll bar. The problem is deciding how much to increase it by: we could simply add on the width of the scroll bar, but this isn&rsquo;t a fixed value under RISC&nbsp;OS because it depends on the toolsprites which are currently in use. We could guess at a number and double it, but that doesn&rsquo;t feel very satisfactory; a better option would be to leave the width the same as the main window, and adjust it when the windows are opened. As a result, with the &lsquo;furniture&rsquo; flag set, we can save the templates and move on to updating the program itself.</p>
+</section>
+
+<section>
+<title>More window details</title>
+
+<p>To support the new style of toolbar, we will need to make some changes to <function>PROCopen_main_window</function>. The first thing that we need to do is adjust the extent of the toolbar&rsquo;s work area, as discussed above: it must span the width of both the main window work area, and any window furniture on the outside. Before we can do that, we must know the extent of both the main window work area and that of the toolbar &ndash; so instead of using <swi>Wimp_GetWindowState</swi> to read the main window and toolbar details, we will use <swi>Wimp_GetWindowInfo</swi> instead.</p>
+
+<p><swi>Wimp_GetWindowInfo</swi> is similar to <swi>Wimp_GetWindowState</swi>, but instead of returning just the first 36 bytes of a window&rsquo;s information block, it returns the full set of data used when calling <swi>Wimp_CreateWindow</swi> &ndash; updated to reflect the current situation, of course. It can optionally return the details of all of the icons in the window, too; again, it reflects any calls to <swi>Wimp_CreateIcon</swi> and <swi>Wimp_DeleteIcon</swi> since the window was created.</p>
+
+<p>The new calls directly replace the calls to <swi>Wimp_GetWindowState</swi> for both the main window and the toolbar window from <reference id="list-nest-wimp-open-fixed"/>, as seen here for the main window.</p>
+
+<code lang="bbcbasic">REM Get the main window details.
+
+!main% = MainWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %01</code>
+
+<p>A similar change is made for the toolbar as well.</p>
+
+<code lang="bbcbasic">REM Get the toolbar details
+
+!toolbar% = ToolBarWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,toolbar% OR %1</code>
+
+<p>Note that in both cases we set bit&nbsp;0 of the address passed in <name>R1</name>: this is important, as it tells the Wimp that we do <em>not</em> want it to return any icon details, and enables us to rely on the required block only being 92 bytes long. If we did want to read the icon details, we would need to call the SWI twice: once with bit&nbsp;0 set to read the number of icons in the window, then again with bit&nbsp;0 clear after making sure that we had allocated sufficient space for all of the icon details to be returned.</p>
+
+<p>With the returned blocks now being 92 bytes long, instead of the 36 bytes from <swi>Wimp_GetWindowState</swi>, we will need to adjust the way that <variable>main%</variable> and <variable>toolbar%</variable> are assigned from the block pointed to by <variable>q%</variable> in order to avoid them overwriting each other.</p>
+
+<code lang="bbcbasic">main% = q%
+toolbar% = q% + 100</code>
+
+<p>The other thing that we will need to know is the <intro>outline</intro> of the main window, so that we can align the toolbar to it. This is something that we don't often see, since the Wimp usually works in terms of the visible area of windows, but fortunately the <swi>Wimp_GetWindowOutline</swi> SWI will tell us everything that we need. We start by setting up a new variable, <variable>main_outline%</variable> to point to another unused bit of the block pointed to by <variable>q%</variable>.</p>
+
+<code lang="bbcbasic">main% = q%
+toolbar% = q% + 100
+main_outline% = q% + 200</code>
+
+<p>Again, we have left enough space for the area pointed to by <variable>toolbar%</variable> now that we are using <swi>Wimp_GetWindowInfo</swi> instead of <swi>Wimp_GetWindowState</swi>. Next, we can add a call to <swi>Wimp_GetWindowOutline</swi> to collect details of the main window outline.</p>
+
+<code lang="bbcbasic">!main_outline% = MainWindow%
+SYS &quot;Wimp_GetWindowOutline&quot;,,main_outline%</code>
+
+<p>This returns a bounding box at offsets 4 to 16 which completeley encloses both the main window&rsquo;s visible area and all of its furniture: the title bar, scroll bars, close, back, toggle- and adjust-size buttons.</p>
+
+<p>Armed with this information, we can start to lay out the toolbar&rsquo;s visible are relative to the main window. Vertically, the <maths>Y0</maths> and <maths>Y1</maths> extents remain relative the visible area of the main window, but horizontally the <maths>X0</maths> and <maths>X1</maths> extents are set to align with their counterparts from the outline bounding box obtained from <swi>Wimp_GetWindowOutline</swi>.</p>
+
+<code lang="bbcbasic">toolbar%!4 = main_outline%!4                      : REM Visible Area X0
+toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
+toolbar%!12 = main_outline%!12                    : REM Visible Area X1
+toolbar%!16 = main%!16                            : REM Visible Area Y1</code>
+
+<p>Before we call <swi>Wimp_OpenWindow</swi>, we will need to ensure that the horizontal extent of the toolbar is sufficient to allow it to extend across the full width of the main window&rsquo;s work area and the window furniture. To achieve this we take the width of the main window&rsquo;s work area (<code>main%!52 - main%!44</code>), then add on the width of the main window outline (<code>main_outline%!12 - main_outline%!4</code>) less the width of its visible area (<code>main%!12 - main%!4)</code>). This gives us the required horizontal extent.</p>
+
+<p>The final step is to calculate the <maths>X1</maths> value of the extent by taking the value above and adding it to the <maths>X0</maths> value. This is used to update the extent values in the toolbar window block, before they are passed to <swi>Wimp_SetExtent</swi>.</p>
+
+<code lang="bbcbasic">toolbar%!52 = toolbar%!44 + (main%!52 - main%!44) + ((main_outline%!12 - main_outline%!4) - (main%!12 - main%!4))
+SYS &quot;Wimp_SetExtent&quot;, ToolBarWindow%, toolbar% + 44</code>
+
+<p>Pulling all of these changes together gives us the complete <function>PROCopen_main_window</function> in <reference id="list-move-furniture-open"/>.</p>
+
+<code id="list-move-furniture-open" lang="bbcbasic" title="Opening the new furniture window">DEF PROCopen_main_window
+LOCAL screen_width%, screen_height%, window_width%, window_height%, main%, main_outline%, toolbar%, bar_height%
+
+REM Set up the memory blocks.
+
+main% = q%
+toolbar% = q% + 100
+main_outline% = q% + 200
+
+REM Get the main window details.
+
+!main% = MainWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %01
+
+REM If the window isn't open, resize and centre it on the screen.
+
+IF (main%!32 AND &amp;10000) = 0 THEN
+  window_width% = WindowWidth%
+  window_height% = WindowHeight%
+
+  REM Read the screen dimensions.
+
+  screen_width% = FNread_mode_dimension(11, 4)
+  screen_height% = FNread_mode_dimension(12, 5)
+
+  REM Ensure that the window fills no more than 75% of either dimension.
+
+  IF window_width% &gt; (screen_width% * 0.75) THEN window_width% = screen_width% * 0.75
+  IF window_height% &gt; (screen_height% * 0.75) THEN window_height% = screen_height% * 0.75
+
+  REM Update the window dimensions.
+
+  main%!4 = (screen_width% - window_width%) / 2   : REM Visible Area X0
+  main%!8 = (screen_height% - window_height%) / 2 : REM Visible Area Y0
+
+  main%!12 = main%!4 + window_width%              : REM Visible Area X1
+  main%!16 = main%!8 + window_height%             : REM Visible Area Y1
+
+  REM Reset the scroll offsets.
+
+  main%!20 = 0                                    : REM X Scroll Offset
+  main%!24 = 0                                    : REM Y Scroll Offset
+ENDIF
+
+REM Open the window at the top of the window stack.
+
+main%!28 = -1 : REM Window to open behind (-1 is top of stack)
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0
+
+REM Get the outline of the main window.
+
+!main_outline% = MainWindow%
+SYS &quot;Wimp_GetWindowOutline&quot;,,main_outline%
+
+REM Get the toolbar details
+
+!toolbar% = ToolBarWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,toolbar% OR %1
+
+REM Find the height of the toolbar pane's visible area.
+
+bar_height% = toolbar%!16 - toolbar%!8            : REM Visible Area Y1 - Y0
+
+REM Move the toolbar pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+toolbar%!4 = main_outline%!4                      : REM Visible Area X0
+toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
+toolbar%!12 = main_outline%!12                    : REM Visible Area X1
+toolbar%!16 = main%!16                            : REM Visible Area Y1
+
+REM Update the toolbar extent to suit the main window furniture.
+
+toolbar%!52 = toolbar%!44 + (main%!12 - main%!4) + ((main_outline%!12 - main_outline%!4) - (main%!12 - main%!4))
+SYS &quot;Wimp_SetExtent&quot;, ToolBarWindow%, toolbar% + 44
+
+REM Open the toolbox pane at the top of the stack, nested into the main window.
+
+toolbar%!28 = -1
+
+SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;09A90000
+PROCadjust_toolbar_content
+ENDPROC</code>
+</section>
+
+<section>
+<title>Bringing it together</title>
+
+<p>When run, the application above should produce a window like the one in <reference id="fig-move-furniture-complete"/>.</p>
+
+<image id="fig-move-furniture-complete" file="move-furniture-complete.png" title="As a furniture window, the toolbar can extend into the scroll bar region"/>
+
+<p>One thing to note is that we haven&rsquo;t had to change the band along the top of the work area of the main window, which allows for the area obscured by the bar. Even though the toolbar has pushed the main window&rsquo;s vertical scroll bar down, the work area still extends up behind the child window in the same way that it did before.</p>
+
+<p>The complete application can be found in <reference id="dl-move-furniture-bar"/>.</p>
+
+<download id="dl-move-furniture-bar" file="NestedFurniture" title="A fixed toolbar as a furniture window" compatibility="armv7"/>
 
 </section>
 </chapter>
