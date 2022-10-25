@@ -83,7 +83,7 @@
 <code lang="bbcbasic">REM Get the main window details.
 
 !main% = MainWindow%
-SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %01</code>
+SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %1</code>
 
 <p>A similar change is made for the toolbar as well.</p>
 
@@ -140,7 +140,7 @@ main_outline% = q% + 200
 REM Get the main window details.
 
 !main% = MainWindow%
-SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %01
+SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %1
 
 REM If the window isn't open, resize and centre it on the screen.
 
