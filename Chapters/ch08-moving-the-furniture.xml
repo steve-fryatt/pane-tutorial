@@ -227,6 +227,7 @@ ENDPROC</code>
 
 <download id="dl-move-furniture-bar" file="NestedFurniture" title="A fixed toolbar as a furniture window" compatibility="armv7"/>
 
+<p>Whilst we&rsquo;ve now covered what the Nested Wimp can do for &lsquo;standard&rsquo; toolbars, there&rsquo;s a lot more on offer. In the <reference id="chap-embed-tool">next chapter</reference>, we will investigate how to embed our toolbar into the scroll bar of our window.</p>
 </section>
 </chapter>
 </manual>

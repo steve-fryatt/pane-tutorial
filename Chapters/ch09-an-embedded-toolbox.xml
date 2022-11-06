@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+
+<!DOCTYPE xmlmanual SYSTEM "../panes.dtd">
+
+<!-- Copyright 2021-2022, Stephen Fryatt (info@stevefryatt.org.uk)
+   -
+   - This file is part of Pane Tutorial:
+   -
+   -   http://www.stevefryatt.org.uk/software/
+   -
+   - Licensed under the EUPL, Version 1.2 only (the "Licence");
+   - You may not use this work except in compliance with the
+   - Licence.
+   -
+   - You may obtain a copy of the Licence at:
+   -
+   -   http://joinup.ec.europa.eu/software/page/eupl
+   -
+   - Unless required by applicable law or agreed to in
+   - writing, software distributed under the Licence is
+   - distributed on an "AS IS" basis, WITHOUT WARRANTIES
+   - OR CONDITIONS OF ANY KIND, either express or implied.
+   -
+   - See the Licence for the specific language governing
+   - permissions and limitations under the Licence.
+  -->
+
+<manual xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="xmldoc.xsd" version="1.8.6">
+
+<!-- Chapter 9
+   -
+   - An Embedded Toolbox
+  -->
+
+<chapter id="chap-embed-tool">
+<resources>
+<images>Chapter09</images>
+<downloads>Chapter09</downloads>
+</resources>
+<filename>an-embedded-toolbox.php</filename>
+<uri>an-embedded-toolbox</uri>
+<title>An Embedded Toolbox</title>
+
+<summary>For a truly minimalist look, we can embed a toolbox into one of our window&rsquo;s scroll bars.</summary>
+
+<section>
+<p>Back in the late 1980s, when RISC&nbsp;OS was a new system, space on the screens of the day was limited and there was a trend for using minimalist toolboxes embedded into the space used by the scrollbars of a window. Of the numerous applications which used the technique, the original Ovation is still well-known &ndash; its take on the idea can be seen in <reference id="fig-embed-tool-ovation" />.</p>
+
+<image id="fig-embed-tool-ovation" file="embed-tool-ovation.png" title="The original Ovation put its toolbar where its scroll bar should have been"/>
+
+<p>Back then, Ovation&rsquo;s author achieved this effect using three windows all interleaved carefully. These days, the effect can be achieved more easily using the Nested Wimp, and in previous chapters we have already seen examples from Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />) in passing.</p>
+
+<p>As with the full-width toolbar that we created in <reference id="chap-move-furniture" />, such toolboxes can be created using Furniture Windows. In this chapter, we will create ourselves a simple embedded toolbox in the bottom scroll bar of our window.</p>
+</section>
+
+<section>
+<title>Updating the templates</title>
+
+<p>Since we will be losing the toolbar at the top of our window, the first step to creating an embedded toolbox will be to reset our main window template back to the one that we created in <reference id="chap-example-app"/>: this will undo the changes to the work area that we made in <reference id="sect-top-bar-work-area" />. We will also delete the existing Toolbar template, leaving us with just the Main and ProgInfo window definitions as seen in <reference id="fig-embed-tool-clean-templates" />.</p>
+
+<image id="fig-embed-tool-clean-templates" file="embed-tool-clean-templates.png" title="The clean set of templates from the original demo application"/>
+
+<p>The next step is to create ourselves a new window for the embedded toolbox. We&rsquo;ll call this &ldquo;Embedded&rdquo;, and it can be seen being edited by <cite>WinEd</cite> in <reference id="fig-embed-tool-template" />. Since we will be sizing and positioning it to fit into the scroll bar of our main window, there is no point adjusting its dimensions for now. The title has been set to &ldquo;Toolbox&rdquo;, but it doesn&rsquo;t matter as it won&rsquo;t be seen.</p>
+
+<image id="fig-embed-tool-template" file="embed-tool-template.png" title="The new window template for the embedded toolbox"/>
+
+<p>The window flags need to be set in a similar manner to our previous toolbars: turn off all of the window furniture (title bar, scroll bars and so on), and turn on the furniture flag. The settings in <cite>WinEd</cite> can be seen in <reference id="fig-embed-tool-flags" />.</p>
+
+<image id="fig-embed-tool-flags" file="embed-tool-flags.png" title="The original Ovation put its toolbar where its scroll bar should have been"/>
+
+<p>With these changes in place, we can now close the templates and move on to updating the program itself.</p>
+</section>
+
+<section>
+<title>Positioning the furniture</title>
+
+
+</section>
+</chapter>
+</manual>

@@ -271,7 +271,7 @@ ENDPROC</code>
 </section>
 
 
-<section>
+<section id="sect-top-bar-work-area">
 <title>Missing work area</title>
 
 <p>Although it works, there are a few rough edges with our new pane&rsquo;s implementation as it stands. The first should be obvious as soon as the main window opens: the toolbar slices the top of the work area off, and obscures part of the first row of squares.</p>
