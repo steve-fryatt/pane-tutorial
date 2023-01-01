@@ -55,7 +55,7 @@
 <p>NetSurf, on the other hand, uses the easy option and takes advantage of what the Nested Wimp calls <intro>Furniture Windows</intro>. When writing new software which isn&rsquo;t targetted at the &lsquo;retro&rsquo; scene, the simplicity of the Nested Wimp for this task almost certainly makes it the way to go.</p>
 </section>
 
-<section>
+<section id="sect-move-furniture-full-width">
 <title>A full-width toolbar</title>
 
 <p>To show how this works, we will take the responsive toolbar that we created in the <reference id="chap-resp-nest">previous chapter</reference> and make it span the full width of the window &ndash; just like NetSurf&rsquo;s URL bar in <reference id="fig-move-furniture-netsurf"/>.</p>
