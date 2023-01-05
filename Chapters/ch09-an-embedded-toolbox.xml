@@ -66,7 +66,7 @@
 
 <p>The window flags need to be set in a similar manner to our previous toolbars: turn off all of the window furniture (title bar, scroll bars and so on), and turn on the furniture flag. The settings in <cite>WinEd</cite> can be seen in <reference id="fig-embed-tool-flags" />.</p>
 
-<image id="fig-embed-tool-flags" file="embed-tool-flags.png" title="The original Ovation put its toolbar where its scroll bar should have been"/>
+<image id="fig-embed-tool-flags" file="embed-tool-flags.png" title="Setting the window flags for the embedded toolbox"/>
 
 <p>With these changes in place, we can now close the templates and move on to updating the program itself.</p>
 </section>
