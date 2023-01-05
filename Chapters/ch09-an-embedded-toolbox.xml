@@ -68,11 +68,56 @@
 
 <image id="fig-embed-tool-flags" file="embed-tool-flags.png" title="Setting the window flags for the embedded toolbox"/>
 
-<p>With these changes in place, we can now close the templates and move on to updating the program itself.</p>
+<p>With these changes in place, we can now close the templates and move on to updating the program itself. We&rsquo;ll need to update <function>PROCinitialise</function> in order to load the new &ldquo;Embedded&rdquo; template instead of the &ldquo;Toolbar&rdquo; that we had before &ndash; this is simply a change to the name passed to <function>PROCtemplate_load()</function>.</p>
+
+<code lang="bbcbasic">PROCtemplate_load(&quot;Embedded&quot;, b%, buffer_size%, -1)
+SYS &quot;Wimp_CreateWindow&quot;,,b% TO ToolBoxWindow%</code>
+
+<p>We can also simplify the <name>Open_Window_Request</name> event handler in <function>PROCpoll</function> again. We will no longer need to make any adjustments to the contents of the toolbox, so we can delete <function>PROCopen_window_request()</function> completely and just call <swi>Wimp_OpenWindow</swi> in the <keyword>CASE</keyword> statement once again.</p>
+
+<code lang="bbcbasic">CASE reason% OF
+  WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%
+  WHEN 3      : SYS &quot;Wimp_CloseWindow&quot;,,b%
+  WHEN 6      : PROCmouse_click(b%)
+  WHEN 9      : PROCmenu_selection(b%)
+  WHEN 17, 18 : IF b%!16 = 0 THEN Quit% = TRUE
+ENDCASE</code>
 </section>
 
 <section>
 <title>Positioning the furniture</title>
+
+<p>The remaining changes that we need to make reside in <function>PROCopen_main_window</function>, and concern the positioning of the embedded toolbox. As we <reference id="sect-move-furniture-full-width">saw in the previous chapter</reference>, making child windows behave as part of their parent&rsquo;s furniture is simply a case of positioning them appropriately. To embed our toolbox into the horizontal scroll bar, we place it over the bar and leave the Nested Wimp to do the rest.</p>
+
+<p>The process for laying the toolbox out is very similar to that used in the previous chapter, although we have changed the name of the <variable>toolbar%</variable> variable to <variable>toolbox%</variable>, so as to reflect the different type of pane that we&rsquo;re positioning.</p>
+
+<code lang="bbcbasic">main% = q%
+toolbox% = q% + 100
+main_outline% = q% + 200</code>
+
+<p>We will also amend the call to <swi>Wimp_GetWindowInfo</swi> in the same way.</p>
+
+<code lang="bbcbasic">!toolbox% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1</code>
+
+<p>The dimensions of the new toolbox will depend on the height (or thickness) of the horizontal scroll bar that we&rsquo;re about to embed it in to. This depends on the window tool sprites in use on the system, but we can calculate it as the difference between the <maths>Y0</maths> coordinate of the parent window&rsquo;s visible area and the <maths>Y0</maths> coordinate of its outline. Simplistically, this could be calculated as follows:</p>
+
+<code lang="bbcbasic">box_height% = main%!8 - main_outline%!8</code>
+
+<p>However, there&rsquo;s a problem. Both of the <maths>Y0</maths> coordinates that we are using are <em>inclusive</em> values, whilst the height of the toolbox will need to be given in terms of an inclusive <maths>Y0</maths> and an <em>exclusive</em> <maths>Y1</maths>. This means that we must subtract a pixel from the height, but as we <reference id="list-example-app-mode-var">saw when we created our simple application</reference>, the number of OS&nbsp;Units which represents a pixel will depend on the current screen mode. As a result, we need to read this value from the OS in the form of the vertical eigenfactor.</p>
+
+<code lang="bbcbasic">SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%</code>
+
+<p>Armed with this information, we can then calculate the height of the toolbox.</p>
+
+<code lang="bbcbasic">box_height% = main%!8 - main_outline%!8 - 2 * (2 ^ eigenfactor%)	: REM Visible Area Y0 - Outline Y0</code>
+
+<p>As we currently have nothing to go into the toolbox, the width is largely immaterial and so for now we will set it to 200 OS&nbsp;Units.</p>
+
+<code lang="bbcbasic">box_width% = 200</code>
+
+<image id="fig-embed-tool-anchor" file="embed-tool-anchor.png" title="Anchoring the toolbar to the parent&rsquo;s scroll bar"/>
+
 
 
 </section>
