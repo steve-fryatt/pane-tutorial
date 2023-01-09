@@ -205,7 +205,7 @@ bar_height% = toolbar%!16 - toolbar%!8            : REM Visible Area Y1 - Y0
 REM Move the toolbar pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.
 
-toolbar%!4 = main_outline%!4                      : REM Visible Area X0
+toolbar%!4 = main%!4                              : REM Visible Area X0
 toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
 toolbar%!12 = main_outline%!12                    : REM Visible Area X1
 toolbar%!16 = main%!16                            : REM Visible Area Y1
