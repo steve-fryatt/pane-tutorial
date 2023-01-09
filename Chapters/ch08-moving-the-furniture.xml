@@ -74,9 +74,9 @@
 <section>
 <title>More window details</title>
 
-<p>To support the new style of toolbar, we will need to make some changes to <function>PROCopen_main_window</function>. The first thing that we need to do is adjust the extent of the toolbar&rsquo;s work area, as discussed above: it must span the width of both the main window work area, and any window furniture on the outside. Before we can do that, we must know the extent of both the main window work area and that of the toolbar &ndash; so instead of using <swi>Wimp_GetWindowState</swi> to read the main window and toolbar details, we will use <swi>Wimp_GetWindowInfo</swi> instead.</p>
+<p>To support the new style of toolbar, we will need to make some changes to <function>PROCopen_main_window</function>. The first thing that we need to do is adjust the extent of the toolbar&rsquo;s work area, as discussed above: it must span the width of both the main window work area, and any window furniture on the outside. Before we can calculate the extent that will be required, however, we must know the extent of both the main window work area and that of the toolbar &ndash; so instead of using <swi>Wimp_GetWindowState</swi> to read the main window and toolbar details, we will use <swi>Wimp_GetWindowInfo</swi> instead.</p>
 
-<p><swi>Wimp_GetWindowInfo</swi> is similar to <swi>Wimp_GetWindowState</swi>, but instead of returning just the first 36 bytes of a window&rsquo;s information block, it returns the full set of data used when calling <swi>Wimp_CreateWindow</swi> &ndash; updated to reflect the current situation, of course. It can optionally return the details of all of the icons in the window, too; again, it reflects any calls to <swi>Wimp_CreateIcon</swi> and <swi>Wimp_DeleteIcon</swi> since the window was created.</p>
+<p><swi>Wimp_GetWindowInfo</swi> is similar to <swi>Wimp_GetWindowState</swi>, but instead of returning just the first 36 bytes of a window&rsquo;s information block, it returns the full set of data used when calling <swi>Wimp_CreateWindow</swi> &ndash; updated to reflect the current situation, of course. It can optionally return the details of all of the icons in the window, too; again, it reflects any calls to <swi>Wimp_CreateIcon</swi> and <swi>Wimp_DeleteIcon</swi> which have occurred since the window was created.</p>
 
 <p>The new calls directly replace the calls to <swi>Wimp_GetWindowState</swi> for both the main window and the toolbar window from <reference id="list-nest-wimp-open-fixed"/>, as seen here for the main window.</p>
 
@@ -92,14 +92,18 @@ SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %1</code>
 !toolbar% = ToolBarWindow%
 SYS &quot;Wimp_GetWindowInfo&quot;,,toolbar% OR %1</code>
 
-<p>Note that in both cases we set bit&nbsp;0 of the address passed in <name>R1</name>: this is important, as it tells the Wimp that we do <em>not</em> want it to return any icon details, and enables us to rely on the required block only being 92 bytes long. If we did want to read the icon details, we would need to call the SWI twice: once with bit&nbsp;0 set to read the number of icons in the window, then again with bit&nbsp;0 clear after making sure that we had allocated sufficient space for all of the icon details to be returned.</p>
+<p>Note that in both cases we set bit&nbsp;0 of the address passed in <name>R1</name> using <keyword>OR</keyword>: this is important, as it tells the Wimp that we do <em>not</em> want it to return any icon details, and enables us to rely on the required block only being 92 bytes long. If we did wish to read the icon details, we would need to call the SWI twice: once with bit&nbsp;0 set to read the number of icons in the window, then again with bit&nbsp;0 clear after making sure that we had allocated sufficient space for all of the icon details to be returned.</p>
 
 <p>With the returned blocks now being 92 bytes long, instead of the 36 bytes from <swi>Wimp_GetWindowState</swi>, we will need to adjust the way that <variable>main%</variable> and <variable>toolbar%</variable> are assigned from the block pointed to by <variable>q%</variable> in order to avoid them overwriting each other.</p>
 
 <code lang="bbcbasic">main% = q%
 toolbar% = q% + 100</code>
 
-<p>The other thing that we will need to know is the <intro>outline</intro> of the main window, so that we can align the toolbar to it. This is something that we don't often see, since the Wimp usually works in terms of the visible area of windows, but fortunately the <swi>Wimp_GetWindowOutline</swi> SWI will tell us everything that we need. We start by setting up a new variable, <variable>main_outline%</variable> to point to another unused bit of the block pointed to by <variable>q%</variable>.</p>
+<p>The other thing that we will need to know is the <intro>outline</intro> of the main window, so that we can align the right-hand side of the toolbar to the outside of the vertical scrollbar as seen in <reference id="fig-move-furniture-anchor"/>.</p>
+
+<image id="fig-move-furniture-anchor" file="move-furniture-anchor.png" title="Anchoring the toolbar to the main window" />
+
+<p>The outline of a window is something that we don't often see, since the Wimp usually works in terms of the visible area, but fortunately the <swi>Wimp_GetWindowOutline</swi> SWI will tell us almost everything that we need to know. We start by setting up a new variable, <variable>main_outline%</variable> to point to another unused bit of the block pointed to by <variable>q%</variable>.</p>
 
 <code lang="bbcbasic">main% = q%
 toolbar% = q% + 100
@@ -110,14 +114,20 @@ main_outline% = q% + 200</code>
 <code lang="bbcbasic">!main_outline% = MainWindow%
 SYS &quot;Wimp_GetWindowOutline&quot;,,main_outline%</code>
 
-<p>This returns a bounding box at offsets 4 to 16 which completeley encloses both the main window&rsquo;s visible area and all of its furniture: the title bar, scroll bars, close, back, toggle- and adjust-size buttons.</p>
+<p>This returns a bounding box at offsets 4 to 16 which completeley encloses both the main window&rsquo;s visible area and all of its furniture: the title bar, scroll bars, close, back, toggle- and adjust-size buttons. As with visible areas, the <maths>X0</maths> and <maths>Y0</maths> values are <em>inclusive</em>, while the <maths>X1</maths> and <maths>Y1</maths> values are <em>exclusive</em></p>
 
-<p>Armed with this information, we can start to lay out the toolbar&rsquo;s visible are relative to the main window. Vertically, the <maths>Y0</maths> and <maths>Y1</maths> extents remain relative the visible area of the main window, but horizontally the <maths>X0</maths> and <maths>X1</maths> extents are set to align with their counterparts from the outline bounding box obtained from <swi>Wimp_GetWindowOutline</swi>.</p>
+<p>Armed with this information, we can start to lay out the toolbar&rsquo;s visible are relative to the main window. Vertically, the <maths>Y0</maths> and <maths>Y1</maths> extents remain relative the visible area of the main window, but horizontally things change a bit. The <maths>X0</maths> extent remains relative to the visible area of the main window, but the <maths>X1</maths> extent is set to align with its counterpart from the outline bounding box obtained from <swi>Wimp_GetWindowOutline</swi>.</p>
 
-<code lang="bbcbasic">toolbar%!4 = main_outline%!4                      : REM Visible Area X0
+<code lang="bbcbasic">toolbar%!4 = main%!4                              : REM Visible Area X0
 toolbar%!8 = main%!16 - bar_height%               : REM Visible Area Y0
 toolbar%!12 = main_outline%!12                    : REM Visible Area X1
 toolbar%!16 = main%!16                            : REM Visible Area Y1</code>
+
+<p>There is one small issue, however. The position of the pane is being set in visible area coordinates, but for <maths>X1</maths> we&rsquo;re now using the window outline in order to include the area covered by the vertical scroll bar. The outline coordinates, by definition, include the border around the edge of the window, whilst the visible area coordinates do not &ndash; although since the <maths>X1</maths> coordinate is <em>exclusive</em>, both are offset by one pixel to the right as seen in <reference id="fig-move-furniture-coordinates"/>.</p>
+
+<image id="fig-move-furniture-coordinates" file="move-furniture-coordinates.png" title="The difference between visible area and outline coordinates" />
+
+<p>In practice, this specific instance does not matter too much: we&rsquo;re still using visible area for aligning the <maths>X0</maths> coordinates, so all that will happen is that we will include one pixel too many at the top end of the horizontal axis. The Wimp will clip this out for us, since child windows can&rsquo;t extend outside of their parents, and there will be no visible effects. However it <em>can</em> have an effect in some situations, as we&rsquo;ll see later on.</p>
 
 <p>Before we call <swi>Wimp_OpenWindow</swi>, we will need to ensure that the horizontal extent of the toolbar is sufficient to allow it to extend across the full width of the main window&rsquo;s work area and the window furniture. To achieve this we take the width of the main window&rsquo;s work area (<code>main%!52 - main%!44</code>), then add on the width of the main window outline (<code>main_outline%!12 - main_outline%!4</code>) less the width of its visible area (<code>main%!12 - main%!4)</code>). This gives us the required horizontal extent.</p>
 
