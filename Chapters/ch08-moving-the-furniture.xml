@@ -127,7 +127,7 @@ toolbar%!16 = main%!16                            : REM Visible Area Y1</code>
 
 <image id="fig-move-furniture-coordinates" file="move-furniture-coordinates.png" title="The difference between visible area and outline coordinates" />
 
-<p>In practice, this specific instance does not matter too much: we&rsquo;re still using visible area for aligning the <maths>X0</maths> coordinates, so all that will happen is that we will include one pixel too many at the top end of the horizontal axis. The Wimp will clip this out for us, since child windows can&rsquo;t extend outside of their parents, and there will be no visible effects. However it <em>can</em> have an effect in some situations, as we&rsquo;ll see later on.</p>
+<p>In practice, this specific instance does not matter too much: we&rsquo;re still using visible area for aligning the <maths>X0</maths> coordinates, so the horizontal work area coodinates for the two windows will be aligned and all that will happen is that we will include one pixel too many at the top end of the horizontal axis. The Wimp will clip this out for us, since child windows can&rsquo;t extend outside of their parents, and there will be no visible effects. However it <em>can</em> have an effect in some situations, as we&rsquo;ll see later on.</p>
 
 <p>Before we call <swi>Wimp_OpenWindow</swi>, we will need to ensure that the horizontal extent of the toolbar is sufficient to allow it to extend across the full width of the main window&rsquo;s work area and the window furniture. To achieve this we take the width of the main window&rsquo;s work area (<code>main%!52 - main%!44</code>), then add on the width of the main window outline (<code>main_outline%!12 - main_outline%!4</code>) less the width of its visible area (<code>main%!12 - main%!4)</code>). This gives us the required horizontal extent.</p>
 
@@ -231,7 +231,7 @@ ENDPROC</code>
 
 <image id="fig-move-furniture-complete" file="move-furniture-complete.png" title="As a furniture window, the toolbar can extend into the scroll bar region"/>
 
-<p>One thing to note is that we haven&rsquo;t had to change the band along the top of the work area of the main window, which allows for the area obscured by the bar. Even though the toolbar has pushed the main window&rsquo;s vertical scroll bar down, the work area still extends up behind the child window in the same way that it did before.</p>
+<p>One thing to note is that we haven&rsquo;t had to change the band along the top of the work area of the main window, which allows for the area obscured by the bar. Even though the toolbar has pushed the main window&rsquo;s vertical scroll bar down, the work area still extends up behind the child window in the same way that it did before. All that has changed is that the vertical scroll bar no longer extends across the full height of the window&rsquo;s visible area.</p>
 
 <p>The complete application can be found in <reference id="dl-move-furniture-bar"/>.</p>
 
