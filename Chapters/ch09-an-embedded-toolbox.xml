@@ -48,7 +48,7 @@
 
 <image id="fig-embed-tool-ovation" file="embed-tool-ovation.png" title="The original Ovation put its toolbar where its scroll bar should have been"/>
 
-<p>Back then, Ovation&rsquo;s author achieved this effect using three windows all interleaved carefully. These days, the effect can be achieved more easily using the Nested Wimp, and in previous chapters we have already seen examples from Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />) in passing.</p>
+<p>At the time, Ovation&rsquo;s author achieved this effect using three windows all interleaved carefully. These days, the effect can be achieved more easily using the Nested Wimp, and in previous chapters we have already seen examples from Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />) in passing.</p>
 
 <p>As with the full-width toolbar that we created in <reference id="chap-move-furniture" />, such toolboxes can be created using Furniture Windows. In this chapter, we will create ourselves a simple embedded toolbox in the bottom scroll bar of our window.</p>
 </section>
@@ -89,7 +89,7 @@ ENDCASE</code>
 
 <p>The remaining changes that we need to make reside in <function>PROCopen_main_window</function>, and concern the positioning of the embedded toolbox. As we <reference id="sect-move-furniture-full-width">saw in the previous chapter</reference>, making child windows behave as part of their parent&rsquo;s furniture is simply a case of positioning them appropriately. To embed our toolbox into the horizontal scroll bar, we place it over the bar and leave the Nested Wimp to do the rest.</p>
 
-<p>The process for laying the toolbox out is very similar to that used in the previous chapter, although we have changed the name of the <variable>toolbar%</variable> variable to <variable>toolbox%</variable>, so as to reflect the different type of pane that we&rsquo;re positioning.</p>
+<p>The process for laying the toolbox out starts out very similar to that used in the previous chapter, although we have changed the name of the <variable>toolbar%</variable> variable to <variable>toolbox%</variable>, so as to reflect the different type of pane that we&rsquo;re positioning.</p>
 
 <code lang="bbcbasic">main% = q%
 toolbox% = q% + 100
@@ -100,24 +100,147 @@ main_outline% = q% + 200</code>
 <code lang="bbcbasic">!toolbox% = ToolBoxWindow%
 SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1</code>
 
-<p>The dimensions of the new toolbox will depend on the height (or thickness) of the horizontal scroll bar that we&rsquo;re about to embed it in to. This depends on the window tool sprites in use on the system, but we can calculate it as the difference between the <maths>Y0</maths> coordinate of the parent window&rsquo;s visible area and the <maths>Y0</maths> coordinate of its outline. Simplistically, this could be calculated as follows:</p>
+<p>Working out the horizontal position of the new toolbox should be a familiar process. We will be anchoring it to the left hand side of the main window&rsquo;s work area, as shown in <reference id="fig-embed-tool-anchor-x"/>.</p>
 
-<code lang="bbcbasic">box_height% = main%!8 - main_outline%!8</code>
-
-<p>However, there&rsquo;s a problem. Both of the <maths>Y0</maths> coordinates that we are using are <em>inclusive</em> values, whilst the height of the toolbox will need to be given in terms of an inclusive <maths>Y0</maths> and an <em>exclusive</em> <maths>Y1</maths>. This means that we must subtract a pixel from the height, but as we <reference id="list-example-app-mode-var">saw when we created our simple application</reference>, the number of OS&nbsp;Units which represents a pixel will depend on the current screen mode. As a result, we need to read this value from the OS in the form of the vertical eigenfactor.</p>
-
-<code lang="bbcbasic">SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%</code>
-
-<p>Armed with this information, we can then calculate the height of the toolbox.</p>
-
-<code lang="bbcbasic">box_height% = main%!8 - main_outline%!8 - 2 * (2 ^ eigenfactor%)	: REM Visible Area Y0 - Outline Y0</code>
+<image id="fig-embed-tool-anchor-x" file="embed-tool-anchor-x.png" title="Horizontally anchoring the toolbar to the parent&rsquo;s scroll bar"/>
 
 <p>As we currently have nothing to go into the toolbox, the width is largely immaterial and so for now we will set it to 200 OS&nbsp;Units.</p>
 
 <code lang="bbcbasic">box_width% = 200</code>
 
-<image id="fig-embed-tool-anchor" file="embed-tool-anchor.png" title="Anchoring the toolbar to the parent&rsquo;s scroll bar"/>
+<p>Horizontally, the toolbox should align with the left-hand edge of the main window&rsquo;s work area, which we achieve in the usual way. The <maths>X0</maths> extent remains relative to the visible area of the main window, but the <maths>X1</maths> extent is offset from the main window&rsquo;s <maths>X0</maths> extent by the calculated width.</p>
 
+<code lang="bbcbasic">toolbox%!4 = main%!4                : REM Visible Area X0
+toolbox%!12 = main%!4 + box_width%  : REM Visible Area X1</code>
+
+<p>Positioning the toolbar in the vertical dimension, however, is more tricky than anything which we have encountered up to now. As can be seen in <reference id="fig-embed-tool-anchor-y"/>, we need to ensure that the top and bottom outlines of the toolbox line up with the top and bottom outlines of the main window&rsquo;s horizontal scroll bar.</p>
+
+<image id="fig-embed-tool-anchor-y" file="embed-tool-anchor-y.png" title="Vertically anchoring the toolbar to the parent&rsquo;s scroll bar"/>
+
+<p>The <maths>Y0</maths> coordinate for the toolbox visible area must line up with the <maths>Y0</maths> coordinate of the main window&rsquo;s outline. As we saw in <reference id="sect-move-furniture-details">the previous chapter</reference>, the outline includes the window border, and so its <maths>X0</maths> is one pixel further down the screen than the <maths>X0</maths> of the visible area will be.</p>
+
+<p>However, unlike last time, we can no longer rely on the Wimp clipping the visible area of the toolbox for us. If we look at the <maths>Y1</maths> coordinate of the toolbox visible area, we can see that it must be aligned to the <maths>Y0</maths> coordinate of the main window&rsquo;s visible area. The <maths>Y1</maths> is exclusive, while the <maths>Y0</maths> is inclusive, so we&rsquo;re actually aligning the border of the toolbox with the bottom pixel of the main window&rsquo;s visible area &ndash; again, we&rsquo;re a pixel adrift!</p>
+
+<p>From this, we can see that the height of the toolbox visible area will be</p>
+
+<code lang="bbcbasic">box_height% = (main%!8 - pixel_height%) - (main_outline%!8 + pixel_height%)</code>
+
+<p>where <variable>pixel_height%</variable> is a variable holding the number of OS&nbsp;Units which represent the height of a pixel in the current screen mode. This will vary between modes, but as we saw <reference id="list-example-app-mode-var">when we created our simple application</reference>, we can read the information in the form of the vertical eigenfactor and then convert that in to OS&nbsp;Units by raising 2 to its power.</p>
+
+<code lang="bbcbasic">SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%
+pixel_height% = 2 ^ eigenfactor%</code>
+
+<p>With the toolbar positioned, the final thing to do before opening it as a child window is to use <swi>Wimp_SetExtent</swi> to ensure that the extent is sufficient to cover the whole visible area.</p>
+
+<code lang="bbcbasic">toolbox%!52 = toolbox%!44 + box_width%
+toolbox%!48 = toolbox%!56 - box_height%
+SYS &quot;Wimp_SetExtent&quot;, ToolBoxWindow%, toolbox% + 44</code>
+
+<p>The toolbar is anchored a little differently to what we have seen before, as it is connected to the left and <em>bottom</em> of the main window&rsquo;s work area. This results in us using flags of &amp;05550000.</p>
+
+<code lang="bbcbasic">toolbox%!28 = -1
+
+SYS &quot;Wimp_OpenWindow&quot;,,toolbox%, &amp;4B534154, !main%, &amp;05550000</code>
+
+<p>Bringing all of these changes together results in <function>PROCopen_main_window</function> looking as shown in <reference id="list-embed-tool-open"/>.</p>
+
+<code id="list-embed-tool-open" lang="bbcbasic" title="Opening the embedded toolbar">DEF PROCopen_main_window
+LOCAL screen_width%, screen_height%, window_width%, window_height%, main%, main_outline%
+LOCAL toolbox%, box_width%, box_height%, eigenfactor%, pixel_height%
+
+REM Set up the memory blocks.
+
+main% = q%
+toolbox% = q% + 100
+main_outline% = q% + 200
+
+REM Get the main window details.
+
+!main% = MainWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %1
+
+REM If the window isn't open, resize and centre it on the screen.
+
+IF (main%!32 AND &amp;10000) = 0 THEN
+  window_width% = WindowWidth%
+  window_height% = WindowHeight%
+
+  REM Read the screen dimensions.
+
+  screen_width% = FNread_mode_dimension(11, 4)
+  screen_height% = FNread_mode_dimension(12, 5)
+
+  REM Ensure that the window fills no more than 75% of either dimension.
+
+  IF window_width% &gt; (screen_width% * 0.75) THEN window_width% = screen_width% * 0.75
+  IF window_height% &gt; (screen_height% * 0.75) THEN window_height% = screen_height% * 0.75
+
+  REM Update the window dimensions.
+
+  main%!4 = (screen_width% - window_width%) / 2   : REM Visible Area X0
+  main%!8 = (screen_height% - window_height%) / 2 : REM Visible Area Y0
+
+  main%!12 = main%!4 + window_width%              : REM Visible Area X1
+  main%!16 = main%!8 + window_height%             : REM Visible Area Y1
+
+  REM Reset the scroll offsets.
+
+  main%!20 = 0                                    : REM X Scroll Offset
+  main%!24 = 0                                    : REM Y Scroll Offset
+ENDIF
+
+REM Open the window at the top of the window stack.
+
+main%!28 = -1 : REM Window to open behind (-1 is top of stack)
+
+SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0
+
+REM Get the outline of the main window.
+
+!main_outline% = MainWindow%
+SYS &quot;Wimp_GetWindowOutline&quot;,,main_outline%
+
+REM Get the toolbox details
+
+!toolbox% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1
+
+REM Find the height of the toolbox pane's visible area.
+
+SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%
+pixel_height% = 2 ^ eigenfactor%
+
+box_height% = (main%!8 - pixel_height%) - (main_outline%!8 + pixel_height%)
+box_width% = 200
+
+REM Move the toolbox pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+toolbox%!4 = main%!4                              : REM Visible Area X0
+toolbox%!8 = main_outline%!8 + pixel_height%      : REM Visible Area Y0
+toolbox%!12 = main%!4 + box_width%                : REM Visible Area X1
+toolbox%!16 = toolbox%!8 + box_height%            : REM Visible Area Y1
+
+REM Update the toolbox extent to suit the main window furniture.
+
+toolbox%!52 = toolbox%!44 + box_width%
+toolbox%!48 = toolbox%!56 - box_height%
+SYS &quot;Wimp_SetExtent&quot;, ToolBoxWindow%, toolbox% + 44
+
+REM Open the toolbox pane at the top of the stack, nested into the main window.
+
+toolbox%!28 = -1
+
+SYS &quot;Wimp_OpenWindow&quot;,,toolbox%, &amp;4B534154, !main%, &amp;05550000
+ENDPROC</code>
+
+<p>Running the application will produce a window with a toolbar embedded into the horizontal scroll bar, as seen in <reference id="fig-embed-tool-no-icons"/>.</p>
+
+<image id="fig-embed-tool-no-icons" file="embed-tool-no-icons.png" title="An empty toolbar is embedded into the horizontal scroll bar"/>
+
+<p>The application as it stands so far can be found in <reference id="dl-embed-tool-no-icons"/>.</p>
+
+<download id="dl-embed-tool-no-icons" file="Embedded1" title="An empty embedded toolbar." compatibility="armv7"/>
 
 
 </section>

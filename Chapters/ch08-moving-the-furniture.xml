@@ -71,7 +71,7 @@
 <p>The width of the toolbar work area is currently set to be the same as that of the main window work area, so this will need to be increased to allow the toolbar to extend over the space taken up by the vertical scroll bar. The problem is deciding how much to increase it by: we could simply add on the width of the scroll bar, but this isn&rsquo;t a fixed value under RISC&nbsp;OS because it depends on the toolsprites which are currently in use. We could guess at a number and double it, but that doesn&rsquo;t feel very satisfactory; a better option would be to leave the width the same as the main window, and adjust it when the windows are opened. As a result, with the &lsquo;furniture&rsquo; flag set, we can save the templates and move on to updating the program itself.</p>
 </section>
 
-<section>
+<section id="sect-move-furniture-details">
 <title>More window details</title>
 
 <p>To support the new style of toolbar, we will need to make some changes to <function>PROCopen_main_window</function>. The first thing that we need to do is adjust the extent of the toolbar&rsquo;s work area, as discussed above: it must span the width of both the main window work area, and any window furniture on the outside. Before we can calculate the extent that will be required, however, we must know the extent of both the main window work area and that of the toolbar &ndash; so instead of using <swi>Wimp_GetWindowState</swi> to read the main window and toolbar details, we will use <swi>Wimp_GetWindowInfo</swi> instead.</p>
