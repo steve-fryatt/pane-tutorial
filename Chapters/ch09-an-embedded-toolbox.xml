@@ -48,7 +48,7 @@
 
 <image id="fig-embed-tool-ovation" file="embed-tool-ovation.png" title="The original Ovation put its toolbar where its scroll bar should have been"/>
 
-<p>At the time, Ovation&rsquo;s author achieved this effect using three windows all interleaved carefully. These days, the effect can be achieved more easily using the Nested Wimp, and in previous chapters we have already seen examples from Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />) in passing.</p>
+<p>At the time, Ovation&rsquo;s author created this effect using three windows, which are all interleaved carefully. These days, the effect can be achieved more easily using the Nested Wimp, and in previous chapters we have already seen examples from Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />) in passing.</p>
 
 <p>As with the full-width toolbar that we created in <reference id="chap-move-furniture" />, such toolboxes can be created using Furniture Windows. In this chapter, we will create ourselves a simple embedded toolbox in the bottom scroll bar of our window.</p>
 </section>
@@ -247,13 +247,59 @@ ENDPROC</code>
 <section>
 <title>Adding some icons</title>
 
+<p>A toolbox isn&rsquo;t much use without some icons in it, so the next thing that we will need to do is add some. Unlike all of our previous panes, however, the critical dimension &ndash; the height of the toolbar window, which will determine the size of the icons within it &ndash; is dependent on a factor outside of our control. It is defined by the height of the horizontal scroll bar, which in turn will depend on the desktop theme and mode that user has selected.</p>
+
+<p>As a result, we will need to arrange the icons in the toolbar as we align it to the main window. This isn&rsquo;t a problem: we&rsquo;ve already seen how to move icons around using <swi>Wimp_ResizeIcon</swi> in several of the previous examples &ndash; it just adds another step to the process of opening the window.</p>
+
+<p>The first thing that we will do is to add four icons to the &ldquo;Embedded&rdquo; window template. Since we will be adjusting their size and position when the window is opened, it doesn&rsquo;t matter where they go in the template: for ease of editing, we&rsquo;ve done it as seen in <reference id="fig-embed-tool-template-icons" />. Keeping them in numerical order by their handles, from 0 on the left to 3 on the right, will make working on the design a lot easier!</p>
 
 <image id="fig-embed-tool-template-icons" file="embed-tool-template-icons.png" title="Adding some icon definitions to the toolbox template"/>
 
+<p>Given that space is limited, we will lay the toolbox out with the minimum of wasted real estate as shown in <reference id="fig-embed-tool-layout-square"/>: a border of one pixel around the outside of the icons, and one pixel between each icon. Usually icons are placed on a 4 by 4 OS&nbsp;Unit grid to ensure that designs will work in all modes including the old rectangular pixel ones found on early systems (see the <cite>Style Guide</cite> for details), but we&rsquo;re reading the mode details when we arrange the toolbox and so only need to match the capability of the current screen mode.</p>
+
+<image id="fig-embed-tool-layout-square" file="embed-tool-layout-square.png" title="The intended layout of the toolbar icons"/>
+
+<p>As before, we start by reading the vertical size of a pixel in OS&nbsp;Units, and use that to calculate the height of both the visible area and work area of the toolbox &ndash; the value, also in OS&nbsp;Units, is stored in the <variable>box_height%</variable> variable. Once we have this, we can use it to calculate the height of an icon: the height of the toolbox, less a pixel above and a pixel below. The value is stored in the <variable>icon_height%</variable> variable.</p>
+
+<code lang="bbcbasic">SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%
+pixel_height% = 2 ^ eigenfactor%
+
+box_height% = (main%!8 - pixel_height%) - (main_outline%!8 + pixel_height%)
+icon_height% = box_height% - 2 * pixel_height%</code>
+
+<p>With the vertical layout sorted out, we can move on to the horizontal. Again, we use <swi>OS_ReadModeVariable</swi> to read the width of a pixel in OS&nbsp;Units, then use this to establish the width of each icon. We want them to be square, or as close to square as we can get, but in case we&rsquo;re in a rectangular pixel mode we take the height of the icon in OS&nbsp;Units and round it to a multiple of the pixel width.</p>
+
+<code lang="bbcbasic">SYS &quot;OS_ReadModeVariable&quot;, -1, 4 TO ,,eigenfactor%
+pixel_width% = 2 ^ eigenfactor%
+
+icon_width% = (icon_height% + (pixel_width% - 1)) AND (NOT pixel_width%)</code>
+
+<p>If we look at the layout of the icons in <reference id="fig-embed-tool-layout-rect"/>, taken in Mode&nbsp;15 where pixels are taller than they are wide, we can see why this step is necessary.</p>
+
+<image id="fig-embed-tool-layout-rect" file="embed-tool-layout-rect.png" title="The layout of the icons can also handle modes with rectanguar pixels"/>
+
+<p>The final step is to work out the width of the toolbox. In the example above we just set this to 200&nbsp;OS&nbsp;Units, but now we need to calculate the space required to hold all of the icons. The number of icons in the template was returned by <swi>Wimp_GetWindowInfo</swi>, at offset 88 into the block pointed to by <variable>toolbox%</variable>. We can multiply this by the sum of the icon width and the width of the single pixel space between them, then add on an extra pixel for the end of the row.</p>
+
+<code lang="bbcbasic">box_width% = toolbox%!88 * (icon_width% + pixel_width%) + pixel_width%</code>
+
+<p>Armed with all of these dimensions, we can lay the toolbar&rsquo;s visble area out as before. Once that is done, we must step through each icon in turn and update its pisition using <swi>Wimp_ResizeIcon</swi>.</p>
+
+<code lang="bbcbasic">FOR icon% = 0 TO toolbox%!88 - 1
+  xpos% = toolbox%!44 + icon% * (icon_width% + pixel_width%) + pixel_width%
+  SYS &quot;Wimp_ResizeIcon&quot;, ToolBoxWindow%, icon%, xpos%, toolbox%!48 + pixel_height%, xpos% + icon_width%, toolbox%!56 - pixel_height%
+NEXT icon%</code>
+
+<p>Again we use the number of icons returned by <swi>Wimp_GetWindowInfo</swi>, so that the code will handle changes to the templates without fuss. For each icon, <variable>xpos%</variable> is set to the <maths>X0</maths> coordinate by adding the minumum work area coordinate from <code>toolbox%!44</code> to a suitable offset. This is the same calculation that was used to set the size of the window, because each icon will be placed on what would have been the <maths>X1</maths> extent of the work area of a window with one fewer icons in it.</p>
+
+<p>The coordinates passed to <swi>Wimp_ResizeIcon</swi> are <variable>xpos%</variable> and <variable>xpos%</variable> plus the icon width in the horizontal direction, along with the <maths>Y0</maths> and <maths>Y1</maths> extents of the work area inset by a single pixel.</p>
+
+<p>With these changes added to the code, the window should now look something like the one in <reference id="fig-embed-tool-complete" />.</p>
 
 <image id="fig-embed-tool-complete" file="embed-tool-complete.png" title="The embedded toolbox complete with icons"/>
 
-<p>The application with the icons included can be found in <reference id="dl-embed-tool-complete"/>.</p>
+<p>One of the things that is worth noting here is the very limited &ndash; not to mention variable &ndash; space available for the icons in the toolbar. Care needs to be taken when designing the contents, to ensure that it can handle different screen modes and sizes of scroll bar whilst remaining clear and intuitive to the user. This is a problem that is getting worse as screen sizes reduce, and it may be that in a modern application, such toolbars are best limited to the kinds of uses seen in Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />).</p>
+
+<p>The full application with the code to position the icons can be found in <reference id="dl-embed-tool-complete"/>.</p>
 
 <download id="dl-embed-tool-complete" file="Embedded2" title="An embedded toolbar with icons." compatibility="armv7"/>
 
