@@ -241,6 +241,21 @@ ENDPROC</code>
 <p>The application as it stands so far can be found in <reference id="dl-embed-tool-no-icons"/>.</p>
 
 <download id="dl-embed-tool-no-icons" file="Embedded1" title="An empty embedded toolbar." compatibility="armv7"/>
+</section>
+
+
+<section>
+<title>Adding some icons</title>
+
+
+<image id="fig-embed-tool-template-icons" file="embed-tool-template-icons.png" title="Adding some icon definitions to the toolbox template"/>
+
+
+<image id="fig-embed-tool-complete" file="embed-tool-complete.png" title="The embedded toolbox complete with icons"/>
+
+<p>The application with the icons included can be found in <reference id="dl-embed-tool-complete"/>.</p>
+
+<download id="dl-embed-tool-complete" file="Embedded2" title="An embedded toolbar with icons." compatibility="armv7"/>
 
 
 </section>
