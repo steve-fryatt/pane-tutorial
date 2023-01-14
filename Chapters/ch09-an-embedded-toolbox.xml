@@ -46,7 +46,7 @@
 <section>
 <p>Back in the late 1980s, when RISC&nbsp;OS was a new system, space on the screens of the day was limited and there was a trend for using minimalist toolboxes embedded into the space used by the scrollbars of a window. Of the numerous applications which used the technique, the original Ovation is still well-known &ndash; its take on the idea can be seen in <reference id="fig-embed-tool-ovation" />.</p>
 
-<image id="fig-embed-tool-ovation" file="embed-tool-ovation.png" title="The original Ovation put its toolbar where its scroll bar should have been"/>
+<image id="fig-embed-tool-ovation" file="embed-tool-ovation.png" title="The original Ovation put its toolbox where its scroll bar should have been"/>
 
 <p>At the time, Ovation&rsquo;s author created this effect using three windows, which are all interleaved carefully. These days, the effect can be achieved more easily using the Nested Wimp, and in previous chapters we have already seen examples from Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />) in passing.</p>
 
@@ -102,7 +102,7 @@ SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1</code>
 
 <p>Working out the horizontal position of the new toolbox should be a familiar process. We will be anchoring it to the left hand side of the main window&rsquo;s work area, as shown in <reference id="fig-embed-tool-anchor-x"/>.</p>
 
-<image id="fig-embed-tool-anchor-x" file="embed-tool-anchor-x.png" title="Horizontally anchoring the toolbar to the parent&rsquo;s scroll bar"/>
+<image id="fig-embed-tool-anchor-x" file="embed-tool-anchor-x.png" title="Horizontally anchoring the toolbox to the parent&rsquo;s scroll bar"/>
 
 <p>As we currently have nothing to go into the toolbox, the width is largely immaterial and so for now we will set it to 200 OS&nbsp;Units.</p>
 
@@ -113,9 +113,9 @@ SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1</code>
 <code lang="bbcbasic">toolbox%!4 = main%!4                : REM Visible Area X0
 toolbox%!12 = main%!4 + box_width%  : REM Visible Area X1</code>
 
-<p>Positioning the toolbar in the vertical dimension, however, is more tricky than anything which we have encountered up to now. As can be seen in <reference id="fig-embed-tool-anchor-y"/>, we need to ensure that the top and bottom outlines of the toolbox line up with the top and bottom outlines of the main window&rsquo;s horizontal scroll bar.</p>
+<p>Positioning the toolbox in the vertical dimension, however, is more tricky than anything which we have encountered up to now. As can be seen in <reference id="fig-embed-tool-anchor-y"/>, we need to ensure that the top and bottom outlines of the toolbox line up with the top and bottom outlines of the main window&rsquo;s horizontal scroll bar.</p>
 
-<image id="fig-embed-tool-anchor-y" file="embed-tool-anchor-y.png" title="Vertically anchoring the toolbar to the parent&rsquo;s scroll bar"/>
+<image id="fig-embed-tool-anchor-y" file="embed-tool-anchor-y.png" title="Vertically anchoring the toolbox to the parent&rsquo;s scroll bar"/>
 
 <p>The <maths>Y0</maths> coordinate for the toolbox visible area must line up with the <maths>Y0</maths> coordinate of the main window&rsquo;s outline. As we saw in <reference id="sect-move-furniture-details">the previous chapter</reference>, the outline includes the window border, and so its <maths>X0</maths> is one pixel further down the screen than the <maths>X0</maths> of the visible area will be.</p>
 
@@ -130,13 +130,13 @@ toolbox%!12 = main%!4 + box_width%  : REM Visible Area X1</code>
 <code lang="bbcbasic">SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%
 pixel_height% = 2 ^ eigenfactor%</code>
 
-<p>With the toolbar positioned, the final thing to do before opening it as a child window is to use <swi>Wimp_SetExtent</swi> to ensure that the extent is sufficient to cover the whole visible area.</p>
+<p>With the toolbox positioned, the final thing to do before opening it as a child window is to use <swi>Wimp_SetExtent</swi> to ensure that the extent is sufficient to cover the whole visible area.</p>
 
 <code lang="bbcbasic">toolbox%!52 = toolbox%!44 + box_width%
 toolbox%!48 = toolbox%!56 - box_height%
 SYS &quot;Wimp_SetExtent&quot;, ToolBoxWindow%, toolbox% + 44</code>
 
-<p>The toolbar is anchored a little differently to what we have seen before, as it is connected to the left and <em>bottom</em> of the main window&rsquo;s work area. This results in us using flags of &amp;05550000.</p>
+<p>The toolbox is anchored a little differently to what we have seen before, as it is connected to the left and <em>bottom</em> of the main window&rsquo;s work area. This results in us using flags of &amp;05550000.</p>
 
 <code lang="bbcbasic">toolbox%!28 = -1
 
@@ -144,7 +144,7 @@ SYS &quot;Wimp_OpenWindow&quot;,,toolbox%, &amp;4B534154, !main%, &amp;05550000<
 
 <p>Bringing all of these changes together results in <function>PROCopen_main_window</function> looking as shown in <reference id="list-embed-tool-open"/>.</p>
 
-<code id="list-embed-tool-open" lang="bbcbasic" title="Opening the embedded toolbar">DEF PROCopen_main_window
+<code id="list-embed-tool-open" lang="bbcbasic" title="Opening the embedded toolbox">DEF PROCopen_main_window
 LOCAL screen_width%, screen_height%, window_width%, window_height%, main%, main_outline%
 LOCAL toolbox%, box_width%, box_height%, eigenfactor%, pixel_height%
 
@@ -234,22 +234,22 @@ toolbox%!28 = -1
 SYS &quot;Wimp_OpenWindow&quot;,,toolbox%, &amp;4B534154, !main%, &amp;05550000
 ENDPROC</code>
 
-<p>Running the application will produce a window with a toolbar embedded into the horizontal scroll bar, as seen in <reference id="fig-embed-tool-no-icons"/>.</p>
+<p>Running the application will produce a window with a toolbox embedded into the horizontal scroll bar, as seen in <reference id="fig-embed-tool-no-icons"/>.</p>
 
-<image id="fig-embed-tool-no-icons" file="embed-tool-no-icons.png" title="An empty toolbar is embedded into the horizontal scroll bar"/>
+<image id="fig-embed-tool-no-icons" file="embed-tool-no-icons.png" title="An empty toolbox is embedded into the horizontal scroll bar"/>
 
 <p>The application as it stands so far can be found in <reference id="dl-embed-tool-no-icons"/>.</p>
 
-<download id="dl-embed-tool-no-icons" file="Embedded1" title="An empty embedded toolbar." compatibility="armv7"/>
+<download id="dl-embed-tool-no-icons" file="Embedded1" title="An empty embedded toolbox." compatibility="armv7"/>
 </section>
 
 
 <section>
 <title>Adding some icons</title>
 
-<p>A toolbox isn&rsquo;t much use without some icons in it, so the next thing that we will need to do is add some. Unlike all of our previous panes, however, the critical dimension &ndash; the height of the toolbar window, which will determine the size of the icons within it &ndash; is dependent on a factor outside of our control. It is defined by the height of the horizontal scroll bar, which in turn will depend on the desktop theme and mode that user has selected.</p>
+<p>A toolbox isn&rsquo;t much use without some icons in it, so the next thing that we will need to do is add some. Unlike all of our previous panes, however, the critical dimension &ndash; the height of the toolbox window, which will determine the size of the icons within it &ndash; is dependent on a factor outside of our control. It is defined by the height of the horizontal scroll bar, which in turn will depend on the desktop theme and mode that user has selected.</p>
 
-<p>As a result, we will need to arrange the icons in the toolbar as we align it to the main window. This isn&rsquo;t a problem: we&rsquo;ve already seen how to move icons around using <swi>Wimp_ResizeIcon</swi> in several of the previous examples &ndash; it just adds another step to the process of opening the window.</p>
+<p>As a result, we will need to arrange the icons in the toolbox as we align it to the main window. This isn&rsquo;t a problem: we&rsquo;ve already seen how to move icons around using <swi>Wimp_ResizeIcon</swi> in several of the previous examples &ndash; it just adds another step to the process of opening the window.</p>
 
 <p>The first thing that we will do is to add four icons to the &ldquo;Embedded&rdquo; window template. Since we will be adjusting their size and position when the window is opened, it doesn&rsquo;t matter where they go in the template: for ease of editing, we&rsquo;ve done it as seen in <reference id="fig-embed-tool-template-icons" />. Keeping them in numerical order by their handles, from 0 on the left to 3 on the right, will make working on the design a lot easier!</p>
 
@@ -257,7 +257,7 @@ ENDPROC</code>
 
 <p>Given that space is limited, we will lay the toolbox out with the minimum of wasted real estate as shown in <reference id="fig-embed-tool-layout-square"/>: a border of one pixel around the outside of the icons, and one pixel between each icon. Usually icons are placed on a 4 by 4 OS&nbsp;Unit grid to ensure that designs will work in all modes including the old rectangular pixel ones found on early systems (see the <cite>Style Guide</cite> for details), but we&rsquo;re reading the mode details when we arrange the toolbox and so only need to match the capability of the current screen mode.</p>
 
-<image id="fig-embed-tool-layout-square" file="embed-tool-layout-square.png" title="The intended layout of the toolbar icons"/>
+<image id="fig-embed-tool-layout-square" file="embed-tool-layout-square.png" title="The intended layout of the toolbox icons"/>
 
 <p>As before, we start by reading the vertical size of a pixel in OS&nbsp;Units, and use that to calculate the height of both the visible area and work area of the toolbox &ndash; the value, also in OS&nbsp;Units, is stored in the <variable>box_height%</variable> variable. Once we have this, we can use it to calculate the height of an icon: the height of the toolbox, less a pixel above and a pixel below. The value is stored in the <variable>icon_height%</variable> variable.</p>
 
@@ -282,7 +282,7 @@ icon_width% = (icon_height% + (pixel_width% - 1)) AND (NOT pixel_width%)</code>
 
 <code lang="bbcbasic">box_width% = toolbox%!88 * (icon_width% + pixel_width%) + pixel_width%</code>
 
-<p>Armed with all of these dimensions, we can lay the toolbar&rsquo;s visble area out as before. Once that is done, we must step through each icon in turn and update its pisition using <swi>Wimp_ResizeIcon</swi>.</p>
+<p>Armed with all of these dimensions, we can lay the visble area of the toolbox out as before. Once that is done, we must step through each icon in turn and update its pisition using <swi>Wimp_ResizeIcon</swi>.</p>
 
 <code lang="bbcbasic">FOR icon% = 0 TO toolbox%!88 - 1
   xpos% = toolbox%!44 + icon% * (icon_width% + pixel_width%) + pixel_width%
@@ -297,11 +297,18 @@ NEXT icon%</code>
 
 <image id="fig-embed-tool-complete" file="embed-tool-complete.png" title="The embedded toolbox complete with icons"/>
 
-<p>One of the things that is worth noting here is the very limited &ndash; not to mention variable &ndash; space available for the icons in the toolbar. Care needs to be taken when designing the contents, to ensure that it can handle different screen modes and sizes of scroll bar whilst remaining clear and intuitive to the user. This is a problem that is getting worse as screen sizes reduce, and it may be that in a modern application, such toolbars are best limited to the kinds of uses seen in Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />).</p>
+<p>One of the things that is worth noting here is the very limited &ndash; not to mention variable &ndash; space available for the icons in the toolbox. Care needs to be taken when designing the contents, to ensure that it can handle different screen modes and sizes of scroll bar whilst remaining clear and intuitive to the user. This is a problem that is getting worse as screen sizes reduce, and it may be that in a modern application, embedded toolboxes are best limited to the kinds of uses seen in Paint (<reference id="fig-nest-wimp-paint" />) and NetSurf (<reference id="fig-move-furniture-netsurf" />).</p>
 
 <p>The full application with the code to position the icons can be found in <reference id="dl-embed-tool-complete"/>.</p>
 
-<download id="dl-embed-tool-complete" file="Embedded2" title="An embedded toolbar with icons." compatibility="armv7"/>
+<download id="dl-embed-tool-complete" file="Embedded2" title="An embedded toolbox with icons." compatibility="armv7"/>
+</section>
+
+<section>
+<title>Changes of mode</title>
+
+<p>Although our new toolbox
+
 
 
 </section>
