@@ -136,13 +136,51 @@ pixel_height% = 2 ^ eigenfactor%</code>
 toolbox%!48 = toolbox%!56 - box_height%
 SYS &quot;Wimp_SetExtent&quot;, ToolBoxWindow%, toolbox% + 44</code>
 
-<p>The toolbox is anchored a little differently to what we have seen before, as it is connected to the left and <em>bottom</em> of the main window&rsquo;s work area. This results in us using flags of &amp;05550000.</p>
+<p>For reasons which will become apparent a little later, we will split this code out into a separate procedure called <function>PROCarrange_toolbox()</function>, which is shown in <reference id="list-embed-tool-arrange1"/>.</p>
+
+<code id="list-embed-tool-arrange1" lang="bbcbasic" title="Arranging the embedded toolbox">DEF PROCarrange_toolbox(main%, main_outline%, toolbox%)
+LOCAL box_width%, box_height%, eigenfactor%, pixel_width%, pixel_height%, icon_height%, icon_width%, icon%
+
+REM Get the outline of the main window.
+
+!main_outline% = MainWindow%
+SYS &quot;Wimp_GetWindowOutline&quot;,,main_outline%
+
+REM Get the toolbox details
+
+!toolbox% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1
+
+REM Find the height of the toolbox pane's visible area.
+
+SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%
+pixel_height% = 2 ^ eigenfactor%
+
+box_height% = (main%!8 - pixel_height%) - (main_outline%!8 + pixel_height%)
+box_width% = 200
+
+REM Move the toolbox pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+toolbox%!4 = main%!4                              : REM Visible Area X0
+toolbox%!8 = main_outline%!8 + pixel_height%      : REM Visible Area Y0
+toolbox%!12 = main%!4 + box_width%                : REM Visible Area X1
+toolbox%!16 = toolbox%!8 + box_height%            : REM Visible Area Y1
+
+REM Update the toolbox extent to suit the main window furniture.
+
+toolbox%!52 = toolbox%!44 + box_width%
+toolbox%!48 = toolbox%!56 - box_height%
+SYS &quot;Wimp_SetExtent&quot;, ToolBoxWindow%, toolbox% + 44
+ENDPROC</code>
+
+<p>This can be called from <function>PROCopen_main_window</function>, in between opening the main window itself and opening the toolbox as a child. The toolbox is anchored a little differently to what we have seen before, as it is connected to the left and <em>bottom</em> of the main window&rsquo;s work area. This results in us using flags of &amp;05550000.</p>
 
 <code lang="bbcbasic">toolbox%!28 = -1
 
 SYS &quot;Wimp_OpenWindow&quot;,,toolbox%, &amp;4B534154, !main%, &amp;05550000</code>
 
-<p>Bringing all of these changes together results in <function>PROCopen_main_window</function> looking as shown in <reference id="list-embed-tool-open"/>.</p>
+<p>With these changes included, <function>PROCopen_main_window</function> should now look as shown in <reference id="list-embed-tool-open"/>.</p>
 
 <code id="list-embed-tool-open" lang="bbcbasic" title="Opening the embedded toolbox">DEF PROCopen_main_window
 LOCAL screen_width%, screen_height%, window_width%, window_height%, main%, main_outline%
@@ -195,37 +233,9 @@ main%!28 = -1 : REM Window to open behind (-1 is top of stack)
 
 SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0
 
-REM Get the outline of the main window.
+REM Position the toolbox.
 
-!main_outline% = MainWindow%
-SYS &quot;Wimp_GetWindowOutline&quot;,,main_outline%
-
-REM Get the toolbox details
-
-!toolbox% = ToolBoxWindow%
-SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1
-
-REM Find the height of the toolbox pane's visible area.
-
-SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%
-pixel_height% = 2 ^ eigenfactor%
-
-box_height% = (main%!8 - pixel_height%) - (main_outline%!8 + pixel_height%)
-box_width% = 200
-
-REM Move the toolbox pane so that it's in the correct X and Y position
-REM relative to where the main window is to go.
-
-toolbox%!4 = main%!4                              : REM Visible Area X0
-toolbox%!8 = main_outline%!8 + pixel_height%      : REM Visible Area Y0
-toolbox%!12 = main%!4 + box_width%                : REM Visible Area X1
-toolbox%!16 = toolbox%!8 + box_height%            : REM Visible Area Y1
-
-REM Update the toolbox extent to suit the main window furniture.
-
-toolbox%!52 = toolbox%!44 + box_width%
-toolbox%!48 = toolbox%!56 - box_height%
-SYS &quot;Wimp_SetExtent&quot;, ToolBoxWindow%, toolbox% + 44
+PROCarrange_toolbox(main%, main_outline%, toolbox%)
 
 REM Open the toolbox pane at the top of the stack, nested into the main window.
 
@@ -293,7 +303,58 @@ NEXT icon%</code>
 
 <p>The coordinates passed to <swi>Wimp_ResizeIcon</swi> are <variable>xpos%</variable> and <variable>xpos%</variable> plus the icon width in the horizontal direction, along with the <maths>Y0</maths> and <maths>Y1</maths> extents of the work area inset by a single pixel.</p>
 
-<p>With these changes added to the code, the window should now look something like the one in <reference id="fig-embed-tool-complete" />.</p>
+<p>With these changes added to the code, <function>PROCarrange_toolbox()</function> should now look as seen in <reference id="list-embed-tool-arrange2"/>.</p>
+
+<code id="list-embed-tool-arrange2" lang="bbcbasic" title="Positioning the icons in the toolbox">DEF PROCarrange_toolbox(main%, main_outline%, toolbox%)
+LOCAL box_width%, box_height%, eigenfactor%, pixel_width%, pixel_height%, icon_height%, icon_width%, icon%
+
+REM Get the outline of the main window.
+
+!main_outline% = MainWindow%
+SYS &quot;Wimp_GetWindowOutline&quot;,,main_outline%
+
+REM Get the toolbox details
+
+!toolbox% = ToolBoxWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,toolbox% OR %1
+
+REM Find the height of the toolbox pane's visible area.
+
+SYS &quot;OS_ReadModeVariable&quot;, -1, 5 TO ,,eigenfactor%
+pixel_height% = 2 ^ eigenfactor%
+
+box_height% = (main%!8 - pixel_height%) - (main_outline%!8 + pixel_height%)
+icon_height% = box_height% - 2 * pixel_height%
+
+SYS &quot;OS_ReadModeVariable&quot;, -1, 4 TO ,,eigenfactor%
+pixel_width% = 2 ^ eigenfactor%
+
+icon_width% = (icon_height% + (pixel_width% - 1)) AND (NOT pixel_width%)
+box_width% = toolbox%!88 * (icon_width% + pixel_width%) + pixel_width%
+
+REM Move the toolbox pane so that it's in the correct X and Y position
+REM relative to where the main window is to go.
+
+toolbox%!4 = main%!4                          : REM Visible Area X0
+toolbox%!8 = main_outline%!8 + pixel_height%  : REM Visible Area Y0
+toolbox%!12 = main%!4 + box_width%            : REM Visible Area X1
+toolbox%!16 = toolbox%!8 + box_height%        : REM Visible Area Y1
+
+REM Update the toolbox extent to suit the main window furniture.
+
+toolbox%!52 = toolbox%!44 + box_width%
+toolbox%!48 = toolbox%!56 - box_height%
+SYS &quot;Wimp_SetExtent&quot;, ToolBoxWindow%, toolbox% + 44
+
+REM Adjust the icon positions to suit the toolbox extent.
+
+FOR icon% = 0 TO toolbox%!88 - 1
+	xpos% = toolbox%!44 + icon% * (icon_width% + pixel_width%) + pixel_width%
+	SYS &quot;Wimp_ResizeIcon&quot;, ToolBoxWindow%, icon%, xpos%, toolbox%!48 + pixel_height%, xpos% + icon_width%, toolbox%!56 - pixel_height%
+NEXT icon%
+ENDPROC</code>
+
+<p>When the code is run, the window should now look something like the one in <reference id="fig-embed-tool-complete" />.</p>
 
 <image id="fig-embed-tool-complete" file="embed-tool-complete.png" title="The embedded toolbox complete with icons"/>
 
@@ -307,9 +368,13 @@ NEXT icon%</code>
 <section>
 <title>Changes of mode</title>
 
-<p>Although our new toolbox
+<p>Although our new toolbox appears to be working nicely, there is one gotcha waiting to bite. The layout of the child window relative to its parent depends on the size of a pixel in the current screen mode at the time when the window was opened, so what happens if the mode changes whilst the window is on screen?</p>
 
+<p>The answer, of course, is that things may end up going out of alignment. <reference id="fig-embed-tool-mode-change"/> shows the window after a change in mode: in this case from &ldquo;Big Mode&rdquo; (a mode where the X and Y eigenfactors are both zero) to a mode with more conventional settings (with eigenfactors of one). The icons are no longer spaced neatly and, worse, the toolbox window is no longer aligned with the main window furniture.</p>
 
+<image id="fig-embed-tool-mode-change" file="embed-tool-mode-change.png" title="The carefully-aligned windows may not survive a mode change"/>
+
+<p>Fortunately the solution is simple: if a mode change occurs whilst our window is open, we should calculate all of the positioning again and then re-open it.</p>
 
 </section>
 </chapter>
