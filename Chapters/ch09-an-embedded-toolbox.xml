@@ -368,14 +368,79 @@ ENDPROC</code>
 <section>
 <title>Changes of mode</title>
 
-<p>Although our new toolbox appears to be working nicely, there is one gotcha waiting to bite. The layout of the child window relative to its parent depends on the size of a pixel in the current screen mode at the time when the window was opened, so what happens if the mode changes whilst the window is on screen?</p>
+<p>Although our new toolbox appears to be working nicely, there is one gotcha waiting to bite. The layout of the child window relative to its parent depends on the size of a pixel in the current screen mode at the time when the window was opened, so what happens if the mode is changed whilst the window is on screen?</p>
 
 <p>The answer, of course, is that things may end up going out of alignment. <reference id="fig-embed-tool-mode-change"/> shows the window after a change in mode: in this case from &ldquo;Big Mode&rdquo; (a mode where the X and Y eigenfactors are both zero) to a mode with more conventional settings (with eigenfactors of one). The icons are no longer spaced neatly and, worse, the toolbox window is no longer aligned with the main window furniture.</p>
 
 <image id="fig-embed-tool-mode-change" file="embed-tool-mode-change.png" title="The carefully-aligned windows may not survive a mode change"/>
 
-<p>Fortunately the solution is simple: if a mode change occurs whilst our window is open, we should calculate all of the positioning again and then re-open it.</p>
+<p>Fortunately the solution is simple: if a mode change occurs whilst our window is open, we should calculate all of the positioning again and then re-open it. Recalculating the position is fairly straight forward, as we can re-use the positioning code in <function>PROCarrange_toolbox()</function> to do the hard work. We start out by setting up the pointers in <variable>main%</variable>, <variable>toolbox%</variable> and <variable>main_outline%</variable>, before calling <swi>Wimp_GetWindowInfo</swi> for the main window. We have separated this out from <function>PROCarrange_toolbox()</function> because we must check that the window is actually open before doing any re-arranging &ndash; this can be done by testing the window flags in the usual way.</p>
 
+<p>We don&rsquo;t call <swi>Wimp_OpenWindow</swi> for the main window, as it should already have been positioned in a suitable place for the new mode by the Wimp. Instead, we call <function>PROCarrange_toolbox()</function> to calculate the toolbox position, then call <swi>Wimp_OpenWindow</swi> to apply it. In contrast to the code in <function>PROCopen_main_window</function>, we do <em>not</em> adjust the position of the toolbox in the window stack and so it should remain in the correct position relative to its parent.</p>
+
+<p>Bringing all of this code together results in the procedure in <reference id="list-embed-tool-recalc"/>.</p>
+
+<code id="list-embed-tool-recalc" lang="bbcbasic" title="Recalculating the toolbox on a mode change">DEF PROCrecalculate_toolbox
+LOCAL main%, main_outline%, toolbox%
+
+REM Set up the memory blocks.
+
+main% = q%
+toolbox% = q% + 100
+main_outline% = q% + 200
+
+REM Get the main window details.
+
+!main% = MainWindow%
+SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %1
+
+REM If the main window isn't open, do nothing.
+
+IF (main%!32 AND &amp;10000) = 0 THEN ENDPROC
+
+REM Reposition the toolbox.
+
+PROCarrange_toolbox(main%, main_outline%, toolbox%)
+
+REM Reopen the toolbox pane nested into the main window.
+
+SYS &quot;Wimp_OpenWindow&quot;,,toolbox%, &amp;4B534154, !main%, &amp;05550000
+ENDPROC</code>
+
+<p>In order to be able to call <function>PROCrecalculate_toolbox</function> whenever the mode changes, we will need to listen out for the <name>Message_ModeChange</name> User Message, which has the code &amp;400C1. The Wimp sends this around all interested applications once a mode change has completed, and it will give us the cue that we require.</p>
+
+<p>In order to be sent <name>Message_ModeChange</name>, we will need to update <function>PROCinitialise</function> so that our call to <swi>Wimp_Initialise</swi> includes a request to receive it. Up to now, we have passed zero in <name>R3</name>, which indicates that we only wish to receive the obligatory <name>Message_Quit</name>. To add <name>Message_ModeChange</name> to the messages that the Wimp will send us, we need to create a list of the message numbers that interest us in memory, then pass a pointer to that in <name>R3</name> instead. The list is zero-terminated, which happens to also correspond to <name>Message_Quit</name>.</p>
+
+<code lang="bbcbasic">
+q%!0 = &amp;400C1 : REM Message_ModeChange
+q%!4 = 0      : REM Message_Quit &amp; End of List
+
+SYS "Wimp_Initialise", 380, &amp;4B534154, TaskName$, q%</code>
+
+<p>To allow us to handle the new message, we will update the <keyword>CASE</keyword> which dispatches our <swi>Wimp_Poll</swi> events. Instead of simply setting the <variable>Quit%</variable> variable to <name>TRUE</name> when <name>Message_Quit</name> is received, we will instead call a new procedure called <function>PROCuser_message()</function> which can then the different codes which are received.</p>
+
+<code lang="bbcbasic">CASE reason% OF
+  WHEN 2      : SYS "Wimp_OpenWindow",,b%
+  WHEN 3      : SYS "Wimp_CloseWindow",,b%
+  WHEN 6      : PROCmouse_click(b%)
+  WHEN 9      : PROCmenu_selection(b%)
+  WHEN 17, 18 : PROCuser_message(b%)
+ENDCASE</code>
+
+<p><function>PROCuser_message()</function> itself is fairly simple. It contains a <keyword>CASE</keyword> structure to test the reason code of the incoming message, and call appropriate code in each case. A <name>Message_Quit</name> still sets the <variable>Quit%</variable> variable to <name>TRUE</name>, while <name>Message_ModeChange</name> will in turn call the new <function>PROCrecalculate_toolbox</function> procedure.</p>
+
+<code id="list-embed-user-message" lang="bbcbasic" title="Handling user messages">DEF PROCuser_message(b%)
+CASE b%!16 OF
+WHEN 0      : REM Message_Quit
+  Quit% = TRUE
+WHEN &amp;400C1 : REM Message_ModeChange
+  PROCrecalculate_toolbox
+ENDCASE
+ENDPROC</code>
+
+<p>With all of these changes in place, the full application can be found in <reference id="dl-embed-tool-modes"/>.</p>
+
+<download id="dl-embed-tool-modes" file="Embedded3" title="Updating the toolbox over mode changes" compatibility="armv7"/>
 </section>
 </chapter>
 </manual>
