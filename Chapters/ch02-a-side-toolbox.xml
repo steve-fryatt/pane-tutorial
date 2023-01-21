@@ -60,9 +60,9 @@
 
 <image id="fig-side-box-template" file="side-box-template.png" title="Editing the toolbox pane in WinEd"/>
 
-<p>Next, we must adjust the window&rsquo;s flags and parameters to meet the requirements of a toolbox pane, as seen in <reference id="fig-side-box-flags"/>. This is the <window>Edit window</window> dialogue in <cite>WinEd</cite>; other template editors will have a close equivalent.</p>
+<p>Next,'' we must adjust the window&rsquo;s flags and parameters to meet the requirements of a toolbox pane, as seen in <reference id="fig-side-box-flags"/>. This is the <window>Edit window</window> dialogue in <cite>WinEd</cite>; other template editors will have a close equivalent.</p>
 
-<p>The first action is to turn off <em>all</em> of the window furniture &ndash; including the title bar. The pane won&rsquo;t be able to move independently of the window that it&rsquo;s attached to, so there&rsquo;s no need to give the user the option of trying! Under the heading of <icon>Window behaviour</icon>, the <icon>Moveable</icon> flag is also unset &ndash; this corresponds to the &lsquo;window is moveable&rsquo; flag in bit&nbsp;1 of the window flags, and indicates that the <em>user</em> can&rsquo;t initiate window movement &ndash; the <em>application</em> still can, though.</p>
+<p>Our first action is to turn off <em>all</em> of the window furniture &ndash; including the title bar. The pane won&rsquo;t be able to move independently of the window that it&rsquo;s attached to, so there&rsquo;s no need to give the user the option of trying! Under the heading of <icon>Window behaviour</icon>, the <icon>Moveable</icon> flag is also unset &ndash; this corresponds to the &lsquo;window is moveable&rsquo; flag in bit&nbsp;1 of the window flags, and indicates that the <em>user</em> can&rsquo;t initiate window movement &ndash; the <em>application</em> still can, though.</p>
 
 <image id="fig-side-box-flags" file="side-box-flags.png" title="Editing the pane&rsquo;s window flags in WinEd"/>
 
@@ -89,7 +89,7 @@ SYS &quot;Wimp_CreateWindow&quot;,,b% TO ToolBoxWindow%</code>
 <code lang="bbcbasic">WHEN 2      : SYS &quot;Wimp_OpenWindow&quot;,,b%
 WHEN 3      : SYS &quot;Wimp_CloseWindow&quot;,,b%</code>
 
-<p>These just pass the requests straight back to the Wimp to handle, which is all that&rsquo;s necessary for a simple application. If we want to adjust the position of the toolbox pane whenever the main window moves, however, then we will need to do a bit more work. To keep <function>PROCpoll</function> tidy, we will define two new event handling procedures &ndash; <function>PROCopen_window_request()</function> and <function>PROCclose_window_request()</function> &ndash; and use these to replace the calls to <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi>, as seen in <reference id="list-side-box-poll"/>.</p>
+<p>These just pass the requests straight back to the Wimp to handle, which is all that&rsquo;s necessary for a simple application. If we want to adjust the position of the toolbox pane whenever the main window moves, however, then we will need to do a bit more work. To keep <function>PROCpoll</function> tidy, we will define two new event handling procedures &ndash; <function>PROCopen_window_request</function> and <function>PROCclose_window_request</function> &ndash; and use these to replace the calls to <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi>, as seen in <reference id="list-side-box-poll"/>.</p>
 
 <code id="list-side-box-poll" lang="bbcbasic" title="Handling events for the toolbox pane">DEF PROCpoll
 LOCAL reason%
@@ -107,7 +107,7 @@ ENDPROC</code>
 
 <p>Before either of these two new procedures will do anything, they will check the handle of the window to which the event applies. If it&rsquo;s the handle of the main window, then they will need to do the work required to handle the pane as well; for any other window, they can simply call the appropriate Wimp SWI as before.</p>
 
-<p>In the case of <function>PROCopen_window_request()</function>, we will change the code so that any <name>Open_Window_Request</name> events relating to the main window are passed on once again to another new procedure: <function>PROChandle_pane_windows()</function>. Events for other windows will simply be passed on to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-box-poll-open"/>; We&rsquo;ll worry about what <function>PROChandle_pane_windows()</function> looks like later on.</p>
+<p>In the case of <function>PROCopen_window_request</function>, we will change the code so that any <name>Open_Window_Request</name> events relating to the main window are passed on once again to another new procedure: <function>PROChandle_pane_windows</function>. Events for other windows will simply be passed on to the <swi>Wimp_OpenWindow</swi> SWI. This code to do this can be seen in <reference id="list-side-box-poll-open"/>; We&rsquo;ll worry about what <function>PROChandle_pane_windows</function> looks like later on.</p>
 
 <code id="list-side-box-poll-open" lang="bbcbasic" title="Dealing with Open Window Request events">DEF PROCopen_window_request(b%)
 IF !b% = MainWindow% THEN
@@ -117,7 +117,7 @@ ELSE
 ENDIF
 ENDPROC</code>
 
-<p>Of course, if the main window and its toolbox should be acting as one then, in addition to moving when the main window moves, the pane should be closed when the main window closes. We can look after this in a very similar way with our new <function>PROCclose_window_request()</function> procedure, seen in <reference id="list-side-box-poll-close"/>. If the window being closed is the main window, then the toolbox window will be closed first; either way, the window referenced by the event is closed afterwards.</p>
+<p>Of course, if the main window and its toolbox should be acting as one then, in addition to moving when the main window moves, the pane should be closed when the main window closes. We can look after this in a very similar way with our new <function>PROCclose_window_request</function> procedure, seen in <reference id="list-side-box-poll-close"/>. If the window being closed is the main window, then the toolbox window will be closed first; either way, the window referenced by the event is closed afterwards.</p>
 
 <code id="list-side-box-poll-close" lang="bbcbasic" title="Dealing with Close Window Request events">DEF PROCclose_window_request(b%)
 IF !b% = MainWindow% THEN
@@ -135,7 +135,7 @@ ENDPROC</code>
 q%!28 = -1 : REM Window to open behind (-1 is top of stack)
 SYS &quot;Wimp_OpenWindow&quot;,,q%</code>
 
-<p>This is just another call to <swi>Wimp_OpenWindow</swi>, so we can simply replace it with a call to <function>PROChandle_pane_windows()</function> in the same way as we have done in the <name>Open_Window_Request</name> event handler. This means that our new <function>PROCopen_main_window()</function> will look as seen in <reference id="list-side-box-open"/>.</p>
+<p>This is just another call to <swi>Wimp_OpenWindow</swi>, so we can simply replace it with a call to <function>PROChandle_pane_windows</function> in the same way as we have done in the <name>Open_Window_Request</name> event handler. This means that our new <function>PROCopen_main_window</function> will look as seen in <reference id="list-side-box-open"/>.</p>
 
 <code id="list-side-box-open" lang="bbcbasic" title="Opening the main window and its toolbox pane">DEF PROCopen_main_window
 LOCAL screen_width%, screen_height%, window_size%
@@ -180,14 +180,14 @@ q%!28 = -1 : REM Window to open behind (-1 is top of stack)
 PROChandle_pane_windows(q%)
 ENDPROC</code>
 
-<p>Aside from working out what goes into the <function>PROChandle_pane_windows()</function> procedure, that&rsquo;s all of the code that we will need in order to handle our new toolbox.</p>
+<p>Aside from working out what goes into the <function>PROChandle_pane_windows</function> procedure, that&rsquo;s all of the code that we will need in order to handle our new toolbox.</p>
 </section>
 
 
 <section>
 <title>Setting the visible area</title>
 
-<p>Now that we have ensured that our <function>PROChandle_pane_windows()</function> procedure will be called every time the positions of the main window and toolbox pane need to be updated, all that remains is to work out how to join the two windows together on screen.</p>
+<p>Now that we have ensured that our <function>PROChandle_pane_windows</function> procedure will be called every time the positions of the main window and toolbox pane need to be updated, all that remains is to work out how to join the two windows together on screen.</p>
 
 <p>The procedure takes a single parameter, <variable>main%</variable>, which is a pointer to the <swi>Wimp_WindowState</swi> block for the main window. Whether this arrived through <swi>Wimp_Poll</swi> into the block pointed to by <variable>b%</variable>, or was put into the block pointed to by <variable>q%</variable> using <swi>Wimp_WindowState</swi> in <function>PROCopen_main_window</function>, it contains details of where the main window is required to be opened.</p>
 
@@ -198,7 +198,7 @@ ENDPROC</code>
 !toolbox% = ToolBoxWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbox%</code>
 
-<p>We will start by positioning the toolbox in the <maths>X</maths> and <maths>Y</maths> dimensions by adjusting its visible area, so that it aligns with the main window. It will be useful later on for this code to be in a procedure of its own, so we will create one called <function>PROCposition_side_toolbox()</function> and call it as follows.</p>
+<p>We will start by positioning the toolbox in the <maths>X</maths> and <maths>Y</maths> dimensions by adjusting its visible area, so that it aligns with the main window. It will be useful later on for this code to be in a procedure of its own, so we will create one called <function>PROCposition_side_toolbox</function> and call it as follows.</p>
 
 <code lang="bbcbasic">PROCposition_side_toolbox(main%, toolbox%)</code>
 
@@ -223,7 +223,7 @@ toolbox%!8 = parent%!16 - height%         : REM Visible Area Y0</code>
 <code lang="bbcbasic">toolbox%!12 = parent%!4                   : REM Visible Area X1
 toolbox%!4 = parent%!4 - width%           : REM Visible Area X0</code>
 
-<p>Putting this all together results in <function>PROCposition_side_toolbox()</function> as seen in <reference id="list-side-box-tbox" />.</p>
+<p>Putting this all together results in <function>PROCposition_side_toolbox</function> as seen in <reference id="list-side-box-tbox" />.</p>
 
 <code id="list-side-box-tbox" lang="bbcbasic" title="The code to position the toolbox horizontally and vertically">DEF PROCposition_side_toolbox(parent%, toolbox%)
 LOCAL width%, height%
@@ -257,7 +257,7 @@ ENDPROC</code>
 
 <p>In a similar way, if a window with its pane flag set gains the caret, then the Wimp will give input focus to (and set the &lsquo;window has input focus&rsquo; flag at bit&nbsp;20 of the window flags for) the first window <em>below</em> it in the stack which is not a pane. Finally, when working out which bits of a window might need redrawing following a re-size, the Wimp will treat any panes immediately above it as being transparent &ndash; on the basis that the application may be about to move them anyway.</p>
 
-<p>Keeping the <maths>Z</maths> order of the windows correct is fairly straight-forward. The window state block for the main window contains the position in the window stack at which it should be opened, in terms of the handle of the window that it is positioned beneath at offset 28. Since the toolbox pane should be in front of the main window, then returning to <function>PROChandle_pane_windows()</function> following the call to <function>PROCposition_side_toolbox()</function>, we can copy this value into the pane&rsquo;s block so that the pane appears at the correct position in the stack.</p>
+<p>Keeping the <maths>Z</maths> order of the windows correct is fairly straight-forward. The window state block for the main window contains the position in the window stack at which it should be opened, in terms of the handle of the window that it is positioned beneath at offset 28. Since the toolbox pane should be in front of the main window, then returning to <function>PROChandle_pane_windows</function> following the call to <function>PROCposition_side_toolbox</function>, we can copy this value into the pane&rsquo;s block so that the pane appears at the correct position in the stack.</p>
 
 <code lang="bbcbasic">IF main%!28 &lt;&gt; ToolBoxWindow% THEN toolbox%!28 = main%!28</code>
 
@@ -271,7 +271,7 @@ ENDPROC</code>
 
 SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
 
-<p>Putting all of the code above together, <function>PROChandle_pane_windows()</function> will look as shown in <reference id="list-side-box-panes"/>.</p>
+<p>Putting all of the code above together, <function>PROChandle_pane_windows</function> will look as shown in <reference id="list-side-box-panes"/>.</p>
 
 <code id="list-side-box-panes" lang="bbcbasic" title="The code to position the pane and the main window">DEF PROChandle_pane_windows(main%)
 LOCAL toolbox%
@@ -343,7 +343,7 @@ SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
   SYS &quot;Wimp_OpenWindow&quot;,,toolbox%
 ENDIF</code>
 
-<p>The toolbox is anchored to the top and left sides of the visible area, so there&rsquo;s no need to check the right or bottom sides. Adding these changes to <function>PROChandle_pane_windows()</function> results in the code in <reference id="list-side-box-update" />.</p>
+<p>The toolbox is anchored to the top and left sides of the visible area, so there&rsquo;s no need to check the right or bottom sides. Adding these changes to <function>PROChandle_pane_windows</function> results in the code in <reference id="list-side-box-update" />.</p>
 
 <code id="list-side-box-update" lang="bbcbasic" title="Spotting and handling changes to the main window position">DEF PROChandle_pane_windows(main%)
 LOCAL toolbox%, top%, left%
@@ -408,7 +408,7 @@ ENDPROC</code>
 
 <image id="fig-side-box-draw-offscreen" file="side-box-draw-offscreen.png" title="Draw&rsquo;s toolbox stays on screen as long as possible"/>
 
-<p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROCposition_side_toolbox()</function>, where we set the coordinates of the pane&rsquo;s visible area. In the code above, we used the following fixed calculations:</p>
+<p>Since we have complete control over the positioning of the toolbox pane, this is easy to implement in our own application. The changes needed are all in <function>PROCposition_side_toolbox</function>, where we set the coordinates of the pane&rsquo;s visible area. In the code above, we used the following fixed calculations:</p>
 
 <code lang="bbcbasic">REM Move the pane so that it's in the correct X and Y position
 REM relative to where the main window is to go.

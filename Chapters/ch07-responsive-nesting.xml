@@ -107,7 +107,7 @@ SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;09A90000<
 
 <p>Fortunately, it&rsquo;s a similar process with the Nested Wimp as it was when we were doing things manually &ndash; although there is one optimisation that we can make this time around. Last time, we checked for the presence of the <swi>Wimp_ResizeIcon</swi> SWI when the application initialised, and omitted the resizing on systems where it wasn&rsquo;t available. Since this time we know that we&rsquo;re using the Nested Wimp, because we test for it in the <file>!Run</file> file, we also <em>know</em> that the SWI we need will be present &ndash; and so we can safely use it without any further checks.</p>
 
-<p>The actual process of moving the icon as the toolbar grows and shrinks is very similar under the Nested Wimp to how it was when we were handling the panes manually. We simply look out for <name>Open_Window_Request</name> events for the toolbar, and adjust the icon once we know the new position of its parent window. To this end, we will start by reinstating a call to <function>PROCopen_window_request()</function> in our <swi>Wimp_Poll</swi> routine from <function>PROCpoll</function>.</p>
+<p>The actual process of moving the icon as the toolbar grows and shrinks is very similar under the Nested Wimp to how it was when we were handling the panes manually. We simply look out for <name>Open_Window_Request</name> events for the toolbar, and adjust the icon once we know the new position of its parent window. To this end, we will start by reinstating a call to <function>PROCopen_window_request</function> in our <swi>Wimp_Poll</swi> routine from <function>PROCpoll</function>.</p>
 
 <code lang="bbcbasic">CASE reason% OF
   WHEN 2      : PROCopen_window_request(b%)
@@ -117,7 +117,7 @@ SYS &quot;Wimp_OpenWindow&quot;,,toolbar%, &amp;4B534154, !main%, &amp;09A90000<
   WHEN 17, 18 : IF b%!16 = 0 THEN Quit% = TRUE
 ENDCASE</code>
 
-<p>The new <function>PROCopen_window_request()</function> will be defined as shown in <reference id="list-resp-nest-poll"/>. We still call <swi>Wimp_OpenWindow</swi> to let the Wimp handle the opening of the window for us, but if the window in question is the main window, then we will call <function>PROCadjust_toolbar_content</function> to perform the toolbar icon updates.</p>
+<p>The new <function>PROCopen_window_request</function> will be defined as shown in <reference id="list-resp-nest-poll"/>. We still call <swi>Wimp_OpenWindow</swi> to let the Wimp handle the opening of the window for us, but if the window in question is the main window, then we will call <function>PROCadjust_toolbar_content</function> to perform the toolbar icon updates.</p>
 
 <code id="list-resp-nest-poll" lang="bbcbasic" title="The new Open Window Request event handler">DEF PROCopen_window_request(b%)
 SYS &quot;Wimp_OpenWindow&quot;,,b%

@@ -46,19 +46,19 @@
 <section>
 <p>In <reference id="chap-nest-wimp">the last chapter</reference>, we saw how the Nested Wimp can be used to look after a pane within our application&rsquo;s window. Whilst useful, however, this is no more than we can do easily by hand &ndash; as seen in the chapters before it.</p>
 
-<p>Those familiar with RISC&nbsp;OS will know that some applications handle their toolbars slightly differently, however. NetSurf is one such application, as seen in <reference id="fig-move-furniture-netsurf"/>, and we saw a much more elaborate example with Fireworkz back in <reference id="fig-col-head-fireworkz"/>.</p>
+<p>Those familiar with RISC&nbsp;OS will know that some applications handle their toolbars slightly differently, however. <cite>NetSurf</cite> is one such application, as seen in <reference id="fig-move-furniture-netsurf"/>, and we saw a much more elaborate example with <cite>Fireworkz</cite> back in <reference id="fig-col-head-fireworkz"/>.</p>
 
 <image id="fig-move-furniture-netsurf" file="move-furniture-netsurf.png" title="NetSurf&rsquo;s toolbar spans the whole width of the window frame"/>
 
-<p>Look closely at NetSurf&rsquo;s main browser window, and we can see that the toolbar extends across the full width of the window outline: on the right hand side, it even pushes the scroll bar down to make space for it. This <em>can</em> be done manually as well, by building a composite window consisting of many different panes in the way that Fireworkz does. If you have access to a copy of <link href="https://croftnuisk.co.uk/coltsoft/fireworkz">Fireworkz</link> and a tool like <link href="http://quantumsoft.riscository.com/#wimpinfo">WimpInfo</link> which will show the handles of windows on the desktop (both of which are free to download), it may be interesting to  count how many different panes are required to display a single Fireworkz document!</p>
+<p>Look closely at <cite>NetSurf</cite>&rsquo;s main browser window, and we can see that the toolbar extends across the full width of the window outline: on the right hand side, it even pushes the scroll bar down to make space for it. This <em>can</em> be done manually as well, by building a composite window consisting of many different panes in the way that <cite>Fireworkz</cite> does. If you have access to a copy of <link href="https://croftnuisk.co.uk/coltsoft/fireworkz">Fireworkz</link> and a tool like <link href="http://quantumsoft.riscository.com/#wimpinfo">WimpInfo</link> which will show the handles of windows on the desktop (both of which are free to download), it may be interesting to  count how many different panes are required to display a single Fireworkz document!</p>
 
-<p>NetSurf, on the other hand, uses the easy option and takes advantage of what the Nested Wimp calls <intro>Furniture Windows</intro>. When writing new software which isn&rsquo;t targetted at the &lsquo;retro&rsquo; scene, the simplicity of the Nested Wimp for this task almost certainly makes it the way to go.</p>
+<p><cite>NetSurf</cite>, on the other hand, uses the easy option and takes advantage of what the Nested Wimp calls <intro>Furniture Windows</intro>. When writing new software which isn&rsquo;t targetted at the &lsquo;retro&rsquo; scene, the simplicity of the Nested Wimp for this task almost certainly makes it the way to go.</p>
 </section>
 
 <section id="sect-move-furniture-full-width">
 <title>A full-width toolbar</title>
 
-<p>To show how this works, we will take the responsive toolbar that we created in the <reference id="chap-resp-nest">previous chapter</reference> and make it span the full width of the window &ndash; just like NetSurf&rsquo;s URL bar in <reference id="fig-move-furniture-netsurf"/>.</p>
+<p>To show how this works, we will take the responsive toolbar that we created in the <reference id="chap-resp-nest">previous chapter</reference> and make it span the full width of the window &ndash; just like <cite>NetSurf</cite>&rsquo;s URL bar in <reference id="fig-move-furniture-netsurf"/>.</p>
 
 <p>The first thing that we will need to do is make a couple of small changes to the window templates. The toolbar will need to be wide enough to span the full width of the main window <em>and</em> its furniture (the vertical scroll bar on the right), so we will need to increase the toolbar&rsquo;s work area by the width of that furniture. However, the Nested Wimp constrains child windows to the work area of their parent by default, so even if we did this, the toolbar would still be clipped such that it didn&rsquo;s obscure the main window&rsquo;s scroll bar.</p>
 

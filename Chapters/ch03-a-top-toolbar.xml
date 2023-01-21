@@ -82,7 +82,7 @@ SYS &quot;Wimp_CreateWindow&quot;,,b% TO ToolBarWindow%</code>
 <section>
 <title>Handling the new pane</title>
 
-<p>In terms of infrastructure to handle our new toolbar, there&rsquo;s not much to add since most of the hard work was done <reference id="chap-side-box">in the last chapter</reference>. All that we need to do is to make sure that the toolbar opens in the correct place relative to both the main window and the existing toolbox, which will be managed in <function>PROChandle_pane_windows()</function>, and that it closes when the main window closes. For the latter, we can update <function>PROCclose_window_request()</function> as shown in <reference id="list-top-bar-poll-close"/>, so that both panes are closed if the main window closes.</p>
+<p>In terms of infrastructure to handle our new toolbar, there&rsquo;s not much to add since most of the hard work was done <reference id="chap-side-box">in the last chapter</reference>. All that we need to do is to make sure that the toolbar opens in the correct place relative to both the main window and the existing toolbox, which will be managed in <function>PROChandle_pane_windows</function>, and that it closes when the main window closes. For the latter, we can update <function>PROCclose_window_request</function> as shown in <reference id="list-top-bar-poll-close"/>, so that both panes are closed if the main window closes.</p>
 
 <code id="list-top-bar-poll-close" lang="bbcbasic" title="Dealing with Close Window Request events">DEF PROCclose_window_request(b%)
 IF !b% = MainWindow% THEN
@@ -95,18 +95,18 @@ ENDIF
 SYS &quot;Wimp_CloseWindow&quot;,,b%
 ENDPROC</code>
 
-<p>The code that we need to add to <function>PROChandle_pane_windows()</function> should already be fairly familiar. First, we need to create a window state block for the toolbar pane, just as we do for the toolbox. To keep things simple, we&rsquo;ll borrow another 32 bytes from the <name>Open_Window_Request</name> event block, this time placing the toolbar pane&rsquo;s data at an offset of 128 bytes into the block.</p>
+<p>The code that we need to add to <function>PROChandle_pane_windows</function> should already be fairly familiar. First, we need to create a window state block for the toolbar pane, just as we do for the toolbox. To keep things simple, we&rsquo;ll borrow another 32 bytes from the <name>Open_Window_Request</name> event block, this time placing the toolbar pane&rsquo;s data at an offset of 128 bytes into the block.</p>
 
 <code lang="bbcbasic">toolbar% = main% + 128
 
 !toolbar% = ToolBarWindow%
 SYS &quot;Wimp_GetWindowState&quot;,,toolbar%</code>
 
-<p>We can then call a new procedure, <function>PROCposition_toolbar()</function>, to do the work of adjusting the toolbar&rsquo;s visible area to suit the position of the main window.</p>
+<p>We can then call a new procedure, <function>PROCposition_toolbar</function>, to do the work of adjusting the toolbar&rsquo;s visible area to suit the position of the main window.</p>
 
 <code lang="bbcbasic">PROCposition_toolbar(main%, toolbar%)</code>
 
-<p>This will work in a similar way to the <function>PROCposition_side_toolbox()</function> procedure that we <reference id="list-side-box-tbox">defined in the last chapter</reference> and takes two parameters: a pointer to the main window state block as <variable>parent%</variable>, and a pointer to the toolbar pane&rsquo;s window state block as <variable>toolbox%</variable>. We will pass <variable>main%</variable> and <variable>toolbar%</variable> to these respectively.</p>
+<p>This will work in a similar way to the <function>PROCposition_side_toolbox</function> procedure that we <reference id="list-side-box-tbox">defined in the last chapter</reference> and takes two parameters: a pointer to the main window state block as <variable>parent%</variable>, and a pointer to the toolbar pane&rsquo;s window state block as <variable>toolbox%</variable>. We will pass <variable>main%</variable> and <variable>toolbar%</variable> to these respectively.</p>
 
 <p>The calculations for the position of the toolbox will remain as they are, before which we will insert in a similar set of calculations for the new toolbar. To be able to do this, we&rsquo;ll need to know the height of the bar &ndash; which we can get from its visible area as before.</p>
 
@@ -153,7 +153,7 @@ ENDPROC</code>
 
 <p>Just as with our previous example, the two panes must appear directly in front of the main window in the window stack. The exact order doesn&rsquo;t matter to the Wimp, so we will choose to put the toolbar in front of the main window, and the toolbox in front of the toolbar. When deciding, it pays to look at positions where the different panes might overlap, and consider which will look best to the user.</p>
 
-<p>Returning to <function>PROChandle_pane_windows()</function>, we will start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox directly behind the window that&rsquo;s supposed to be in front of the main window, exactly <reference id="sect-side-box-stack">as we did before</reference>.</p>
+<p>Returning to <function>PROChandle_pane_windows</function>, we will start at the top of the pile of panes and work down towards the main window &ndash; so the first thing to open is the toolbox directly behind the window that&rsquo;s supposed to be in front of the main window, exactly <reference id="sect-side-box-stack">as we did before</reference>.</p>
 
 <code lang="bbcbasic">IF (main%!28 &lt;&gt; ToolBarWindow%) OR (toolbar%!28 &lt;&gt; ToolBoxWindow%) THEN toolbox%!28 = main%!28
 
@@ -184,7 +184,7 @@ SYS &quot;Wimp_OpenWindow&quot;,,main%</code>
   SYS &quot;Wimp_OpenWindow&quot;,,toolbar%
 ENDIF</code>
 
-<p>Putting all of the new code together with the old, <function>PROChandle_pane_windows()</function> now looks as shown in <reference id="list-top-bar-panes"/>.</p>
+<p>Putting all of the new code together with the old, <function>PROChandle_pane_windows</function> now looks as shown in <reference id="list-top-bar-panes"/>.</p>
 
 <code id="list-top-bar-panes" lang="bbcbasic" title="The code to position both of the panes and the main window">DEF PROChandle_pane_windows(main%)
 LOCAL toolbox%, toolbar%, top%, left%, right%
@@ -300,7 +300,7 @@ ENDPROC</code>
 
 <p>As it is, this isn&rsquo;t an enormous problem, and a simple solution might just be to have the toolbox fixed so that it doesn&rsquo;t push back over the main window.</p>
 
-<p>An alternative approach would be to push the toolbox down the side of the main window, so that it sits below the base of the toolbar. This is simple enough to do, and can be achieved by adding in a vertical offset to the calculation in <function>PROCposition_side_toolbox()</function>, which sets the vertical position of the toolbox relative to the top of the parent window&rsquo;s visible area &ndash; the changes required can be seen in <reference id="list-top-bar-offset-toolbox"/>.</p>
+<p>An alternative approach would be to push the toolbox down the side of the main window, so that it sits below the base of the toolbar. This is simple enough to do, and can be achieved by adding in a vertical offset to the calculation in <function>PROCposition_side_toolbox</function>, which sets the vertical position of the toolbox relative to the top of the parent window&rsquo;s visible area &ndash; the changes required can be seen in <reference id="list-top-bar-offset-toolbox"/>.</p>
 
 <code id="list-top-bar-offset-toolbox" lang="bbcbasic" title="Offsetting the toolbox so that it can clear the toolbar">DEF PROCposition_side_toolbox(parent%, toolbox%, offset%)
 LOCAL width%, height%
@@ -330,7 +330,7 @@ toolbox%!16 = parent%!16 - offset%            : REM Visible Area Y1
 ENDPROC
 </code>
 
-<p>To be able to supply this information, we will also need to know the height of the toolbar: to this end, we will convert the <function>PROCposition_toolbar()</function> procedure into the <function>FNposition_toolbar()</function> function, which returns this information. The change can be seen in <reference id="list-top-bar-offset-toolbar"/>.</p>
+<p>To be able to supply this information, we will also need to know the height of the toolbar: to this end, we will convert the <function>PROCposition_toolbar</function> procedure into the <function>FNposition_toolbar</function> function, which returns this information. The change can be seen in <reference id="list-top-bar-offset-toolbar"/>.</p>
 
 <code id="list-top-bar-offset-toolbar" lang="bbcbasic" title="Calculating the required size of the offset">DEF FNposition_toolbar(parent%, toolbar%)
 LOCAL height%
@@ -349,7 +349,7 @@ toolbar%!16 = parent%!16                  : REM Visible Area Y1
 
 =height%</code>
 
-<p>Tying these two changes together is simply a case of updating <function>PROChandle_pane_windows()</function> so that it stores the value returned by <function>FNposition_toolbar()</function> and passes it on to <function>PROCposition_side_toolbox()</function> as seen in <reference id="list-top-bar-offset-tie" />.</p>
+<p>Tying these two changes together is simply a case of updating <function>PROChandle_pane_windows</function> so that it stores the value returned by <function>FNposition_toolbar</function> and passes it on to <function>PROCposition_side_toolbox</function> as seen in <reference id="list-top-bar-offset-tie" />.</p>
 
 <code id="list-top-bar-offset-tie" lang="bbcbasic" title="Passing the offset between panes">toolbar_height% = FNposition_toolbar(main%, toolbar%)
 PROCposition_side_toolbox(main%, toolbox%, toolbar_height%)</code>
@@ -380,7 +380,7 @@ ResizeIconAvailable% = ((flags% AND 1) = 0)</code>
 
 <p>The code attempts to read the number for the <swi>Wimp_ResizeIcon</swi> SWI; if the SWI doesn&rsquo;t exist, an error will be raised and the call will return with the V flag set. The value of the flag is tested, and the <variable>ResizeIconAvailable%</variable> variable set to <name>TRUE</name> or <name>FALSE</name> depending on the outcome. It&rsquo;s good practice to test for specific functionality when possible, instead of testing Wimp or OS version numbers &ndash; aside from anything else, it&rsquo;s much easier to keep on top of in terms of code complexity!</p>
 
-<p>The resizing operation itself can be performed in <function>PROChandle_pane_windows()</function>, immediately after the position of the toolbar window has been set. The code required can be seen in <reference id="list-top-bar-resize-icon"/> &ndash; it has been bracketed in an <keyword>IF ... ENDIF</keyword> statement, so that it will only be called if the <swi>Wimp_ResizeIcon</swi> SWI is available.</p>
+<p>The resizing operation itself can be performed in <function>PROChandle_pane_windows</function>, immediately after the position of the toolbar window has been set. The code required can be seen in <reference id="list-top-bar-resize-icon"/> &ndash; it has been bracketed in an <keyword>IF ... ENDIF</keyword> statement, so that it will only be called if the <swi>Wimp_ResizeIcon</swi> SWI is available.</p>
 
 <code id="list-top-bar-resize-icon" lang="bbcbasic" title="Resizing the writeable icon">IF ResizeIconAvailable% THEN
   icon% = main% + 192

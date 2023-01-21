@@ -96,7 +96,7 @@ ENDPROC</code>
 
 <p>For now, we do very little in the way of initialisation. The global variable <variable>Quit%</variable> is initialised to <name>FALSE</name>, to ensure that the appliction does not exit immediately, and a couple of buffers &ndash; pointed to by the variables <variable>b%</variable> and <variable>q%</variable> &ndash; are initialised to 1024 and 256 bytes respectively (remembering that in BASIC, <keyword>DIM</keyword> includes zero in its byte count). Whilst these will both be used as general purpose buffers, <variable>b%</variable> will be used as a store for loading template definitions and be passed as the event block to <swi>Wimp_Poll</swi>; <variable>q%</variable> will mostly be used as a second parameter block when calling other Wimp SWIs.</p>
 
-<p>The program indicates that it knows about Wimp version 3.10 by passing <code>310</code> in <name>R1</name> to <swi>Wimp_Initialise</swi>: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications will usually aim for RISC&nbsp;OS&nbsp;3.1 as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. The <code>310</code> means that <swi>Wimp_Initialise</swi> will expect to be passed a pointer to a zero-terminated list of user messages that the application requires in <name>R3</name>; we only care about <name>Message_Quit</name>, however, so we can simply pass <code>0</code> (a &ldquo;null&rdquo; pointer) to say &ldquo;no other messages&rdquo;.</p>
+<p>The program indicates that it knows about Wimp version 3.10 by passing <const>310</const> in <name>R1</name> to <swi>Wimp_Initialise</swi>: whilst pane code will work on RISC&nbsp;OS&nbsp;2, modern applications will usually aim for RISC&nbsp;OS&nbsp;3.1 as a minimum, since a lot of now-standard functionality such was interactive help in menus as introduced at this point. The <const>310</const> means that <swi>Wimp_Initialise</swi> will expect to be passed a pointer to a zero-terminated list of user messages that the application requires in <name>R3</name>; we only care about <name>Message_Quit</name>, however, so we can simply pass <const>0</const> (a &ldquo;null&rdquo; pointer) to say &ldquo;no other messages&rdquo;.</p>
 
 <p>Error handling is looked after by <function>FNwimperror_program</function>, which can be seen in <reference id="list-example-app-error" />.</p>
 
@@ -164,7 +164,7 @@ Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
 
 PROCcreate_iconbar_icon(TaskSprite$)</code>
 
-<p>It uses a <function>PROCcreate_iconbar_icon()</function> procedure to do the hard work, which is defined in <reference id="list-example-app-ibar-icon"/>.</p>
+<p>It uses a <function>PROCcreate_iconbar_icon</function> procedure to do the hard work, which is defined in <reference id="list-example-app-ibar-icon"/>.</p>
 
 <code id="list-example-app-ibar-icon" lang="bbcbasic" title="Creating an iconbar icon">DEF PROCcreate_iconbar_icon(sprite$)
 q%!0 = -1
@@ -211,7 +211,7 @@ SYS &quot;Wimp_CloseTemplate&quot;</code>
 
 <p>The code opens the <file>Templates</file> file with <swi>Wimp_OpenTemplate</swi>, then loads the templates for the main window and program information window in turn. For each, a window is created immediately using <swi>Wimp_CreateWindow</swi>, with the handles being stored in the <variable>MainWindow%</variable> and <variable>InfoWindow%</variable> variables respectively. We also take the opportunity to calculate the width and height of the main window in OS&nbsp;Units, and store the values in the <variable>WindowWidth%</variable> and <variable>WindowHeight%</variable> variables for future reference.</p>
 
-<p>The code uses <function>PROCtemplate_load()</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI and expects there to be a global <variable>TemplateName%</variable> variable pointing to a 12 character, word-aligned buffer for holding the template names. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
+<p>The code uses <function>PROCtemplate_load</function>, which puts a friendly wrapping around the <swi>Wimp_LoadTemplate</swi> SWI and expects there to be a global <variable>TemplateName%</variable> variable pointing to a 12 character, word-aligned buffer for holding the template names. Its definition can be seen in <reference id="list-example-app-load-temp" />.</p>
 
 <code id="list-example-app-load-temp" lang="bbcbasic" title="Load a window template into memory">DEF PROCtemplate_load(name$, buffer%, size%, fonts%)
 LOCAL templ_size%, indir_size%, workspace%
@@ -286,11 +286,11 @@ ENDPROC</code>
 
 <p>This follows the standard approach to opening a window: obtain the parameter block required by <swi>Wimp_OpenWindow</swi> with a call to <swi>Wimp_GetWindowState</swi>, then adjust the parameters as required.</p>
 
-<p>If the window isn&rsquo;t currently on screen &ndash; which we can tell by looking at the &lsquo;window is open&rsquo; flag at bit&nbsp;16 of the window flags stored at offset 32 into the returned parameter block &ndash; then we take the opportunity to adjust the window&rsquo;s size and position so that its visible area is centred on the screen and as large as possible without filling more than three quarters of the display. The screen width and height are read using an <function>FNread_mode_dimension()</function> function that we&rsquo;ll define shortly, and this information is used to decide the maximum size that we wish the window to be. The window&rsquo;s visible area coordinates (at offsets 4 to 16 in the block) are then updated to centre the window. If the window is already open, we leave the coordinates alone as we don&rsquo;t want it to jump around or resize itself on screen. Finally, the scroll offsets &ndash; at offsets 20 and 24 into the block &ndash; are reset to zero so that the window appears fully scrolled to the top-left regardless of size.</p>
+<p>If the window isn&rsquo;t currently on screen &ndash; which we can tell by looking at the &lsquo;window is open&rsquo; flag at bit&nbsp;16 of the window flags stored at offset 32 into the returned parameter block &ndash; then we take the opportunity to adjust the window&rsquo;s size and position so that its visible area is centred on the screen and as large as possible without filling more than three quarters of the display. The screen width and height are read using an <function>FNread_mode_dimension</function> function that we&rsquo;ll define shortly, and this information is used to decide the maximum size that we wish the window to be. The window&rsquo;s visible area coordinates (at offsets 4 to 16 in the block) are then updated to centre the window. If the window is already open, we leave the coordinates alone as we don&rsquo;t want it to jump around or resize itself on screen. Finally, the scroll offsets &ndash; at offsets 20 and 24 into the block &ndash; are reset to zero so that the window appears fully scrolled to the top-left regardless of size.</p>
 
 <p>The handle of the window to open behind (at offset 28 into the block) is set to &minus;1, indicating &ldquo;at the top of the stack&rdquo;, and then the block is passed to <swi>Wimp_OpenWindow</swi> to perform the operation. Taken together, this will mean that if the user clicks on our iconbar icon and the window is not open, it will be opened in front of the other windows and centred on the screen. If the window <em>is</em> open, however, a click on the iconbar will simply bring it to the top of the stack in its current position.</p>
 
-<p>The <function>FNread_mode_dimension()</function> that is used to read the screen dimensions is defined in <reference id="list-example-app-mode-var" />.</p>
+<p>The <function>FNread_mode_dimension</function> that is used to read the screen dimensions is defined in <reference id="list-example-app-mode-var" />.</p>
 
 <code id="list-example-app-mode-var" lang="bbcbasic" title="Reading the screen dmode dimensions">DEF FNread_mode_dimension(pixelvar%, eigenvar%)
 LOCAL flags%, eigenfactor%, pixels%
@@ -346,7 +346,7 @@ IconbarMenu% = FNmenu_construct(&quot;PaneDemo&quot;, 2)
 PROCmenu_add_entry(IconbarMenu%, 0, &quot;Info&quot;, InfoWindow%)
 PROCmenu_add_entry(IconbarMenu%, 1, &quot;Quit&quot;, 0)</code>
 
-<p>The code initialises a gobal variable named <variable>MenuOpen%</variable>, which is used to track the handle of the currently open menu. It then uses <function>FNmenu_construct()</function> and <function>PROCmenu_add_entry()</function> to build up the menu structure in memory. A pointer to the structure is stored in the <variable>IconbarMenu%</variable> variable, so the the menu can be accessed again later.</p>
+<p>The code initialises a gobal variable named <variable>MenuOpen%</variable>, which is used to track the handle of the currently open menu. It then uses <function>FNmenu_construct</function> and <function>PROCmenu_add_entry</function> to build up the menu structure in memory. A pointer to the structure is stored in the <variable>IconbarMenu%</variable> variable, so the the menu can be accessed again later.</p>
 
 <p>The memory for the menu is allocated using the general purpose <function>FNmenu_construct</function>, which is defined in <reference id="list-example-app-menu-construct" />.</p>
 
@@ -411,9 +411,9 @@ IF (buffer% &lt;&gt; 0) THEN menu%!36 = menu%!36 OR &amp;100
 
 <p>Taking the menu title and the number of entries that it will contain as parameters, the function calculates the size of block required (at 28 bytes plus an additional 24 for each entry), then uses <keyword>DIM</keyword> to allocate the required amount. In fact, we allocate one additional byte, for reasons which will become apparent when we start to add entries to the block.</p>
 
-<p>The menu title is set up &ndash; using an indirected string, again allocated using <keyword>DIM</keyword>, if it contains more than twelve characters &ndash; and then the remainder of the menu header is filled in with the standard values. Finally each of the menu entries is initialised to be non-indirected, with an empty string and the default sets of flags. The final item has the menu flags set to &amp;80 to indicate that it is the last, while after the loop has completed, the first item will have its menu flags updated to include &amp;100 if the title was indirected.</p>
+<p>The menu title is set up &ndash; using an indirected string, again allocated using <keyword>DIM</keyword>, if it contains more than twelve characters &ndash; and then the remainder of the menu header is filled in with the standard values. Finally each of the menu entries is initialised to be non-indirected, with an empty string and the default sets of flags. The final item has the menu flags set to <const>&amp;80</const> to indicate that it is the last, while after the loop has completed, the first item will have its menu flags updated to include <const>&amp;100</const> if the title was indirected.</p>
 
-<p>With the structure set up, <function>PROCmenu_add_entry()</function>, as defined in <reference id="list-example-app-menu-entry" />, is used to fill in the entries.</p>
+<p>With the structure set up, <function>PROCmenu_add_entry</function>, as defined in <reference id="list-example-app-menu-entry" />, is used to fill in the entries.</p>
 
 <code id="list-example-app-menu-entry" lang="bbcbasic" title="Filling in the menu entries">DEF PROCmenu_add_entry(menu%, entry%, text$, sub_menu%)
 LOCAL definition%, buffer%, length%, width%
@@ -458,11 +458,11 @@ ENDPROC</code>
 
 <p>This routine takes a pointer to the menu block to be updated and the index of the target entry, along with the menu item text and a submenu pointer (which can be zero if not required). It starts by finding the address of the entry within the block by stepping through the menu structure, checking the &lsquo;last item&rsquo; flag bits as it goes. This way, there's no danger of inadvertently writing off the end of a menu block by getting entry numbers confused.</p>
 
-<p>Once the entry has been found, the text is stored in a similar way to that used by <function>FNmenu_construct()</function> for the menu title. If the text is twelve characters or less in length, then it is stored directly in the icon&rsquo;s data; otherwise, an indirected buffer is claimed, the text is stored in that, then the icon is configured to use it. The reason that <function>FNmenu_construct()</function> allocated an additional byte for the menu block lies here: if the final item&rsquo;s text is twelve characters long, then the <code>$</code> operator used to store the text will write its terminator into the byte immediately following the menu block!</p>
+<p>Once the entry has been found, the text is stored in a similar way to that used by <function>FNmenu_construct</function> for the menu title. If the text is twelve characters or less in length, then it is stored directly in the icon&rsquo;s data; otherwise, an indirected buffer is claimed, the text is stored in that, then the icon is configured to use it. The reason that <function>FNmenu_construct</function> allocated an additional byte for the menu block lies here: if the final item&rsquo;s text is twelve characters long, then the <code>$</code> operator used to store the text will write its terminator into the byte immediately following the menu block!</p>
 
 <p>With the item&rsquo;s text stored, the menu&rsquo;s width is updated to reflect it. This value is only used when the System Font is selected for the desktop, so the code assumes that characters are 16 OS&nbsp;Units wide for the purposes of the calculation. Finally, the submenu pointer is updated with the value supplied.</p>
 
-<p>With the menu created, we need to be able to open it on screen &ndash; a task which is carried out by <function>PROCmenu_create_iconbar()</function> in <reference id="list-example-app-menu-create" />.</p>
+<p>With the menu created, we need to be able to open it on screen &ndash; a task which is carried out by <function>PROCmenu_create_iconbar</function> in <reference id="list-example-app-menu-create" />.</p>
 
 <code id="list-example-app-menu-create" lang="bbcbasic" title="Creating an iconbar menu">DEF PROCmenu_create_iconbar(menu%, x%)
 LOCAL ptr%, height%
@@ -486,7 +486,7 @@ ENDPROC</code>
 
 <p>The <cite>Style Guide</cite> dictates that iconbar menus are opened 64 OS&nbsp;Units to the left of the mouse position, with their base 96 OS&nbsp;Units from the bottom of the screen. To achieve this, we step through the menu entries adding up the heights of each entry and its associated gap, plus any separators that they have. At the end of this, we will have one gap too many, so one is removed. Finally, the address of the menu block is stored in the global <variable>MenuOpen%</variable> for future reference, and the menu is opened with a call to <swi>Wimp_CreateMenu</swi>.</p>
 
-<p>This code needs to be called when the user clicks <mouse>Menu</mouse> on our iconbar icon, so we add a new entry to the <keyword>CASE</keyword> statements in <function>PROCmouse_click()</function> to handle it:</p>
+<p>This code needs to be called when the user clicks <mouse>Menu</mouse> on our iconbar icon, so we add a new entry to the <keyword>CASE</keyword> statements in <function>PROCmouse_click</function> to handle it:</p>
 
 <code lang="bbcbasic">CASE b%!12 OF
 WHEN -2 : REM Iconbar
@@ -498,7 +498,7 @@ WHEN -2 : REM Iconbar
   ENDCASE
 ENDCASE</code>
 
-<p>The final thing that we need to do is to handle <name>Menu_Selection</name> events, for which we will use <function>PROCmenu_selection()</function> as seen in <reference id="list-example-app-menu-select" />.</p>
+<p>The final thing that we need to do is to handle <name>Menu_Selection</name> events, for which we will use <function>PROCmenu_selection</function> as seen in <reference id="list-example-app-menu-select" />.</p>
 
 <code id="list-example-app-menu-select" lang="bbcbasic" title="Handling menu selections">DEF PROCmenu_selection(b%)
 LOCAL reopen%

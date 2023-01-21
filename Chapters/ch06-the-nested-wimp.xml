@@ -86,7 +86,7 @@ Run &lt;PaneDemo$Dir&gt;.!RunImage</code>
 
 <p>The big change between the two examples will be in how the toolbar pane is handled. Up to now, we have had to position our panes when the main window is initially opened, and then keep them up to date on every single <name>Open_Window_Request</name> event after that; we also need to remember to close them on the <name>Close_Window_Request</name> event. With the Nested Wimp we still need to position our panes when the window is initially opened, but when we do, we also let the Wimp know that they are attached to the main window &ndash; and more crucially, <em>how</em> they are attached.</p>
 
-<p>After that, with the main window and its toolbar open on screen, the Wimp deals with all of the positioning work that we have so far done by hand. This means that we can delete bot h <function>PROCopen_window_request()</function> and <function>PROCclose_window_request()</function>, because we no longer need to do any special work on <name>Open_Window_Request</name> or <name>Close_Window_Request</name> events. Instead, we can just pass them to the <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi> SWIs respectively, as we did before we added any panes to our application. As a result, <function>PROCpoll</function> can return to how it was in <reference id="chap-example-app"/>, as seen in <reference id="list-nest-wimp-poll"/>.</p>
+<p>After that, with the main window and its toolbar open on screen, the Wimp deals with all of the positioning work that we have so far done by hand. This means that we can delete both <function>PROCopen_window_request</function> and <function>PROCclose_window_request</function>, because we no longer need to do any special work on <name>Open_Window_Request</name> or <name>Close_Window_Request</name> events. Instead, we can just pass them to the <swi>Wimp_OpenWindow</swi> and <swi>Wimp_CloseWindow</swi> SWIs respectively, as we did before we added any panes to our application. As a result, <function>PROCpoll</function> can return to how it was in <reference id="chap-example-app"/>, as seen in <reference id="list-nest-wimp-poll"/>.</p>
 
 <code id="list-nest-wimp-poll" lang="bbcbasic" title="Our Wimp_Poll loop has become simpler again">DEF PROCpoll
 LOCAL reason%
@@ -157,11 +157,11 @@ main%!28 = -1 : REM Window to open behind (-1 is top of stack)</code>
 
 <code lang="bbcbasic">SYS &quot;Wimp_OpenWindow&quot;,,main%, &amp;4B534154, -1, &amp;0</code>
 
-<p>This extended form still takes a pointer to the window state block, but now <name>R2</name> contains the familiar Wimp magic constant of &amp;4B534154 &ndash; or &lsquo;TASK&rsquo; in ASCII. If present, this unlocks more functionality from the call: <name>R3</name> will then take the handle of this window&rsquo;s <intro>parent window</intro>, while <name>R4</name> takes the <intro>nesting flags</intro>.</p>
+<p>This extended form still takes a pointer to the window state block, but now <name>R2</name> contains the familiar Wimp magic constant of <const>&amp;4B534154</const> &ndash; or &lsquo;TASK&rsquo; in ASCII. If present, this unlocks more functionality from the call: <name>R3</name> will then take the handle of this window&rsquo;s <intro>parent window</intro>, while <name>R4</name> takes the <intro>nesting flags</intro>.</p>
 
-<p>For the main window, we supply a parent window handle of &minus;1 to indicate that it will be a <intro>top level window</intro> &ndash; that it is not to be treated as being nested within any other window. This makes it exactly the same as a window opened using the conventional version of the SWI. None of the nesting flags apply, so they are set to &amp;0.</p>
+<p>For the main window, we supply a parent window handle of <const>&minus;1</const> to indicate that it will be a <intro>top level window</intro> &ndash; that it is not to be treated as being nested within any other window. This makes it exactly the same as a window opened using the conventional version of the SWI. None of the nesting flags apply, so they are set to <const>&amp;0</const>.</p>
 
-<p>Previously, having called <swi>Wimp_OpenWindow</swi> for the main window, we would go on to call <function>PROChandle_pane_windows()</function> to set up and open the toolbar pane. Since positioning the windows is a one-off operation with the Nested Wimp, however, we will bring the code into <function>PROCopen_main_window</function>. Most of the code is identical to that which we have used before: getting the toolbar pane&rsquo;s details with <swi>Wimp_GetWindowState</swi>, then adjusting the position to suit the location of the main window.</p>
+<p>Previously, having called <swi>Wimp_OpenWindow</swi> for the main window, we would go on to call <function>PROChandle_pane_windows</function> to set up and open the toolbar pane. Since positioning the windows is a one-off operation with the Nested Wimp, however, we will bring the code into <function>PROCopen_main_window</function>. Most of the code is identical to that which we have used before: getting the toolbar pane&rsquo;s details with <swi>Wimp_GetWindowState</swi>, then adjusting the position to suit the location of the main window.</p>
 
 <code lang="bbcbasic">REM Get the toolbar details
 
@@ -272,7 +272,7 @@ toolbar%!16 = main%!16              : REM Visible Area Y1</code>
 
 <p>In contrast, we never change the vertical scroll offset. To make sure that the Nested Wimp doesn&rsquo;t either, we link it to the same part of the window as the visible area <maths>Y1</maths> value: %10 &ndash; &ldquo;Link to the right or top (<maths>X1</maths> or <maths>Y1</maths>) of the parent&rsquo;s visible area&rdquo; &ndash; from <reference id="table-nest-wimp-nest-values"/>.</p>
 
-<p>Putting these values together gives us %00&nbsp;00&nbsp;10&nbsp;00&nbsp;10&nbsp;10&nbsp;10&nbsp;01 for the top 16 bits of the nesting flags, or &amp;08A9 in hex. The bottom 16 bits are all clear, since we don&rsquo;t wish to have <swi>Wimp_OpenWindow</swi> updating the window flags, which gives a complete value of &amp;08A90000 for the nesting flags. <reference id="fig-nest-wimp-flags"/> shows how the value is assembled.</p>
+<p>Putting these values together gives us %00&nbsp;00&nbsp;10&nbsp;00&nbsp;10&nbsp;10&nbsp;10&nbsp;01 for the top 16 bits of the nesting flags, or &amp;08A9 in hex. The bottom 16 bits are all clear, since we don&rsquo;t wish to have <swi>Wimp_OpenWindow</swi> updating the window flags, which gives a complete value of <const>&amp;08A90000</const> for the nesting flags. <reference id="fig-nest-wimp-flags"/> shows how the value is assembled.</p>
 
 <image id="fig-nest-wimp-flags" file="nest-wimp-flags.png" title="Assembling the nesting flags" />
 </section>
@@ -281,7 +281,7 @@ toolbar%!16 = main%!16              : REM Visible Area Y1</code>
 <section>
 <title>A complete application</title>
 
-<p>Putting it all together, we can delete <function>PROChandle_pane_windows()</function>; all of the functionality is now in the new <function>PROCopen_main_window</function>, in <reference id="list-nest-wimp-open"/>.</p>
+<p>Putting it all together, we can delete <function>PROChandle_pane_windows</function>; all of the functionality is now in the new <function>PROCopen_main_window</function>, in <reference id="list-nest-wimp-open"/>.</p>
 
 <code id="list-nest-wimp-open" lang="bbcbasic" title="Opening the nested windows">DEF PROCopen_main_window
 LOCAL screen_width%, screen_height%, window_width%, window_height%, main%, toolbar%, bar_height%

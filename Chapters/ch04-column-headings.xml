@@ -87,7 +87,7 @@ SYS &quot;Wimp_CreateWindow&quot;,,b% TO InfoWindow%
 
 SYS &quot;Wimp_CloseTemplate&quot;</code>
 
-<p>Since there is no longer a toolbox to close when the main window closes, <function>PROCclose_window_request()</function> can be reduced to the code shown in <reference id="list-col-head-close"/>.</p>
+<p>Since there is no longer a toolbox to close when the main window closes, <function>PROCclose_window_request</function> can be reduced to the code shown in <reference id="list-col-head-close"/>.</p>
 
 <code id="list-col-head-close" lang="bbcbasic" title="Handling Close_Window_Request events for the main window">DEF PROCclose_window_request(b%)
 IF !b% = MainWindow% THEN
@@ -98,7 +98,7 @@ ENDIF
 SYS &quot;Wimp_CloseWindow&quot;,,b%
 ENDPROC</code>
 
-<p>Finally, <function>PROChandle_pane_windows()</function> can be simplified again; it is now as shown in <reference id="list-col-head-handle"/>. There&rsquo;s no longer any need to know the height of the toolbar, so <function>PROCposition_toolbar()</function> has returned to the procedure originally seen in <reference id="list-top-bar-tbar" />.</p>
+<p>Finally, <function>PROChandle_pane_windows</function> can be simplified again; it is now as shown in <reference id="list-col-head-handle"/>. There&rsquo;s no longer any need to know the height of the toolbar, so <function>PROCposition_toolbar</function> has returned to the procedure originally seen in <reference id="list-top-bar-tbar" />.</p>
 
 <code id="list-col-head-handle" lang="bbcbasic" title="Opening the toolbar in the correct place">DEF PROChandle_pane_windows(main%)
 LOCAL toolbar%, top%, left%, right%
@@ -169,7 +169,7 @@ ENDPROC
 
 <p>The problem that we have is that moving the scroll bars alters the scroll offsets for the main window&rsquo;s work area, but &ndash; as we noted above &ndash; the the scroll offsets for the work areas of our panes have always been left at zero. Up to now this has been the required behaviour, but this new example is calling for something different.</p>
 
-<p>To keep the pane&rsquo;s contents in alignment with that of the main window, we will need to ensure that its scroll offsets are updated correctly whenever we change its position in <function>PROCposition_toolbar()</function>. We only want the pane to track the main window&rsquo;s horizontal scrolling, so we can simply copy the X scroll offset from the main window block to the pane.</p>
+<p>To keep the pane&rsquo;s contents in alignment with that of the main window, we will need to ensure that its scroll offsets are updated correctly whenever we change its position in <function>PROCposition_toolbar</function>. We only want the pane to track the main window&rsquo;s horizontal scrolling, so we can simply copy the X scroll offset from the main window block to the pane.</p>
 
 <code lang="bbcbasic">toolbar%!20 = main%!20                  : REM X Scroll Offset</code>
 
@@ -177,7 +177,7 @@ ENDPROC
 
 <p>If the pane were up the side of the window instead of across the top, and the vertical extents were the same, it would be possible to copy the vertical scroll offset (at offset 24 into the window state block) across to the pane instead. This might be useful for a pane containing row numbers, as seen in the <reference id="fig-col-head-fireworkz"><cite>Fireworkz</cite> window above</reference>, for example.</p>
 
-<p>Putting the code together for the last time gives us <reference id="list-col-head-align"/>, showing <function>PROCposition_toolbar()</function> copying the horizontal scroll offset over to the pane.</p>
+<p>Putting the code together for the last time gives us <reference id="list-col-head-align"/>, showing <function>PROCposition_toolbar</function> copying the horizontal scroll offset over to the pane.</p>
 
 <code id="list-col-head-align" lang="bbcbasic" title="Opening the toolbar in the correct place">DEF PROCposition_toolbar(parent%, toolbar%)
 LOCAL height%
