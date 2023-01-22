@@ -417,7 +417,7 @@ q%!4 = 0      : REM Message_Quit &amp; End of List
 
 SYS "Wimp_Initialise", 380, &amp;4B534154, TaskName$, q%</code>
 
-<p>To allow us to handle the new message, we will update the <keyword>CASE</keyword> which dispatches our <swi>Wimp_Poll</swi> events as shown in <reference id="list-embed-tool-poll2"/>. Instead of simply setting the <variable>Quit%</variable> variable to <name>TRUE</name> when <name>Message_Quit</name> is received, we will instead call a new procedure called <function>PROCuser_message</function> which can then the different codes which are received.</p>
+<p>To allow us to handle the new message, we will update the <keyword>CASE</keyword> statement which dispatches our <swi>Wimp_Poll</swi> events as shown in <reference id="list-embed-tool-poll2"/>. Instead of simply setting the <variable>Quit%</variable> variable to <name>TRUE</name> when <name>Message_Quit</name> is received, we will instead call a new procedure called <function>PROCuser_message</function> which can then the different codes which are received.</p>
 
 <code id="list-embed-tool-poll2" lang="bbcbasic" title="Adding a user message handler to the event dispatch">CASE reason% OF
   WHEN 2      : SYS "Wimp_OpenWindow",,b%
