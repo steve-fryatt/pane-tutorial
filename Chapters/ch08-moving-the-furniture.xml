@@ -44,7 +44,7 @@
 <summary>Our panes don&rsquo;t have to be over the window&rsquo;s work area &ndash; we can turn them into window furniture, too!</summary>
 
 <section>
-<p>In <reference id="chap-nest-wimp">the last chapter</reference>, we saw how the Nested Wimp can be used to look after a pane within our application&rsquo;s window. Whilst useful, however, this is no more than we can do easily by hand &ndash; as seen in the chapters before it.</p>
+<p>In <reference id="chap-nest-wimp">the last chapter</reference>, we saw how the Nested Wimp can be used to look after a pane within our application&rsquo;s window. Whilst useful, however, this is no more than we can do easily by hand &ndash; as we&rsquo;ve already shown in the chapters before it.</p>
 
 <p>Those familiar with RISC&nbsp;OS will know that some applications handle their toolbars slightly differently, however. <cite>NetSurf</cite> is one such application, as seen in <reference id="fig-move-furniture-netsurf"/>, and we saw a much more elaborate example with <cite>Fireworkz</cite> back in <reference id="fig-col-head-fireworkz"/>.</p>
 
@@ -60,15 +60,15 @@
 
 <p>To show how this works, we will take the responsive toolbar that we created in the <reference id="chap-resp-nest">previous chapter</reference> and make it span the full width of the window &ndash; just like <cite>NetSurf</cite>&rsquo;s URL bar in <reference id="fig-move-furniture-netsurf"/>.</p>
 
-<p>The first thing that we will need to do is make a couple of small changes to the window templates. The toolbar will need to be wide enough to span the full width of the main window <em>and</em> its furniture (the vertical scroll bar on the right), so we will need to increase the toolbar&rsquo;s work area by the width of that furniture. However, the Nested Wimp constrains child windows to the work area of their parent by default, so even if we did this, the toolbar would still be clipped such that it didn&rsquo;s obscure the main window&rsquo;s scroll bar.</p>
+<p>The first thing that we will need to do is to make a couple of small changes to the window templates. The toolbar will need to be wide enough to span the full width of the main window <em>and</em> its furniture (the vertical scroll bar on the right), so we will need to increase the toolbar&rsquo;s work area by the width of that furniture. However, the Nested Wimp constrains child windows to the work area of their parent by default so, even if we do this, the toolbar would still be clipped such that it doesn&rsquo;t obscure the main window&rsquo;s scroll bar unless we also make a second change.</p>
 
-<p>To get around this, we need to designate the toolbar as being a <intro>Furniture Window</intro> so that the Nested Wimp knows to integrate it with the main window&rsquo;s furniture. This is done by setting the &lsquo;furniture&rsquo; flag at bit&nbsp;23 of the window flags; in <cite>WinEd</cite>, this is done by ticking <icon>Furniture / Foreground</icon> in the <icon>Window Behaviour</icon> section of the <window>Edit window</window> dialogue as seen in <reference id="fig-move-furniture-flags"/>.</p>
+<p>To make the design work, we will also need to designate the toolbar as being a <intro>Furniture Window</intro>, so that the Nested Wimp knows to integrate it with the main window&rsquo;s furniture. This is done by setting the &lsquo;furniture&rsquo; flag at bit&nbsp;23 of the window flags; in <cite>WinEd</cite>, this is done by ticking <icon>Furniture / Foreground</icon> in the <icon>Window Behaviour</icon> section of the <window>Edit window</window> dialogue as seen in <reference id="fig-move-furniture-flags"/>.</p>
 
 <image id="fig-move-furniture-flags" file="move-furniture-flags.png" title="Setting the furniture flag in WinEd"/>
 
-<p>The documentation notes that this flag &ldquo;has no meaning for top-level windows, so the bit should always be cleared in such cases to allow for future expansion&rdquo;.</p>
+<p>The documentation notes that this flag &ldquo;has no meaning for top-level windows, so the bit should always be cleared in such cases to allow for future expansion&rdquo;. Our toolbar is a child window, so this isn&rsquo;t a problem.</p>
 
-<p>The width of the toolbar work area is currently set to be the same as that of the main window work area, so this will need to be increased to allow the toolbar to extend over the space taken up by the vertical scroll bar. The problem is deciding how much to increase it by: we could simply add on the width of the scroll bar, but this isn&rsquo;t a fixed value under RISC&nbsp;OS because it depends on the toolsprites which are currently in use. We could guess at a number and double it, but that doesn&rsquo;t feel very satisfactory; a better option would be to leave the width the same as the main window, and adjust it when the windows are opened. As a result, with the &lsquo;furniture&rsquo; flag set, we can save the templates and move on to updating the program itself.</p>
+<p>The width of the toolbar work area is currently set to be the same as that of the main window work area, so this will need to be increased to allow the toolbar to extend over the space taken up by the vertical scroll bar. The problem is in deciding how much to increase it by: we could simply add on the width of the scroll bar, but this isn&rsquo;t a fixed value under RISC&nbsp;OS because it depends on the toolsprites which are currently in use. We could guess at a number and double it, but that doesn&rsquo;t feel very satisfactory; a better option would be to leave the width the same as the main window, and adjust it when the windows are opened. As a result, with the &lsquo;furniture&rsquo; flag set, we can save the templates and move on to updating the program itself.</p>
 </section>
 
 <section id="sect-move-furniture-details">
@@ -92,9 +92,9 @@ SYS &quot;Wimp_GetWindowInfo&quot;,,main% OR %1</code>
 !toolbar% = ToolBarWindow%
 SYS &quot;Wimp_GetWindowInfo&quot;,,toolbar% OR %1</code>
 
-<p>Note that in both cases we set bit&nbsp;0 of the address passed in <name>R1</name> using <keyword>OR</keyword>: this is important, as it tells the Wimp that we do <em>not</em> want it to return any icon details, and enables us to rely on the required block only being 92 bytes long. If we did wish to read the icon details, we would need to call the SWI twice: once with bit&nbsp;0 set to read the number of icons in the window, then again with bit&nbsp;0 clear after making sure that we had allocated sufficient space for all of the icon details to be returned.</p>
+<p>Note that in both cases we set bit&nbsp;0 of the address that we pass in <name>R1</name> using the <keyword>OR</keyword> keyword: this is important, as it tells the Wimp that we do <em>not</em> want it to return any icon details, and enables us to rely on the required block only being 92 bytes long. If we did wish to read the icon details, we would need to call the SWI twice: once as above with bit&nbsp;0 set to read the number of icons in the window, then again with bit&nbsp;0 clear after making sure that we had allocated sufficient space for all of the icon details to be returned.</p>
 
-<p>With the returned blocks now being 92 bytes long, instead of the 36 bytes from <swi>Wimp_GetWindowState</swi>, we will need to adjust the way that <variable>main%</variable> and <variable>toolbar%</variable> are assigned from the block pointed to by <variable>q%</variable> in order to avoid them overwriting each other.</p>
+<p>With the returned blocks now being 92 bytes long, instead of the 36 bytes from <swi>Wimp_GetWindowState</swi>, we will also need to adjust the way that <variable>main%</variable> and <variable>toolbar%</variable> are assigned from the block pointed to by <variable>q%</variable> in order to avoid them overwriting each other.</p>
 
 <code lang="bbcbasic">main% = q%
 toolbar% = q% + 100</code>
@@ -103,7 +103,7 @@ toolbar% = q% + 100</code>
 
 <image id="fig-move-furniture-anchor" file="move-furniture-anchor.png" title="Anchoring the toolbar to the main window" />
 
-<p>The outline of a window is something that we don't often see, since the Wimp usually works in terms of the visible area, but fortunately the <swi>Wimp_GetWindowOutline</swi> SWI will tell us almost everything that we need to know. We start by setting up a new variable, <variable>main_outline%</variable> to point to another unused bit of the block pointed to by <variable>q%</variable>.</p>
+<p>The outline of a window is something that we don't often see, since the Wimp usually works in terms of the visible area; fortunately, the <swi>Wimp_GetWindowOutline</swi> SWI will tell us almost everything that we need to know. We start by setting up a new variable, <variable>main_outline%</variable>, to point to another unused bit of the block pointed to by <variable>q%</variable>.</p>
 
 <code lang="bbcbasic">main% = q%
 toolbar% = q% + 100
@@ -127,9 +127,9 @@ toolbar%!16 = main%!16                            : REM Visible Area Y1</code>
 
 <image id="fig-move-furniture-coordinates" file="move-furniture-coordinates.png" title="The difference between visible area and outline coordinates" />
 
-<p>In practice, this specific instance does not matter too much: we&rsquo;re still using visible area for aligning the <maths>X0</maths> coordinates, so the horizontal work area coodinates for the two windows will be aligned and all that will happen is that we will include one pixel too many at the top end of the horizontal axis. The Wimp will clip this out for us, since child windows can&rsquo;t extend outside of their parents, and there will be no visible effects. However it <em>can</em> have an effect in some situations, as we&rsquo;ll see later on.</p>
+<p>In practice, it does not matter too much in this specific instance: we&rsquo;re still using visible area for aligning the <maths>X0</maths> coordinates, so the horizontal work area coodinates for the two windows will be aligned and all that will happen is that we will include one pixel too many at the top end of the horizontal axis. The Wimp will clip this out for us, since child windows can&rsquo;t extend outside of their parents, and there will be no visible effects. However it <em>can</em> have an effect in some situations, as we&rsquo;ll see later on.</p>
 
-<p>Before we call <swi>Wimp_OpenWindow</swi>, we will need to ensure that the horizontal extent of the toolbar is sufficient to allow it to extend across the full width of the main window&rsquo;s work area and the window furniture. To achieve this we take the width of the main window&rsquo;s work area (<code>main%!52 - main%!44</code>), then add on the width of the main window outline (<code>main_outline%!12 - main_outline%!4</code>) less the width of its visible area (<code>main%!12 - main%!4)</code>). This gives us the required horizontal extent.</p>
+<p>Before we call <swi>Wimp_OpenWindow</swi>, we will need to ensure that the horizontal extent of the toolbar is sufficient to allow it to extend across the full width of the main window&rsquo;s work area and the window furniture. To achieve this we take the width of the main window&rsquo;s work area (<code>main%!52 - main%!44</code>), then add on the width of the main window outline (<code>main_outline%!12 - main_outline%!4</code>) less the width of its visible area (<code>main%!12 - main%!4</code>). This gives us the required horizontal extent.</p>
 
 <p>The final step is to calculate the <maths>X1</maths> value of the extent by taking the value above and adding it to the <maths>X0</maths> value. This is used to update the extent values in the toolbar window block, before they are passed to <swi>Wimp_SetExtent</swi>.</p>
 
