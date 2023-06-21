@@ -60,7 +60,7 @@
 
 <image id="fig-side-box-template" file="side-box-template.png" title="Editing the toolbox pane in WinEd"/>
 
-<p>Next,'' we must adjust the window&rsquo;s flags and parameters to meet the requirements of a toolbox pane, as seen in <reference id="fig-side-box-flags"/>. This is the <window>Edit window</window> dialogue in <cite>WinEd</cite>; other template editors will have a close equivalent.</p>
+<p>Next, we must adjust the window&rsquo;s flags and parameters to meet the requirements of a toolbox pane, as seen in <reference id="fig-side-box-flags"/>. This is the <window>Edit window</window> dialogue in <cite>WinEd</cite>; other template editors will have a close equivalent.</p>
 
 <p>Our first action is to turn off <em>all</em> of the window furniture &ndash; including the title bar. The pane won&rsquo;t be able to move independently of the window that it&rsquo;s attached to, so there&rsquo;s no need to give the user the option of trying! Under the heading of <icon>Window behaviour</icon>, the <icon>Moveable</icon> flag is also unset &ndash; this corresponds to the &lsquo;window is moveable&rsquo; flag in bit&nbsp;1 of the window flags, and indicates that the <em>user</em> can&rsquo;t initiate window movement &ndash; the <em>application</em> still can, though.</p>
 
